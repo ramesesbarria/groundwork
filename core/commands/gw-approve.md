@@ -16,7 +16,7 @@ If the human didn't ask for this in their own words, stop and ask them to approv
    - any file it links to in `.groundwork/evidence/<card-id>/` is missing, or
    - any acceptance criterion is unchecked with no explanation next to it.
    When you refuse, say exactly what's missing. Don't fill it in yourself.
-3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, and caveats. It's the human's last look before the commit.
+3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, and caveats. It's the human's last look before the commit. Follow `experience` in the config as `gw-next` does: `new` always gets How to check; `experienced` gets a short summary.
 4. Set the card status to `done` and add a History line: date, "approved by human".
 5. Update `.groundwork/HANDOFF.md`: card done, and the next step. If this was the last card of its phase, the phase is closed: add its recap (below) and say "phase <n> approved" in HANDOFF.
 6. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` (or the config's `commitFormat`) and a short body saying what changed. Stage only this card's files.

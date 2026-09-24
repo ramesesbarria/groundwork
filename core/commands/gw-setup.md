@@ -12,9 +12,10 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 2. Ask these questions together, in plain English:
    - What's the project called, and what does it do, in one sentence?
    - Have you already chosen a stack (language, framework, database)? If yes, which?
+   - Are you new to building software, or experienced?
    - Do you want to check every piece of work before it's saved, or each milestone?
 
-   Save the answer as `approvalMode`: every piece of work → `per-card` (the default, if unsure); each milestone → `per-phase`.
+   Save the answers as `experience` (`new` or `experienced`) and `approvalMode`: every piece of work → `per-card`; each milestone → `per-phase`. If they're unsure about approval, use `per-card` for new and `per-phase` for experienced.
 3. If a stack is chosen, ask for the install, test, lint and build commands, suggesting the usual ones. Otherwise leave them empty until planning.
 4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.

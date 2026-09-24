@@ -23,6 +23,14 @@
         "per-phase"
       ]
     },
+    "experience": {
+      "description": "How much the agent explains. new: one sentence per step, How to check at every approval stop, a labeled recommendation for stack choices. experienced: terse, a short approval summary, options only unless asked. Read fresh each time, so it can change mid-project.",
+      "enum": [
+        "new",
+        "experienced"
+      ],
+      "default": "new"
+    },
     "tokenBudget": {
       "description": "Maximum estimated tokens for files loaded in every session (AGENTS.md plus always-on adapter files). Checked by `groundwork doctor`.",
       "type": "integer",

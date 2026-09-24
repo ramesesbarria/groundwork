@@ -54,14 +54,23 @@ Set `approvalMode` in `.groundwork/config.json`:
 
 Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).
 
+## Experience
+`experience` in `.groundwork/config.json` sets how much you explain. Read it each time (nothing else stores it), so it can change mid-project.
+
+| | `new` | `experienced` |
+|---|---|---|
+| Explanations | One sentence per step | Terse |
+| Approval stop | Always "How to check it yourself" | Short summary |
+| Stack decisions | A labeled recommendation | Options only, unless asked |
+
 ## Checks
 The project's test, lint and build commands are in `.groundwork/config.json`.
 
 - **Normally, all pass.** A card isn't done while any of them fails.
-- **With a baseline, no new failures.** An existing project may start with failures, recorded as a baseline in `.groundwork/evidence/baseline/` and named under "Known failing" in HANDOFF. Then a card passes if nothing fails that wasn't already failing. A card that fixes a baseline failure says so in its History, and the baseline is updated.
+- **With a baseline, no new failures.** An existing project may start with failures, saved in `.groundwork/evidence/baseline/` and named as "Known failing" in HANDOFF. A card then passes if nothing new fails. A card that fixes a baseline failure says so, and the baseline is updated.
 
 ## Stop only for
-While working through cards, and especially in `per-phase` mode, stop and ask the human only for:
+Especially in `per-phase` mode, stop and ask the human only for:
 - anything destructive, or that can't be undone (deleting data, rewriting history)
 - security-sensitive changes (logins, secrets, permissions)
 - a new dependency or a stack change (these need a decision record: `gw-decide`)
@@ -88,4 +97,4 @@ If your tool can't start separate agents, one session plays every role in turn:
 2. Finish the role completely, update the card status and HANDOFF, then switch.
 3. As reviewer, reread the diff from the start as if someone else wrote it. Don't rely on memory from implementing it.
 
-It's weaker than a truly fresh reviewer, which is why the reviewer reruns every check itself instead of trusting earlier output.
+It's weaker than a fresh reviewer, so the reviewer reruns every check itself.

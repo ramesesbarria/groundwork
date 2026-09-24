@@ -1,6 +1,7 @@
 {
   "$schema": "./config.schema.json",
   "approvalMode": "per-card",
+  "experience": "new",
   "tokenBudget": 2000,
   "guards": [],
   "commitFormat": "[{id}] {title}",
