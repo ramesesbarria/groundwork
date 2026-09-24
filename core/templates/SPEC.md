@@ -21,6 +21,11 @@ Status: draft · Last updated: {{date}}
 ## Constraints
 <!-- Legal, budget, hosting, performance or accessibility limits. Stack choices go in decisions/, not here. -->
 
+## Codebase map
+<!-- Where things live, in under about 20 lines: main folders, entry points, where tests live, anything
+     unusual. Setup writes it for an existing project (each item marked found or guessed); gw-plan keeps it
+     current. The roles read this before opening source files. -->
+
 ## Changes
 <!-- For an existing project: keep the sections above to a short "what the app does today", and add
      one sub-section per change you want, newest last:

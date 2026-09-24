@@ -14,7 +14,7 @@ Read only these:
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
 - The diff for this card (`git diff` against the last approved commit)
-- `.groundwork/SPEC.md`: the sections the card touches
+- `.groundwork/SPEC.md`: the sections the card touches, and the Codebase map if there is one, then only the files it points to
 - `.groundwork/LESSONS.md`
 
 ## Writes
