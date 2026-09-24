@@ -7,7 +7,7 @@ import { estimateTokens } from "../src/tokens.js";
 const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 const out = generateClaudeCode(core);
 
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume"];
+const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick"];
 const ROLES = ["planner", "tester", "implementer", "reviewer"];
 
 function frontmatter(md: string): Record<string, string> {
