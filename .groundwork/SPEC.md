@@ -32,7 +32,7 @@ It comes from real use. Its author built a portfolio, a church website and an ev
 | Rules | A long list with no reasons | Every rule records the mistake that created it |
 | Enforcement | Written instructions | Note → rule → guard that blocks the action |
 | Size | Grows forever | `doctor` measures the token cost and flags bloat |
-| Tools | Usually one | Markdown core + adapters, with an eval table as proof |
+| Tools | Usually one | Markdown core + adapters, each checked in its tool |
 | Progress | Lives in the chat | HANDOFF file, so any tool or model can resume |
 
 ---
@@ -260,17 +260,18 @@ Users can log in with email + password.
 ## 12. The Groundwork repo itself
 
 ```
-core/          # the markdown that gets copied: workflow, roles, templates
-adapters/
-  claude-code/
-  opencode/
-guards/        # built-in guards (e.g. no-ai-trailers, no-secrets-in-commits)
-cli/           # TypeScript, few dependencies, tested with vitest
-examples/
-  benchmark/   # a small sample app spec + 5 cards, used for evals
-docs/
-  case-study-gatherin.md
-  evals.md
+core/              # the markdown that gets copied into .groundwork/
+  workflow.md
+  commands/        # the gw-* commands, tool-neutral
+  roles/           # planner, tester, implementer, reviewer
+  templates/       # AGENTS.md, SPEC.md, HANDOFF.md, LESSONS.md, card, decision, config
+  guards/          # built-in guards (no-ai-trailers) and the runner that loads them
+cli/               # TypeScript, tested with vitest
+  src/             # init, adapter, status, doctor, retro
+  src/adapters/    # claude-code, opencode: generate tool files from core/
+  test/
+.groundwork/       # this repo's own spec, cards, decisions, evidence and lessons
+PLAN.md            # the current improvement plan
 ```
 
 **Dogfooding:** from v0.1 on, Groundwork is built with Groundwork. Its own `.groundwork/` folder is public, so anyone can check the commit trail.
@@ -284,14 +285,16 @@ docs/
 | **v0.1** | Core loop | Core markdown, 4 roles, cards, `gw-setup` (new projects), `gw-spec`, `gw-plan`, `gw-next`, `gw-approve`, `gw-reject`, `gw-handoff`, `gw-resume`, the Claude Code adapter, `groundwork init`, manual LESSONS ledger |
 | **v0.2** | Any tool | OpenCode adapter, guards plus their wiring, existing-project onboarding, `gw-decide`, `gw-ui-spec`, a "resume in a different tool" demo |
 | **v0.3** | Learns | `groundwork retro` with `/gw-retro`, the escalation ladder, `groundwork doctor` |
-| **v1.0** | Proof | Benchmark evals (Claude Code vs OpenCode + DeepSeek), Gatherin case study, demo GIF, polished README |
+| **v0.5** | Intuitive | The plan in `PLAN.md`: self-triggering commands, `/gw`, session-start orientation, plain approval stops, a friendlier loop for bugs, experiments and existing projects |
+| **v1.0** | Proven in use | A real app built end to end with Groundwork (card 6.1), an existing project onboarded, a case study, polished README |
+
+Evals and benchmarks of Groundwork itself come later, not a current goal.
 
 ---
 
 ## 14. Showcase checklist (why people check it out)
 
 - [ ] A 60-second demo GIF at the top of the README: idea → spec → first approved commit
-- [ ] Eval table: same benchmark on 2+ tools/models, with cards done, tests, human corrections and tokens
 - [ ] Case study: Gatherin phases, test counts and the approval trail, with honest numbers including failures
 - [ ] The "37 files → 3" story: why lean matters, with before/after token counts
 - [ ] A public dogfood trail: Groundwork's own `.groundwork/` folder

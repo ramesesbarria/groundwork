@@ -175,7 +175,7 @@ Groundwork was built card by card using its own process. The whole trail is publ
 - **Token counts are estimates** (characters ÷ 4), not a real tokenizer.
 - **There's no `upgrade` command.** A project installed with an older version keeps its older `.groundwork/`, and `doctor` can't tell it's behind.
 - **Setup for existing projects is untested** on a real codebase.
-- **No evals yet.** The planned benchmark comparing tools and models hasn't been run.
+- **No evals.** Benchmarks comparing tools and models come later; they're not a current goal.
 
 ## License
 

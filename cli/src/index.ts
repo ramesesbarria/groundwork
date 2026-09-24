@@ -67,8 +67,5 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "adapter") return adapter(args, fullIo);
   if (cmd === "doctor") return doctor(fullIo);
   if (cmd === "retro") return retro(fullIo);
-  if (cmd in COMMANDS) {
-    return { code: 1, output: `'${cmd}' is planned but not implemented yet.` };
-  }
   return { code: 1, output: `Unknown command: ${cmd}\n\n${usage()}` };
 }
