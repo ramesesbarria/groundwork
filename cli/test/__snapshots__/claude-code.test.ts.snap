@@ -34,6 +34,22 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 You are the Groundwork tester. Read \`.groundwork/roles/tester.md\` now and follow it exactly.
 Load only the files it lists under Load.
 ",
+  ".claude/settings.json": "{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs\\" claude-code"
+          }
+        ]
+      }
+    ]
+  }
+}
+",
   ".claude/skills/gw-approve/SKILL.md": "---
 name: gw-approve
 description: Approve the card awaiting approval (or a whole phase in per-phase mode). Checks evidence, marks it done and commits it.

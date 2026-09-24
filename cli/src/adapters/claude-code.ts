@@ -70,5 +70,23 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
     "",
   ].join("\n");
 
+  // Guards: every shell command and file write goes through the runner, which applies the guards
+  // listed in .groundwork/config.json (none by default). Exit code 2 blocks the action.
+  out[".claude/settings.json"] =
+    JSON.stringify(
+      {
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash|Write|Edit|MultiEdit",
+              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code' }],
+            },
+          ],
+        },
+      },
+      null,
+      2,
+    ) + "\n";
+
   return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)));
 }

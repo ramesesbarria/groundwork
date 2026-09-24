@@ -2,6 +2,7 @@
   "$schema": "./config.schema.json",
   "approvalMode": "per-card",
   "tokenBudget": 2000,
+  "guards": [],
   "commands": {
     "install": "",
     "test": "",

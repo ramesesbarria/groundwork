@@ -1,0 +1,25 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/guards.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/guards.test.ts [ test/guards.test.ts ]
+Error: Cannot find module '../src/settings.js' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/guards.test.ts
+ ❯ test/guards.test.ts:9:1
+      7| import { fileURLToPath, pathToFileURL } from "node:url";
+      8| import { run } from "../src/index.js";
+      9| import { mergeSettings } from "../src/settings.js";
+       | ^
+     10| import { readCore } from "../src/core.js";
+     11| import { generateClaudeCode } from "../src/adapters/claude-code.js";
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:32:59
+   Duration  184ms (worker 96%, environment 4%)
+

@@ -5,7 +5,7 @@ Every rule in this project starts here, with a note on the mistake that created 
 **Levels** (a lesson moves up when the same mistake happens again):
 - **NOTE**: recorded here only; the reviewer checks against it.
 - **RULE**: promoted into AGENTS.md or a role file, so it's always in context.
-- **GUARD**: a script in `.groundwork/guards/` that blocks the action.
+- **GUARD**: a script in `.groundwork/guards/` that blocks the action. Turn one on by adding its name to `guards` in `.groundwork/config.json` (e.g. `"guards": ["no-ai-trailers"]`).
 
 <!-- Format:
 

@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCore, type CoreFiles } from "./core.js";
 import { generateClaudeCode } from "./adapters/claude-code.js";
+import { mergeSettings } from "./settings.js";
 import type { Io, RunResult } from "./index.js";
 
 export const ADAPTERS = ["claude-code", "none"] as const;
@@ -13,7 +14,8 @@ export interface PlannedFile {
   content: string;
   // "replace" (default): write the file, asking first if a different one exists.
   // "append-lines": add any of our lines the file is missing, keeping everything else.
-  mode?: "replace" | "append-lines";
+  // "merge-settings": merge our hooks into an existing Claude Code settings file.
+  mode?: "replace" | "append-lines" | "merge-settings";
 }
 
 // Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise (L-012).
@@ -47,7 +49,9 @@ export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
   files.push({ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" });
   if (adapter === "claude-code") {
-    for (const [path, content] of Object.entries(generateClaudeCode(core))) files.push({ path, content });
+    for (const [path, content] of Object.entries(generateClaudeCode(core))) {
+      files.push({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" });
+    }
   }
   return files.sort((a, b) => a.path.localeCompare(b.path));
 }
@@ -125,6 +129,24 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
         const separator = current === "" || current.endsWith("\n") ? "" : "\n";
         writeFileSync(target, `${current}${separator}${missing.join("\n")}\n`);
       }
+      continue;
+    }
+
+    if (file.mode === "merge-settings" && exists) {
+      const current = readFileSync(target, "utf8");
+      let merged: string;
+      try {
+        merged = JSON.stringify(mergeSettings(JSON.parse(current), JSON.parse(file.content)), null, 2) + "\n";
+      } catch {
+        lines.push(`  skip       ${file.path} (not valid JSON; add Groundwork's hook by hand)`);
+        continue;
+      }
+      if (JSON.stringify(JSON.parse(merged)) === JSON.stringify(JSON.parse(current))) {
+        if (dryRun) lines.push(`  unchanged  ${file.path}`);
+        continue;
+      }
+      lines.push(`  merge      ${file.path}`);
+      if (!dryRun) writeFileSync(target, merged);
       continue;
     }
 

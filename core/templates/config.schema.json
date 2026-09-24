@@ -2,28 +2,53 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Groundwork config",
   "type": "object",
-  "required": ["approvalMode", "tokenBudget", "commands"],
+  "required": [
+    "approvalMode",
+    "tokenBudget",
+    "commands"
+  ],
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "approvalMode": {
       "description": "per-card: the human approves every card before it is committed. per-phase: cards commit after review passes, and the human approves the phase as a whole.",
-      "enum": ["per-card", "per-phase"]
+      "enum": [
+        "per-card",
+        "per-phase"
+      ]
     },
     "tokenBudget": {
       "description": "Maximum estimated tokens for files loaded in every session (AGENTS.md plus always-on adapter files). Checked by `groundwork doctor`.",
       "type": "integer",
       "minimum": 500
     },
+    "guards": {
+      "description": "Guards to run before shell commands and file writes, by file name in .groundwork/guards/ (without .mjs). Empty means none run.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "commands": {
       "description": "Shell commands the agents run. Leave a command empty if the project doesn't have it.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "install": { "type": "string" },
-        "test": { "type": "string" },
-        "lint": { "type": "string" },
-        "build": { "type": "string" }
+        "install": {
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "lint": {
+          "type": "string"
+        },
+        "build": {
+          "type": "string"
+        }
       }
     }
   }
