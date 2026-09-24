@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { init } from "./init.js";
+import { status } from "./status.js";
+import { adapter } from "./adapter.js";
 
 export interface RunResult {
   code: number;
@@ -30,8 +32,8 @@ const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url),
 
 const COMMANDS: Record<string, string> = {
   init: "Install Groundwork into this project (--adapter claude-code|none, --dry-run)",
-  adapter: "(planned) Add or refresh an AI tool adapter",
-  status: "(planned) Show the current phase, card and checks",
+  adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode)",
+  status: "Show the current phase, cards by status, and what's ready or blocked",
   doctor: "(planned) Check harness health and the context token budget",
   retro: "(planned) Collect signals for /gw-retro from git and .groundwork/",
 };
@@ -57,9 +59,10 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "--version" || cmd === "-v") {
     return { code: 0, output: pkg.version };
   }
-  if (cmd === "init") {
-    return init(args, { cwd: io.cwd ?? process.cwd(), ask: io.ask ?? askTerminal });
-  }
+  const fullIo: Io = { cwd: io.cwd ?? process.cwd(), ask: io.ask ?? askTerminal };
+  if (cmd === "init") return init(args, fullIo);
+  if (cmd === "status") return status(fullIo);
+  if (cmd === "adapter") return adapter(args, fullIo);
   if (cmd in COMMANDS) {
     return { code: 1, output: `'${cmd}' is planned but not implemented yet.` };
   }

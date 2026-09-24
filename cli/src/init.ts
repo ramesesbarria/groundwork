@@ -1,23 +1,17 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCore, type CoreFiles } from "./core.js";
 import { generateClaudeCode } from "./adapters/claude-code.js";
 import { generateOpenCode } from "./adapters/opencode.js";
-import { mergeSettings } from "./settings.js";
+import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
+
+export type { PlannedFile } from "./files.js";
 
 export const ADAPTERS = ["claude-code", "opencode", "none"] as const;
 export type Adapter = (typeof ADAPTERS)[number];
-
-export interface PlannedFile {
-  path: string;
-  content: string;
-  // "replace" (default): write the file, asking first if a different one exists.
-  // "append-lines": add any of our lines the file is missing, keeping everything else.
-  // "merge-settings": merge our hooks into an existing Claude Code settings file.
-  mode?: "replace" | "append-lines" | "merge-settings";
-}
+export const isAdapter = (value: string): value is Adapter => (ADAPTERS as readonly string[]).includes(value);
 
 // Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise (L-012).
 const GITATTRIBUTES = [
@@ -42,6 +36,21 @@ const TEMPLATE_TARGETS: Record<string, string> = {
 
 const EMPTY_DIRS = [".groundwork/cards", ".groundwork/decisions", ".groundwork/evidence"];
 
+// Pure: the files one adapter adds. `core` only needs commands/ and roles/, so it can be the
+// package's core or a project's own .groundwork/.
+export function planAdapter(core: CoreFiles, adapter: Adapter): PlannedFile[] {
+  const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
+  if (adapter === "claude-code") {
+    for (const [path, content] of Object.entries(generateClaudeCode(core))) {
+      files.push({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" });
+    }
+  }
+  if (adapter === "opencode") {
+    for (const [path, content] of Object.entries(generateOpenCode(core))) files.push({ path, content });
+  }
+  return files;
+}
+
 // Pure: which files `init` writes for this core and adapter.
 export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
   const files: PlannedFile[] = Object.entries(core).map(([path, content]) => ({
@@ -51,15 +60,7 @@ export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
   // A spare copy of the AGENTS.md template, so gw-setup can rebuild AGENTS.md if the user kept their own.
   files.push({ path: ".groundwork/templates/AGENTS.md", content: core["templates/AGENTS.md"] ?? "" });
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
-  files.push({ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" });
-  if (adapter === "claude-code") {
-    for (const [path, content] of Object.entries(generateClaudeCode(core))) {
-      files.push({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" });
-    }
-  }
-  if (adapter === "opencode") {
-    for (const [path, content] of Object.entries(generateOpenCode(core))) files.push({ path, content });
-  }
+  files.push(...planAdapter(core, adapter));
   return files.sort((a, b) => a.path.localeCompare(b.path));
 }
 
@@ -72,14 +73,19 @@ export function locateCore(): string {
   throw new Error("Groundwork's core files are missing from this installation.");
 }
 
+// Groundwork's own source repo has core/ and the CLI side by side. Installing into it would mix
+// install output with the source (it happened once: lesson L-015).
+export const isGroundworkSource = (dir: string) =>
+  existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
+
 // What to tell the user when they keep their own version of a file.
-const KEPT_ADVICE: Record<string, string> = {
+export const KEPT_ADVICE: Record<string, string> = {
   "CLAUDE.md": "Add the line @AGENTS.md to your CLAUDE.md so Claude Code loads Groundwork.",
   "AGENTS.md":
     'Add this line to your AGENTS.md: "Read .groundwork/HANDOFF.md first and follow .groundwork/workflow.md."',
 };
 
-const NEXT_STEPS: Record<Adapter, string> = {
+export const NEXT_STEPS: Record<Adapter, string> = {
   "claude-code": "Next: open Claude Code in this folder and run /gw-setup.",
   opencode: "Next: open OpenCode in this folder and run /gw-setup.",
   none: "Next: ask your AI tool to read .groundwork/commands/gw-setup.md and follow it.",
@@ -101,9 +107,7 @@ function parseArgs(args: string[]): { dryRun: boolean; adapter?: string } {
   };
 }
 
-const isAdapter = (value: string): value is Adapter => (ADAPTERS as readonly string[]).includes(value);
-
-async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean): Promise<Adapter | string> {
+async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean): Promise<string> {
   if (given !== undefined) return given;
   if (dryRun) return "claude-code"; // a dry run never asks anything
   const answer = (await io.ask(ADAPTER_QUESTION)).trim();
@@ -113,10 +117,8 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   return answer;
 }
 
-// Groundwork's own source repo has core/ and the CLI side by side. Installing into it would mix
-// install output with the source (it happened once: lesson L-015).
-export const isGroundworkSource = (dir: string) =>
-  existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
+export const keptAdvice = (kept: string[]) =>
+  kept.map((path) => KEPT_ADVICE[path]).filter((line): line is string => line !== undefined);
 
 export async function init(args: string[], io: Io): Promise<RunResult> {
   if (isGroundworkSource(io.cwd)) {
@@ -131,69 +133,8 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
   }
 
-  const lines: string[] = [];
-  const kept: string[] = [];
-  for (const file of planInit(readCore(locateCore()), adapter)) {
-    const target = join(io.cwd, file.path);
-    const exists = existsSync(target);
-
-    if (file.mode === "append-lines" && exists) {
-      const current = readFileSync(target, "utf8");
-      const have = new Set(current.split(/\r?\n/));
-      const missing = file.content.split("\n").filter((line) => line !== "" && !have.has(line));
-      if (missing.length === 0) {
-        if (dryRun) lines.push(`  unchanged  ${file.path}`);
-        continue;
-      }
-      lines.push(`  add lines  ${file.path}`);
-      if (!dryRun) {
-        const separator = current === "" || current.endsWith("\n") ? "" : "\n";
-        writeFileSync(target, `${current}${separator}${missing.join("\n")}\n`);
-      }
-      continue;
-    }
-
-    if (file.mode === "merge-settings" && exists) {
-      const current = readFileSync(target, "utf8");
-      let merged: string;
-      try {
-        merged = JSON.stringify(mergeSettings(JSON.parse(current), JSON.parse(file.content)), null, 2) + "\n";
-      } catch {
-        lines.push(`  skip       ${file.path} (not valid JSON; add Groundwork's hook by hand)`);
-        continue;
-      }
-      if (JSON.stringify(JSON.parse(merged)) === JSON.stringify(JSON.parse(current))) {
-        if (dryRun) lines.push(`  unchanged  ${file.path}`);
-        continue;
-      }
-      lines.push(`  merge      ${file.path}`);
-      if (!dryRun) writeFileSync(target, merged);
-      continue;
-    }
-
-    const same = exists && readFileSync(target, "utf8") === file.content;
-
-    if (dryRun) {
-      if (same) lines.push(`  unchanged  ${file.path}`);
-      else if (exists) lines.push(`  exists     ${file.path} (would ask before overwriting)`);
-      else lines.push(`  create     ${file.path}`);
-      continue;
-    }
-    if (same) continue;
-    if (exists) {
-      const answer = (await io.ask(`${file.path} already exists. Overwrite it? [y/N]: `)).trim().toLowerCase();
-      if (answer !== "y" && answer !== "yes") {
-        lines.push(`  skip       ${file.path} (kept yours)`);
-        kept.push(file.path);
-        continue;
-      }
-    }
-    mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, file.content);
-    lines.push(`  ${exists ? "overwrite" : "create   "}  ${file.path}`);
-  }
-
-  const advice = kept.map((path) => KEPT_ADVICE[path]).filter((line): line is string => line !== undefined);
+  const { lines, kept } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
+  const advice = keptAdvice(kept);
   const output = [
     dryRun
       ? `Dry run (adapter: ${adapter}). Nothing was written.`
