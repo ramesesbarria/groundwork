@@ -21,5 +21,15 @@ Status: draft · Last updated: {{date}}
 ## Constraints
 <!-- Legal, budget, hosting, performance or accessibility limits. Stack choices go in decisions/, not here. -->
 
+## Changes
+<!-- For an existing project: keep the sections above to a short "what the app does today", and add
+     one sub-section per change you want, newest last:
+     ### <change name> (open | planned | done)
+     - Goal: what's true when it's done
+     - Rules: how it should behave
+     - Edge cases: the unusual inputs and states
+     - Must not break: what works today and has to keep working
+     New projects can leave this empty; their first version goes under Features. -->
+
 ## Open questions
 <!-- Anything undecided. Each item should be a specific question someone can answer. -->

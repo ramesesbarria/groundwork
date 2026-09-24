@@ -18,6 +18,13 @@ Turn a rough idea into `.groundwork/SPEC.md`: detailed enough to plan cards from
 8. Summarise the spec in a few plain sentences and ask the human to confirm it.
 9. Update HANDOFF: note whether the spec is confirmed; next step is `gw-plan`.
 
+## Existing project
+When SPEC.md already describes what the app does today, spec the change, not the whole app:
+1. Ask: "What do you want to change or add first?"
+2. Apply the smallest-useful-version rule to that change, then ask batches of questions as in steps 3–7.
+3. Write it as one sub-section under Changes (goal, rules, edge cases, and what must not break), marked `open`.
+4. Confirm it as in step 8. Next step: `gw-plan` for this change.
+
 ## Writes
 - `.groundwork/SPEC.md`
 - `.groundwork/HANDOFF.md`

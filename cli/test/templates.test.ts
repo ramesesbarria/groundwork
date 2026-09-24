@@ -30,7 +30,7 @@ describe("core templates", () => {
 
   it.each([
     ["AGENTS.md", ["## Project", "## Commands", "## How we work", "## Rules"]],
-    ["SPEC.md", ["## Problem", "## Users", "## Goals", "## Non-goals", "## Features", "## Open questions"]],
+    ["SPEC.md", ["## Problem", "## Users", "## Goals", "## Non-goals", "## Features", "## Changes", "## Open questions"]],
     ["HANDOFF.md", ["**Phase:**", "**Current card:**", "**Status:**", "**Last step:**", "**Next step:**", "**Failing checks:**"]],
     ["LESSONS.md", ["NOTE", "RULE", "GUARD", "Origin:"]],
     ["card.md", ["## Goal", "## Acceptance criteria", "## Evidence", "## History"]],
