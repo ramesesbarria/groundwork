@@ -1,0 +1,25 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/opencode.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/opencode.test.ts [ test/opencode.test.ts ]
+Error: Cannot find module '../src/adapters/opencode.js' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/opencode.test.ts
+ ❯ test/opencode.test.ts:9:1
+      7| import { fileURLToPath, pathToFileURL } from "node:url";
+      8| import { readCore } from "../src/core.js";
+      9| import { generateOpenCode } from "../src/adapters/opencode.js";
+       | ^
+     10| import { run } from "../src/index.js";
+     11|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:35:43
+   Duration  173ms (worker 97%, environment 3%)
+

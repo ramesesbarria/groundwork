@@ -1,0 +1,209 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ✓ test/gw-quick.test.ts > gw-quick > says when to use it and when to make a card instead 2ms
+ ✓ test/gw-quick.test.ts > gw-quick > stops and suggests a card if the change grows 0ms
+ ✓ test/gw-quick.test.ts > gw-quick > needs no card file or separate roles 1ms
+ ✓ test/gw-quick.test.ts > gw-quick > requires tests, lint and build to pass before committing 1ms
+ ✓ test/gw-quick.test.ts > gw-quick > follows LESSONS and the approval mode 0ms
+ ✓ test/gw-quick.test.ts > gw-quick > uses a [quick] commit message and leaves one line in HANDOFF 0ms
+ ✓ test/gw-quick.test.ts > gw-quick > is mentioned in the workflow and the AGENTS.md template 0ms
+ ✓ test/roles.test.ts > role files > has one file per role and nothing else 3ms
+ ✓ test/roles.test.ts > role files > planner has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > tester has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > implementer has job, load, writes and must-not sections 0ms
+ ✓ test/roles.test.ts > role files > reviewer has job, load, writes and must-not sections 0ms
+ ✓ test/roles.test.ts > role files > planner stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > tester stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > implementer stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > reviewer stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > planner says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > tester says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > implementer says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > reviewer says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > implementer loads the current card and its tests, not the whole spec 0ms
+ ✓ test/roles.test.ts > role files > reviewer checks the diff against the card, SPEC and LESSONS 0ms
+ ✓ test/roles.test.ts > role files > reviewer cites lesson IDs in its verdict 0ms
+ ✓ test/roles.test.ts > role files > planner has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > tester has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > implementer has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > reviewer has its key 'must not' from SPEC §6 0ms
+ ✓ test/workflow.test.ts > workflow.md > mentions every card status 2ms
+ ✓ test/workflow.test.ts > workflow.md > has a transitions table that matches the schema exactly 1ms
+ ✓ test/workflow.test.ts > workflow.md > only allows transitions between known statuses 1ms
+ ✓ test/workflow.test.ts > workflow.md > says who starts a card and what happens after approval 0ms
+ ✓ test/workflow.test.ts > workflow.md > covers both approval modes 0ms
+ ✓ test/workflow.test.ts > workflow.md > states the evidence rule and the commit format 0ms
+ ✓ test/workflow.test.ts > workflow.md > says when HANDOFF.md is updated 0ms
+ ✓ test/workflow.test.ts > workflow.md > explains how to run the roles without subagents 0ms
+ ✓ test/workflow.test.ts > workflow.md > stays under 1,500 tokens 0ms
+ ✓ test/templates.test.ts > core templates > has exactly the templates init will copy 3ms
+ ✓ test/templates.test.ts > core templates > AGENTS.md has its required sections 1ms
+ ✓ test/templates.test.ts > core templates > SPEC.md has its required sections 1ms
+ ✓ test/templates.test.ts > core templates > HANDOFF.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > LESSONS.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > card.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > decision.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > keeps the AGENTS.md template under the 2,000-token budget 0ms
+ ✓ test/templates.test.ts > core templates > AGENTS.md points into .groundwork/ instead of repeating it 0ms
+ ✓ test/templates.test.ts > core templates > card template frontmatter matches the schema 1ms
+ ✓ test/templates.test.ts > core templates > card schema matches the card example in SPEC §8 0ms
+ ✓ test/templates.test.ts > core templates > config.json has a schema covering approval mode, token budget and commands 2ms
+ ✓ test/templates.test.ts > estimateTokens > estimates about one token per four characters, rounding up 0ms
+ ✓ test/commands.test.ts > command files > gw-setup exists 2ms
+ ✓ test/commands.test.ts > command files > gw-spec exists 0ms
+ ✓ test/commands.test.ts > command files > gw-plan exists 0ms
+ ✓ test/commands.test.ts > command files > gw-next exists 0ms
+ ✓ test/commands.test.ts > command files > gw-approve exists 0ms
+ ✓ test/commands.test.ts > command files > gw-reject exists 0ms
+ ✓ test/commands.test.ts > command files > gw-handoff exists 0ms
+ ✓ test/commands.test.ts > command files > gw-resume exists 0ms
+ ✓ test/commands.test.ts > command files > gw-quick exists 0ms
+ ✓ test/commands.test.ts > command files > gw-setup has name and description frontmatter (used by adapters) 1ms
+ ✓ test/commands.test.ts > command files > gw-spec has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-plan has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-next has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-approve has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-reject has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-handoff has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-resume has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-quick has name and description frontmatter (used by adapters) 0ms
+ ✓ test/commands.test.ts > command files > gw-setup has purpose, steps and writes sections 1ms
+ ✓ test/commands.test.ts > command files > gw-spec has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-plan has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-next has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-approve has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-reject has purpose, steps and writes sections 1ms
+ ✓ test/commands.test.ts > command files > gw-handoff has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-resume has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-quick has purpose, steps and writes sections 0ms
+ ✓ test/commands.test.ts > command files > gw-setup stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-spec stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-plan stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-next stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-approve stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-reject stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-handoff stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-resume stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > command files > gw-quick stays under 800 tokens 0ms
+ ✓ test/commands.test.ts > gw-spec > asks specific questions in batches 0ms
+ ✓ test/commands.test.ts > gw-spec > forbids section-level questions 1ms
+ ✓ test/commands.test.ts > gw-spec > runs as the planner 0ms
+ ✓ test/commands.test.ts > gw-plan > writes one card file per card from the template, with criteria and depends_on 0ms
+ ✓ test/commands.test.ts > gw-plan > gets the human's OK before writing cards 0ms
+ ✓ test/commands.test.ts > gw-plan > runs as the planner 0ms
+ ✓ test/commands.test.ts > gw-setup > writes AGENTS.md and config.json from a short interview 0ms
+ ✓ test/commands.test.ts > gw-setup > never picks a stack for the user 0ms
+ ✓ test/commands.test.ts > gw-setup > handles only new projects in v0.1 and says so 0ms
+ ✓ test/commands.test.ts > gw-next > picks the lowest-numbered todo or rejected card whose dependencies are all done 0ms
+ ✓ test/commands.test.ts > gw-next > compares card IDs as numbers, so 1.2 comes before 1.10 0ms
+ ✓ test/commands.test.ts > gw-next > runs tester, then implementer, then reviewer 1ms
+ ✓ test/commands.test.ts > gw-next > sends a rejected card straight to the implementer 0ms
+ ✓ test/commands.test.ts > gw-next > stops at awaiting-approval in per-card mode 0ms
+ ✓ test/commands.test.ts > gw-approve > refuses when Evidence is empty or a linked file is missing 0ms
+ ✓ test/commands.test.ts > gw-approve > commits with the card-ID format and marks the card done 0ms
+ ✓ test/commands.test.ts > gw-approve > can approve a whole phase in per-phase mode 0ms
+ ✓ test/commands.test.ts > gw-approve > only approves a card that is awaiting approval 0ms
+ ✓ test/commands.test.ts > gw-reject > records the reason under History and marks the card rejected 0ms
+ ✓ test/commands.test.ts > gw-reject > asks for a reason if none is given 0ms
+ ✓ test/commands.test.ts > gw-reject > says the implementer picks it up next 0ms
+ ✓ test/commands.test.ts > gw-handoff > writes every field in the HANDOFF template 1ms
+ ✓ test/commands.test.ts > gw-handoff > overwrites HANDOFF instead of appending 0ms
+ ✓ test/commands.test.ts > gw-handoff > is also run before stopping 0ms
+ ✓ test/commands.test.ts > gw-resume > restarts from HANDOFF and the current card only 1ms
+ ✓ test/commands.test.ts > gw-resume > doesn't redo finished steps 1ms
+ ✓ test/commands.test.ts > gw-resume > treats the card's status as the truth when HANDOFF disagrees 0ms
+ ✓ test/commands.test.ts > gw-resume > continues with the role that matches the card's status 0ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints the package version with --version 2ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints usage listing the planned commands when run with no arguments 1ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > fails with a helpful message on an unknown command 0ms
+ ✓ test/claude-code.test.ts > readCore > reads core files keyed by forward-slash relative path 2ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > generates exactly the expected files 1ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-setup has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-spec has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-plan has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-next has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-approve has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-reject has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-handoff has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-resume has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-quick has the command's name and description 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-setup points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-spec points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-plan points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-next points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-approve points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-reject points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-handoff points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-resume points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > skill gw-quick points to the core command instead of copying it 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > agent gw-planner points to its core role file 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > agent gw-tester points to its core role file 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > agent gw-implementer points to its core role file 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > agent gw-reviewer points to its core role file 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > gives each subagent only the tools its role needs 1ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > CLAUDE.md imports AGENTS.md and maps roles to subagents 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > is pure: same input, same output, input untouched 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > quotes descriptions that would break YAML 0ms
+ ✓ test/claude-code.test.ts > Claude Code adapter > matches the snapshot 1ms
+ ✓ test/init.test.ts > planInit > maps core files to their places in a project 2ms
+ ✓ test/init.test.ts > planInit > adds the Claude Code files when that adapter is chosen 1ms
+ ✓ test/init.test.ts > groundwork init > installs into an empty project, asking which adapter 40ms
+ ✓ test/init.test.ts > groundwork init > installs no adapter files with --adapter none 25ms
+ ✓ test/init.test.ts > groundwork init > rejects an unknown adapter 1ms
+ ✓ test/dogfood-fixes.test.ts > scope check (L-003) > gw-spec asks for the smallest first version and moves the rest to later phases 2ms
+ ✓ test/dogfood-fixes.test.ts > scope check (L-003) > the planner role keeps the first phase small 0ms
+ ✓ test/dogfood-fixes.test.ts > 'you decide' (L-011) > gw-spec uses its suggestions, marks them as defaults, and lists extra choices 1ms
+ ✓ test/dogfood-fixes.test.ts > gw-plan (L-007, L-008) > checks the spec was confirmed 0ms
+ ✓ test/dogfood-fixes.test.ts > gw-plan (L-007, L-008) > updates HANDOFF before stopping to wait for decisions 0ms
+ ✓ test/dogfood-fixes.test.ts > tester (L-009) > adds manual checks only for criteria that can't be automated 1ms
+ ✓ test/dogfood-fixes.test.ts > AGENTS.md template (L-010) > states the commit rule for both approval modes 1ms
+ ✓ test/dogfood-fixes.test.ts > commit-ready install (L-012) > init writes a .gitattributes that keeps Groundwork's files LF 53ms
+ ✓ test/dogfood-fixes.test.ts > commit-ready install (L-012) > init adds its lines to an existing .gitattributes without asking or removing anything 27ms
+ ✓ test/dogfood-fixes.test.ts > commit-ready install (L-012) > running init again doesn't duplicate the .gitattributes lines 35ms
+ ✓ test/dogfood-fixes.test.ts > commit-ready install (L-012) > gw-setup ends by suggesting a commit 1ms
+ ✓ test/opencode.test.ts > OpenCode adapter > generates exactly the expected files, and no CLAUDE.md (OpenCode reads AGENTS.md itself) 2ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-setup points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-spec points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-plan points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-next points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-approve points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-reject points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-handoff points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-resume points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > command gw-quick points to the core command and passes arguments 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > agent gw-planner is a subagent that points to its role file 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > agent gw-tester is a subagent that points to its role file 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > agent gw-implementer is a subagent that points to its role file 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > agent gw-reviewer is a subagent that points to its role file 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > limits tools per role with OpenCode permissions 0ms
+ ✓ test/opencode.test.ts > OpenCode adapter > is pure and matches the snapshot 2ms
+ ✓ test/opencode.test.ts > OpenCode guard plugin > throws to block a commit with an AI trailer when the guard is on 30ms
+ ✓ test/opencode.test.ts > OpenCode guard plugin > does nothing when no guards are on 16ms
+ ✓ test/opencode.test.ts > OpenCode guard plugin > the runner understands OpenCode's tool names and arguments 2ms
+ ✓ test/opencode.test.ts > init --adapter opencode > installs the OpenCode files and no Claude Code files 39ms
+ ✓ test/opencode.test.ts > init --adapter opencode > offers OpenCode when asking which tool to set up 46ms
+ ✓ test/guards.test.ts > no-ai-trailers guard > blocks a commit with an AI Co-Authored-By trailer 8ms
+ ✓ test/guards.test.ts > no-ai-trailers guard > blocks a 'Generated with' line 2ms
+ ✓ test/guards.test.ts > no-ai-trailers guard > allows a normal commit and a human co-author 2ms
+ ✓ test/guards.test.ts > no-ai-trailers guard > ignores commands that aren't commits, and file writes 2ms
+ ✓ test/guards.test.ts > guard runner > turns Claude Code hook input into actions 7ms
+ ✓ test/guards.test.ts > guard runner > runs only the guards it's given 3ms
+ ✓ test/guards.test.ts > guard runner > warns about a guard that doesn't exist, without blocking 1ms
+ ✓ test/guards.test.ts > guard runner > as a Claude Code hook: exits 2 with the reason when blocked, 0 otherwise 118ms
+ ✓ test/guards.test.ts > config > lists guards, empty by default 1ms
+ ✓ test/guards.test.ts > Claude Code wiring > the adapter adds a PreToolUse hook that runs the guard runner 0ms
+ ✓ test/guards.test.ts > Claude Code wiring > mergeSettings keeps the user's settings and adds our hook once 1ms
+ ✓ test/guards.test.ts > Claude Code wiring > init merges into an existing .claude/settings.json without asking 40ms
+ ✓ test/init.test.ts > groundwork init > asks before overwriting an existing file, and keeps it when told no 43ms
+ ✓ test/init.test.ts > groundwork init > overwrites an existing file when told yes 28ms
+ ✓ test/init.test.ts > groundwork init > doesn't ask about files that are already identical 51ms
+ ✓ test/init.test.ts > groundwork init > --dry-run lists what it would write and writes nothing 6ms
+ ✓ test/init.test.ts > groundwork init > tells the user what to do next 30ms
+ ✓ test/init.test.ts > groundwork init > works from the built CLI, finding the core files on its own 64ms
+
+ Test Files  11 passed (11)
+      Tests  200 passed (200)
+   Start at  21:37:57
+   Duration  599ms (tests 42%, transform 37%, import 17%, worker 3%)
+
