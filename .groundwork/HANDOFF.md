@@ -1,9 +1,9 @@
 # Handoff
 
 - **Phase:** 8 (activation, from PLAN.md). Phase 7 is done. Cards 6.1, 10.5 and 10.6 need the human and are skipped for now.
-- **Current card:** none (9.8 done and committed)
+- **Current card:** none (9.9 done and committed)
 - **Status:** —
-- **Last step:** 9.8 reviewed and committed (the human asked for every planned change without stopping per card)
-- **Next step:** `gw-next` for card 9.9
+- **Last step:** 9.9 reviewed and committed (the human asked for every planned change without stopping per card)
+- **Next step:** `gw-next` for card 9.10
 - **Failing checks:** none
 - **Notes:** L-017 (from retro) accepted by the human on 2026-09-24. Each card's planned changes are in the matching PLAN.md section. Commit cd8c76f has an AI attribution trailer, against L-001; the human chose to leave it. 7.1 is committed (512079e) but not pushed.

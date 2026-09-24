@@ -18,7 +18,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 3. If a stack is chosen, ask for the install, test, lint and build commands, suggesting the usual ones. Otherwise leave them empty until planning.
 4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
-6. Update HANDOFF: next step is `gw-spec` (new project) or `gw-plan` (existing project).
+6. Update HANDOFF: next step is `gw-spec` (new project). For an existing project, ask "What do you want to change or add first?", then `gw-spec` for that change, or `gw-quick` if it's small.
 7. Suggest committing the setup now (e.g. `Set up Groundwork`), so the first card's commit only holds that card's work.
 
 ## Writes
