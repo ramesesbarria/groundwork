@@ -94,12 +94,6 @@ disable-model-invocation: true
 ---
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
 ",
-  ".claude/skills/gw-resume/SKILL.md": "---
-name: gw-resume
-description: Use when a session starts and HANDOFF shows a card in progress, or the human asks to pick up where they left off. Continues from .groundwork/HANDOFF.md and the current card.
----
-Read \`.groundwork/commands/gw-resume.md\` now and follow it exactly.
-",
   ".claude/skills/gw-retro/SKILL.md": "---
 name: gw-retro
 description: Use when a phase ends, or the human asks why the same mistakes keep happening. Proposes moving lessons up the ladder (note, rule, guard), and nothing changes without the human's OK.
@@ -124,10 +118,17 @@ description: Use when a card involves UI or animation work, before anything is b
 ---
 Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
 ",
+  ".claude/skills/gw/SKILL.md": "---
+name: gw
+description: Use when a session starts, or the human asks where things stand, what's next, or to carry on. Works out the project's state, says it in plain words, and runs the next step.
+---
+Read \`.groundwork/commands/gw.md\` now and follow it exactly.
+",
   "CLAUDE.md": "@AGENTS.md
 
 ## Claude Code
-Groundwork commands are skills: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.
+Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.
+The others: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.
 When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.
 ",
 }

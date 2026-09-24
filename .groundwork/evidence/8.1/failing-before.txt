@@ -1,0 +1,35 @@
+$ cd cli && npx vitest run test/gw-entry.test.ts test/commands.test.ts test/claude-code.test.ts test/opencode.test.ts test/triggers.test.ts
+     × gw exists 6ms
+     × gw has name and description frontmatter (used by adapters) 1ms
+     × gw has purpose, steps and writes sections 1ms
+     × gw stays under 800 tokens 1ms
+     × restarts from HANDOFF and the current card only 1ms
+     × doesn't redo finished steps 0ms
+     × treats the card's status as the truth when HANDOFF disagrees 0ms
+     × continues with the role that matches the card's status 1ms
+     × gw says when to use it 6ms
+     × gw is a sentence or two 0ms
+     × Claude Code skill gw can still be invoked by the model 2ms
+     × generates exactly the expected files 7ms
+     × skill gw has the command's name and description 1ms
+     × skill gw points to the core command instead of copying it 1ms
+     × exists and is listed as a command 6ms
+     × maps 'nothing set up' to exactly one row with one action 1ms
+     × maps 'no spec' to exactly one row with one action 0ms
+     × maps 'spec not confirmed' to exactly one row with one action 0ms
+     × maps 'no cards' to exactly one row with one action 0ms
+     × maps 'a card in progress' to exactly one row with one action 0ms
+     × maps 'awaiting approval' to exactly one row with one action 0ms
+     × maps 'otherwise' to exactly one row with one action 0ms
+     × sends each state to the right place 0ms
+     × says where things stand in plain words before acting 0ms
+     × never approves or rejects itself 0ms
+     × has no command file 1ms
+     × no file refers to it, apart from old cards, evidence and the plan that cut it 31ms
+     × init's closing message says to type /gw 1ms
+     × the README has a main command table and a separate power commands table 4ms
+     × a fresh install tells you to type /gw 55ms
+     × generates exactly the expected files, and no CLAUDE.md (OpenCode reads AGENTS.md itself) 8ms
+     × command gw points to the core command and passes arguments 1ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 32 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  32 failed | 161 passed (193)

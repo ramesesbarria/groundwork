@@ -34,7 +34,7 @@ cd your-project
 npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
 
-Then open your AI tool in the project and run `/gw-setup`. Without an adapter, ask the agent to read `.groundwork/commands/gw-setup.md` and follow it.
+Then open your AI tool in the project and type `/gw`. It sets the project up the first time, and after that it always says where things stand and what's next. Without an adapter, ask the agent to read `.groundwork/commands/gw.md` and follow it.
 
 Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
 
@@ -43,7 +43,7 @@ Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
 After setup, a first session looks roughly like this (a shortened example, not a recorded session):
 
 ```text
-You:   /gw-spec I want a page where my book club votes on next month's book
+You:   /gw I want a page where my book club votes on next month's book
 Agent: A few specific questions first:
        1. Who can vote: anyone with the link, or signed-in members only?
        2. One vote each, or rank several books?
@@ -51,12 +51,12 @@ Agent: A few specific questions first:
 You:   Anyone with the link. One vote. Hide results until it closes.
 Agent: Spec saved, starting with the smallest useful version. Does it look right?
 You:   Yes.
-You:   /gw-plan
+You:   /gw
 Agent: Plan: 2 phases, 5 cards.
        1.1 Book list page · 1.2 Voting · 1.3 Close the vote · ...
        OK to write the cards?
 You:   Go.
-You:   /gw-next
+You:   /gw
 Agent: Card 1.1 Book list page: tests written, code passing, review passed.
        What changed: the home page lists this month's books.
        How to check: run npm run dev and open http://localhost:3000
@@ -107,19 +107,25 @@ AGENTS.md                 short, always loaded; points into .groundwork/
 
 ## Commands
 
-In your AI tool (as `/gw-…` in Claude Code and OpenCode):
+In your AI tool (as `/gw…` in Claude Code and OpenCode). If you remember one, make it `/gw`:
 
 | Command | What it does |
 |---|---|
+| `/gw` | Says where things stand and runs the next step, including picking up a card you left halfway |
 | `gw-setup` | Sets up a new or existing project |
 | `gw-spec` | Interviews you for the spec, starting with the smallest useful version |
 | `gw-plan` | Records stack decisions, then splits the spec into phases and cards |
+| `gw-next` | Runs the next ready card: tester → implementer → reviewer |
+| `gw-approve` / `gw-reject` | Your verdict on a card (or a whole phase). Only you run these |
+| `gw-quick` | One-pass path for small, low-risk changes |
+
+Power commands, for when you need them:
+
+| Command | What it does |
+|---|---|
 | `gw-decide` | Lays out options for one decision and records your choice |
 | `gw-ui-spec` | Agrees states, transitions and screen sizes before any UI code |
-| `gw-next` | Runs the next ready card: tester → implementer → reviewer |
-| `gw-approve` / `gw-reject` | Your verdict on a card (or a whole phase) |
-| `gw-quick` | One-pass path for small, low-risk changes |
-| `gw-handoff` / `gw-resume` | Save state; continue in a fresh session or another tool |
+| `gw-handoff` | Saves where things stand, so another session or tool can continue |
 | `gw-retro` | Proposes moving lessons up the ladder |
 
 In the terminal:

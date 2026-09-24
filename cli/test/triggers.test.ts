@@ -13,7 +13,7 @@ const claude = generateClaudeCode(core);
 const opencode = generateOpenCode(core);
 const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
 
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 const HUMAN_ONLY = ["gw-approve", "gw-reject"];
 
 function section(md: string, heading: string): string {
