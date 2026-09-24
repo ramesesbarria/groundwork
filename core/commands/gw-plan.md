@@ -16,7 +16,7 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
    - has acceptance criteria that can each be checked, by a test where possible,
    - lists the cards it needs first in `depends_on`.
 5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
-6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`.
+6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md.
 7. Update HANDOFF: phase 1, next step is `gw-next`.
 
 ## Writes

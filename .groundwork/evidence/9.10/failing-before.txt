@@ -1,0 +1,11 @@
+$ cd cli && npx vitest run test/codebase-map.test.ts
+     × existing-project setup writes it into SPEC.md 4ms
+     × covers main folders, entry points, where tests live and anything unusual 1ms
+     × marks each item found or guessed, and stays under about 20 lines 0ms
+     × the spec template has a place for it 3ms
+     × gw-plan keeps it current when a card adds a new area 1ms
+     × tester names it in its Load list 1ms
+     × implementer names it in its Load list 0ms
+     × reviewer names it in its Load list 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  8 failed (8)

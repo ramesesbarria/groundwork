@@ -12,6 +12,7 @@ Turn the current card's acceptance criteria into tests that fail now and will pa
 Read only these:
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
+- The Codebase map in `.groundwork/SPEC.md`, if there is one, then only the files it points to
 - Existing tests near the code this card touches, to match their style
 - The project's test command in `.groundwork/config.json`
 

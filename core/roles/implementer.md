@@ -14,6 +14,7 @@ If a test looks wrong, stop. Explain why in HANDOFF and on the card's History, a
 Read only these:
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
+- The Codebase map in `.groundwork/SPEC.md`, if there is one, then only the files it points to
 - The tests the tester wrote for this card
 - The source files those tests and the card point to
 - Rules in `AGENTS.md` (already loaded)
