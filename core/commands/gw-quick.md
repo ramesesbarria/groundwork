@@ -1,6 +1,6 @@
 ---
 name: gw-quick
-description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value. Makes it in one pass without a card, and the tests must still pass.
+description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value, or reports a bug. Makes it in one pass without a card, cause first for bugs, and the tests must still pass.
 ---
 # gw-quick
 
@@ -8,12 +8,12 @@ description: Use when the human asks for a small, low-risk change, such as a typ
 The light path. Process cost should match the size of the change: no card file, no separate roles, no evidence folder. The checks still run and the project's rules still apply.
 
 ## When to use it
-Use it for a **small** change with one concern and low risk: a typo, copy or style tweak, a config value, a dependency bump, or a bug with an obvious cause and fix.
+Use it for a **small** change with one concern and low risk: a typo, copy or style tweak, a config value, a dependency bump, or a bug (see "Fixing a bug", even when the cause isn't clear yet).
 
 Make a card instead (`gw-plan`, then `gw-next`) when the change:
 - adds a feature or changes how something behaves in a way users would notice,
 - touches the data model, a public API, security or money,
-- needs a decision, or its cause isn't clear,
+- needs a decision,
 - is UI animation or layout work (use `gw-ui-spec`),
 - touches more than about 3 files.
 
@@ -28,6 +28,14 @@ Make a card instead (`gw-plan`, then `gw-next`) when the change:
    - `per-card` mode: only after the human says OK.
    - `per-phase` mode: once the checks pass.
 8. Add one line to Notes in `.groundwork/HANDOFF.md`, e.g. "Quick change: fixed typo on the home page (abc123)". Don't change the current card or next step.
+
+## Fixing a bug
+Cause first, then the fix. In step 3 above:
+1. Reproduce the bug with a failing test, and see it fail for the reason the human described.
+2. State the cause in one sentence, with the evidence that shows it (a log line, a value, the line of code).
+3. Only then fix it, and see the test pass.
+
+If there's still no cause after two honest attempts, **stop**: say what you tried and suggest a card, so it gets planned and reviewed properly.
 
 ## Writes
 - The change itself, and any test for it

@@ -70,7 +70,7 @@ Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-quick.md": "---
-description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value. Makes it in one pass without a card, and the tests must still pass.
+description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value, or reports a bug. Makes it in one pass without a card, cause first for bugs, and the tests must still pass.
 ---
 Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
 

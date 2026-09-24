@@ -54,3 +54,43 @@ describe("gw-quick", () => {
     expect(core("templates/AGENTS.md")).toContain("gw-quick");
   });
 });
+
+// Card 9.1: bugs go through the quick path, cause first.
+describe("gw-quick: fixing a bug", () => {
+  const bug = () => section(core("commands/gw-quick.md"), "Fixing a bug");
+  const numbered = () => bug().split("\n").filter((line) => /^\d+\. /.test(line));
+
+  it("has a bug branch", () => {
+    expect(bug()).not.toBe("");
+  });
+
+  it("reproduces the bug with a failing test first", () => {
+    expect(numbered()[0]).toMatch(/reproduce/i);
+    expect(numbered()[0]).toMatch(/failing test/i);
+  });
+
+  it("states the cause in one sentence, with evidence, before any fix", () => {
+    const cause = numbered().findIndex((line) => /cause/i.test(line));
+    const fix = numbered().findIndex((line) => /\bfix\b/i.test(line) && !/cause/i.test(line));
+    expect(cause).toBeGreaterThan(0);
+    expect(numbered()[cause]).toMatch(/one sentence/i);
+    expect(numbered()[cause]).toMatch(/evidence/i);
+    expect(fix).toBeGreaterThan(cause);
+  });
+
+  it("stops and suggests a card after two honest attempts without a cause", () => {
+    expect(bug()).toMatch(/two (honest )?attempts/i);
+    expect(bug()).toMatch(/stop[^\n]*card|card[^\n]*stop/i);
+  });
+
+  it("When to use it sends unclear bugs here instead of to a card", () => {
+    const when = section(core("commands/gw-quick.md"), "When to use it");
+    expect(when).toMatch(/Fixing a bug/);
+    expect(when).not.toMatch(/its cause isn't clear/);
+  });
+
+  it("the AGENTS.md routing rule mentions bugs", () => {
+    const rule = core("templates/AGENTS.md").split("\n").find((line) => line.includes("gw-quick")) ?? "";
+    expect(rule).toMatch(/bug/i);
+  });
+});
