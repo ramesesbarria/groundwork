@@ -60,7 +60,8 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
 
   // Guards: every shell command and file write goes through the runner, which applies the guards
   // listed in .groundwork/config.json (none by default). Exit code 2 blocks the action.
-  // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF.
+  // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF. Claude Code
+  // adds a SessionStart hook's plain-text output as context (code.claude.com/docs/en/hooks).
   out[".claude/settings.json"] =
     JSON.stringify(
       {
@@ -68,7 +69,7 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
           SessionStart: [
             {
               matcher: "startup|clear|compact",
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs"' }],
+              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs" "$CLAUDE_PROJECT_DIR"' }],
             },
           ],
           PreToolUse: [

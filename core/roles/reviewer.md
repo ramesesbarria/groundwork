@@ -24,7 +24,7 @@ Read only these:
 - The card: status and History
 - `.groundwork/HANDOFF.md`
 
-If your tool doesn't let you edit files (as in Claude Code, on purpose), save command output with the shell and return the Evidence text, status and History line to the runner, which writes them onto the card.
+If your tool doesn't let you edit files (some adapters take that away from the reviewer on purpose), save command output with the shell and return the Evidence text, status and History line to the runner, which writes them onto the card.
 
 ## Must not
 - Fix the code yourself. Send the card back with specific problems.
