@@ -38,6 +38,14 @@ Then open your AI tool in the project and run `/gw-setup`. Without an adapter, a
 
 Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
 
+## Glossary
+
+- **Card**: one small piece of work, with a checklist of what "done" means.
+- **Phase**: a group of cards that together leave something working, like a milestone.
+- **Evidence**: the proof a card is done, such as test output, saved next to the card.
+- **Handoff**: a note that says where things stand, so any session can pick up the work.
+- **Lesson**: a mistake written down so it doesn't happen again.
+
 ## Why it exists
 
 I built a portfolio, a church website and an event platform with AI agents, and hand-copied a harness into each one, tweaking it every time. The same problems kept coming back: harnesses that grew too heavy to be useful, rules the agent forgot, progress lost at usage limits, UI work that went round in circles, and "done" claims with nothing behind them. Groundwork packages what worked and **enforces** what didn't, instead of hoping the agent remembers.
