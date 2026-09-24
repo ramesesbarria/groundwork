@@ -8,14 +8,17 @@
     "groundwork": "dist/bin.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "core"
   ],
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "tsc -p tsconfig.json && vitest run",
+    "prepack": "node scripts/copy-core.mjs",
+    "postpack": "node scripts/copy-core.mjs --clean"
   },
   "devDependencies": {
     "@types/node": "^24.13.6",

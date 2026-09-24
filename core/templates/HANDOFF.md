@@ -7,6 +7,6 @@
 - **Current card:** none
 - **Status:** —
 - **Last step:** Groundwork installed
-- **Next step:** write the spec (`gw-spec`)
+- **Next step:** run `gw-setup`
 - **Failing checks:** none
 - **Notes:**
