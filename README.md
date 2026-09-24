@@ -25,17 +25,18 @@ flowchart LR
 
 ## Install
 
-> Groundwork is **not on npm yet**. Until it is, install it from GitHub:
+[![npm](https://img.shields.io/npm/v/groundwork-ai)](https://www.npmjs.com/package/groundwork-ai)
+
+Needs Node 22 or later.
 
 ```bash
-git clone https://github.com/ramesesbarria/groundwork
-cd groundwork && npm install && npm run build
-
-cd path/to/your-project
-node path/to/groundwork/cli/dist/bin.js init        # asks: Claude Code, OpenCode, or plain markdown
+cd your-project
+npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
 
 Then open your AI tool in the project and run `/gw-setup`. Without an adapter, ask the agent to read `.groundwork/commands/gw-setup.md` and follow it.
+
+Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
 
 ## Why it exists
 
