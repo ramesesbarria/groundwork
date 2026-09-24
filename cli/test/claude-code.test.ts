@@ -37,6 +37,7 @@ describe("Claude Code adapter", () => {
     expect(Object.keys(out).sort()).toEqual(
       [
         "CLAUDE.md",
+        ".claude/settings.json",
         ...COMMANDS.map((c) => `.claude/skills/${c}/SKILL.md`),
         ...ROLES.map((r) => `.claude/agents/gw-${r}.md`),
       ].sort(),

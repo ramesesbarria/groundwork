@@ -1,0 +1,32 @@
+$ groundwork init (with an existing .claude/settings.json)
+  merge      .claude/settings.json
+  create     .gitattributes
+  create     .groundwork/guards/no-ai-trailers.mjs
+  create     .groundwork/guards/run.mjs
+
+$ cat .claude/settings.json
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs\" claude-code"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+$ enable no-ai-trailers, then simulate Claude Code's hook:
+[no-ai-trailers] This commit message adds AI attribution (a Co-Authored-By trailer or a 'Generated with' line), which this project doesn't allow. Remove it and commit again.
+exit=2
+exit=0 (allowed)
