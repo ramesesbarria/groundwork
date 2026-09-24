@@ -1,0 +1,25 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/claude-code.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/claude-code.test.ts [ test/claude-code.test.ts ]
+Error: Cannot find module '../src/core.js' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/claude-code.test.ts
+ ❯ test/claude-code.test.ts:3:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { fileURLToPath } from "node:url";
+      3| import { readCore } from "../src/core.js";
+       | ^
+      4| import { generateClaudeCode } from "../src/adapters/claude-code.js";
+      5| import { estimateTokens } from "../src/tokens.js";
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:35:14
+   Duration  249ms (worker 99%, environment 1%)
+
