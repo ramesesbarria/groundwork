@@ -31,7 +31,7 @@ Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, check
 | `done` | `rejected` | human | Rejects a card during a phase review |
 | `rejected` | `implementing` | runner | Picks the card up again; the reason is on the card |
 
-No other changes are allowed. Every change gets one line under the card's History.
+No other changes are allowed. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
 
 ## Approval
 
