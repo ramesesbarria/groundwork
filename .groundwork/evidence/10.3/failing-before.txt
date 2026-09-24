@@ -1,0 +1,6 @@
+$ cd cli && npx vitest run test/project-layer.test.ts
+     × the first screen names it and what it owns 4ms
+     × the Adapters section says it works alongside skill packs such as superpowers, without claiming it was tried 1ms
+     × SPEC §1's comparison includes the project layer 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  3 failed (3)
