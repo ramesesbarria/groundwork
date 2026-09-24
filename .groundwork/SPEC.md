@@ -115,6 +115,8 @@ AGENTS.md                      # small, always loaded; points into .groundwork/
     no-ai-trailers.mjs
   roles/
     planner.md  tester.md  implementer.md  reviewer.md
+  commands/
+    gw-setup.md  gw-spec.md  gw-plan.md  gw-next.md  …   # tool-neutral; adapters point here
   workflow.md                  # the loop, step by step, tool-neutral
 
 # plus the adapter output, e.g.:
