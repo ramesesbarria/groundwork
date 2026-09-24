@@ -11,6 +11,9 @@ export interface PlannedFile {
   // "append-lines": add any of our lines the file is missing, keeping everything else.
   // "merge-settings": merge our hooks into an existing Claude Code settings file.
   mode?: "replace" | "append-lines" | "merge-settings";
+  // For a project's own instruction files: if the file already exists, never replace it. Add the
+  // pointer lines unless it already contains the marker. A new file still gets the full content.
+  pointer?: { marker: string; lines: string };
 }
 
 export interface ApplyResult {
@@ -22,9 +25,15 @@ export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean):
   const lines: string[] = [];
   const kept: string[] = [];
 
-  for (const file of files) {
-    const target = join(io.cwd, file.path);
+  for (const planned of files) {
+    const target = join(io.cwd, planned.path);
     const exists = existsSync(target);
+    if (exists && planned.pointer && readFileSync(target, "utf8").includes(planned.pointer.marker)) {
+      if (dryRun) lines.push(`  unchanged  ${planned.path}`);
+      continue;
+    }
+    const file: PlannedFile =
+      exists && planned.pointer ? { ...planned, content: planned.pointer.lines, mode: "append-lines" } : planned;
 
     if (file.mode === "append-lines" && exists) {
       const current = readFileSync(target, "utf8");

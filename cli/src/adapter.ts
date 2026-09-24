@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { readCore } from "./core.js";
 import { applyFiles } from "./files.js";
-import { ADAPTERS, isAdapter, keptAdvice, NEXT_STEPS, planAdapter } from "./init.js";
+import { ADAPTERS, isAdapter, NEXT_STEPS, planAdapter } from "./init.js";
 import type { Io, RunResult } from "./index.js";
 
 const TOOLS = ADAPTERS.filter((a) => a !== "none");
@@ -22,12 +22,8 @@ export async function adapter(args: string[], io: Io): Promise<RunResult> {
   }
 
   // Build from the project's own .groundwork/, so custom or older commands and roles are respected.
-  const { lines, kept } = await applyFiles(planAdapter(readCore(groundwork), tool), io, false);
-  const advice = keptAdvice(kept);
+  const { lines } = await applyFiles(planAdapter(readCore(groundwork), tool), io, false);
   const header =
     lines.length === 0 ? `The ${tool} adapter is already up to date. Nothing to change.` : `Added the ${tool} adapter.`;
-  return {
-    code: 0,
-    output: [header, ...lines, ...(advice.length > 0 ? ["", ...advice] : []), "", NEXT_STEPS[tool]].join("\n"),
-  };
+  return { code: 0, output: [header, ...lines, "", NEXT_STEPS[tool]].join("\n") };
 }

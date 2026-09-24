@@ -34,6 +34,18 @@ const TEMPLATE_TARGETS: Record<string, string> = {
   "templates/config.schema.json": ".groundwork/config.schema.json",
 };
 
+// What an existing CLAUDE.md or AGENTS.md gets instead of being replaced. gw-setup merges the rest, with the user's OK.
+// A file that already contains the marker is already connected to Groundwork and is left alone.
+const POINTERS: Record<string, { marker: string; lines: string }> = {
+  "CLAUDE.md": { marker: "@AGENTS.md", lines: "@AGENTS.md\n" },
+  "AGENTS.md": {
+    marker: ".groundwork/HANDOFF.md",
+    lines: "Read .groundwork/HANDOFF.md first and follow .groundwork/workflow.md.\n",
+  },
+};
+const withPointer = (file: PlannedFile): PlannedFile =>
+  POINTERS[file.path] === undefined ? file : { ...file, pointer: POINTERS[file.path] };
+
 const EMPTY_DIRS = [".groundwork/cards", ".groundwork/decisions", ".groundwork/evidence"];
 
 // Pure: the files one adapter adds. `core` only needs commands/ and roles/, so it can be the
@@ -42,7 +54,7 @@ export function planAdapter(core: CoreFiles, adapter: Adapter): PlannedFile[] {
   const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
   if (adapter === "claude-code") {
     for (const [path, content] of Object.entries(generateClaudeCode(core))) {
-      files.push({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" });
+      files.push(withPointer({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" }));
     }
   }
   if (adapter === "opencode") {
@@ -53,10 +65,9 @@ export function planAdapter(core: CoreFiles, adapter: Adapter): PlannedFile[] {
 
 // Pure: which files `init` writes for this core and adapter.
 export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
-  const files: PlannedFile[] = Object.entries(core).map(([path, content]) => ({
-    path: TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`,
-    content,
-  }));
+  const files: PlannedFile[] = Object.entries(core).map(([path, content]) =>
+    withPointer({ path: TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`, content }),
+  );
   // A spare copy of the AGENTS.md template, so gw-setup can rebuild AGENTS.md if the user kept their own.
   files.push({ path: ".groundwork/templates/AGENTS.md", content: core["templates/AGENTS.md"] ?? "" });
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
@@ -77,13 +88,6 @@ export function locateCore(): string {
 // install output with the source (it happened once: lesson L-015).
 export const isGroundworkSource = (dir: string) =>
   existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
-
-// What to tell the user when they keep their own version of a file.
-export const KEPT_ADVICE: Record<string, string> = {
-  "CLAUDE.md": "Add the line @AGENTS.md to your CLAUDE.md so Claude Code loads Groundwork.",
-  "AGENTS.md":
-    'Add this line to your AGENTS.md: "Read .groundwork/HANDOFF.md first and follow .groundwork/workflow.md."',
-};
 
 export const NEXT_STEPS: Record<Adapter, string> = {
   "claude-code": "Next: open Claude Code in this folder and run /gw-setup.",
@@ -117,9 +121,6 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   return answer;
 }
 
-export const keptAdvice = (kept: string[]) =>
-  kept.map((path) => KEPT_ADVICE[path]).filter((line): line is string => line !== undefined);
-
 export async function init(args: string[], io: Io): Promise<RunResult> {
   if (isGroundworkSource(io.cwd)) {
     return {
@@ -133,8 +134,7 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
   }
 
-  const { lines, kept } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
-  const advice = keptAdvice(kept);
+  const { lines } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
   const output = [
     dryRun
       ? `Dry run (adapter: ${adapter}). Nothing was written.`
@@ -142,7 +142,6 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
         ? `Groundwork is already up to date (adapter: ${adapter}). Nothing to change.`
         : `Groundwork installed (adapter: ${adapter}).`,
     ...lines,
-    ...(advice.length > 0 ? ["", ...advice] : []),
     ...(dryRun ? [] : ["", NEXT_STEPS[adapter]]),
   ];
   return { code: 0, output: output.join("\n") };
