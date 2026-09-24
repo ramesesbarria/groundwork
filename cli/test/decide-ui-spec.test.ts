@@ -80,3 +80,45 @@ describe("gw-ui-spec", () => {
     expect(steps()).toMatch(/commit/i);
   });
 });
+
+// Card 9.2: labeled recommendations (decision 0001).
+describe("gw-decide: labeled recommendations", () => {
+  const steps = () => section(command("gw-decide"), "Steps");
+  const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
+
+  it("may recommend one option, always labeled as a recommendation with its reason", () => {
+    expect(steps()).toMatch(/\*\*Recommendation:\*\*/);
+    expect(steps()).toMatch(/why|because/i);
+  });
+
+  it("records taking the recommendation as the human's explicit choice, in their words", () => {
+    expect(steps()).toMatch(/accepted the recommendation/i);
+    expect(steps()).toMatch(/their words/i);
+  });
+
+  it("still doesn't accept \"you decide\" as a choice without a clear yes", () => {
+    expect(steps()).toMatch(/"you decide"|"your call"/i);
+    expect(steps()).toMatch(/yes/i);
+    expect(section(command("gw-decide"), "Must not")).toMatch(/silently|without (their|the human's) (answer|yes)/i);
+  });
+
+  it("the planner may recommend but never chooses silently", () => {
+    const mustNot = section(read("core/roles/planner.md"), "Must not");
+    expect(mustNot).toMatch(/recommend/i);
+    expect(mustNot).toMatch(/silently/i);
+  });
+
+  it("gw-plan still never chooses for the human", () => {
+    expect(section(command("gw-plan"), "Must not")).toMatch(/choose/i);
+  });
+
+  it("the decision template records whether the recommendation was taken", () => {
+    expect(section(read("core/templates/decision.md"), "Decision")).toMatch(/recommendation/i);
+  });
+
+  it("README and SPEC describe the labeled recommendation", () => {
+    const readme = read("README.md");
+    expect(readme.split("\n").find((l) => l.includes("**Stack-neutral.**")) ?? "").toMatch(/labeled recommendation/i);
+    expect(read(".groundwork/SPEC.md").split("\n").find((l) => l.includes("**Stack-neutral.**")) ?? "").toMatch(/labeled recommendation/i);
+  });
+});

@@ -27,6 +27,6 @@ Read only these:
 
 ## Must not
 - Write code or tests.
-- Choose a stack, library or service for the human. Present options; they decide.
+- Choose a stack, library or service for the human. Present options; they decide. You may add a labeled recommendation (see `gw-decide`), but never pick silently.
 - Fill gaps in the spec with guesses. Ask, or list the gap under Open questions.
 - Change a card that is past `todo` without telling the human.
