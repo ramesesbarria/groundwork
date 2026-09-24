@@ -1,0 +1,3 @@
+core/commands/gw-next.md: 2218 chars ≈ 555 tokens (limit 800)
+core/commands/gw-approve.md: 1718 chars ≈ 430 tokens (limit 800)
+core/commands/gw-reject.md: 1144 chars ≈ 286 tokens (limit 800)

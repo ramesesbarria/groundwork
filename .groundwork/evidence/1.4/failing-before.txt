@@ -1,0 +1,326 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/commands.test.ts (44 tests | 23 failed) 23ms
+   ❯ command files (24)
+     × gw-next exists 5ms
+     × gw-approve exists 1ms
+     × gw-reject exists 1ms
+     × gw-next has name and description frontmatter (used by adapters) 1ms
+     × gw-approve has name and description frontmatter (used by adapters) 0ms
+     × gw-reject has name and description frontmatter (used by adapters) 0ms
+     × gw-next has purpose, steps and writes sections 0ms
+     × gw-approve has purpose, steps and writes sections 0ms
+     × gw-reject has purpose, steps and writes sections 0ms
+     × gw-next stays under 800 tokens 0ms
+     × gw-approve stays under 800 tokens 1ms
+     × gw-reject stays under 800 tokens 0ms
+   ❯ gw-next (5)
+     × picks the lowest-numbered todo or rejected card whose dependencies are all done 0ms
+     × compares card IDs as numbers, so 1.2 comes before 1.10 0ms
+     × runs tester, then implementer, then reviewer 0ms
+     × sends a rejected card straight to the implementer 0ms
+     × stops at awaiting-approval in per-card mode 0ms
+   ❯ gw-approve (3)
+     × refuses when Evidence is empty or a linked file is missing 0ms
+     × commits with the card-ID format and marks the card done 0ms
+     × only approves a card that is awaiting approval 0ms
+   ❯ gw-reject (3)
+     × records the reason under History and marks the card rejected 0ms
+     × asks for a reason if none is given 0ms
+     × says the implementer picks it up next 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 23 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/commands.test.ts > command files > gw-next exists
+ FAIL  test/commands.test.ts > command files > gw-approve exists
+ FAIL  test/commands.test.ts > command files > gw-reject exists
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/commands.test.ts:32:60
+     30| describe("command files", () => {
+     31|   it.each(COMMANDS)("%s exists", (name) => {
+     32|     expect(existsSync(new URL(`${name}.md`, commandsDir))).toBe(true);
+       |                                                            ^
+     33|   });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-next has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-approve has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-reject has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-next has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-approve has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-reject has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-next stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-approve stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-reject stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯
+
+ FAIL  test/commands.test.ts > gw-next > picks the lowest-numbered todo or rejected card whose dependencies are all done
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/commands.test.ts:106:31
+ ❯ test/commands.test.ts:109:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯
+
+ FAIL  test/commands.test.ts > gw-next > compares card IDs as numbers, so 1.2 comes before 1.10
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/commands.test.ts:106:31
+ ❯ test/commands.test.ts:117:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯
+
+ FAIL  test/commands.test.ts > gw-next > runs tester, then implementer, then reviewer
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/commands.test.ts:106:31
+ ❯ test/commands.test.ts:121:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯
+
+ FAIL  test/commands.test.ts > gw-next > sends a rejected card straight to the implementer
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/commands.test.ts:106:31
+ ❯ test/commands.test.ts:128:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯
+
+ FAIL  test/commands.test.ts > gw-next > stops at awaiting-approval in per-card mode
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-next.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/commands.test.ts:106:31
+ ❯ test/commands.test.ts:132:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯
+
+ FAIL  test/commands.test.ts > gw-approve > refuses when Evidence is empty or a linked file is missing
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:141:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯
+
+ FAIL  test/commands.test.ts > gw-approve > commits with the card-ID format and marks the card done
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:148:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/23]⎯
+
+ FAIL  test/commands.test.ts > gw-approve > only approves a card that is awaiting approval
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-approve.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:154:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/23]⎯
+
+ FAIL  test/commands.test.ts > gw-reject > records the reason under History and marks the card rejected
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:160:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/23]⎯
+
+ FAIL  test/commands.test.ts > gw-reject > asks for a reason if none is given
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:167:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/23]⎯
+
+ FAIL  test/commands.test.ts > gw-reject > says the implementer picks it up next
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-reject.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:171:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/23]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  23 failed | 21 passed (44)
+   Start at  17:28:21
+   Duration  295ms (transform 41%, tests 30%, import 23%, worker 6%)
+

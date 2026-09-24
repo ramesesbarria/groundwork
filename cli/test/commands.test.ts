@@ -25,7 +25,7 @@ function frontmatter(md: string): Record<string, string> {
 }
 
 // Each card adds its commands here.
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan"];
+const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject"];
 
 describe("command files", () => {
   it.each(COMMANDS)("%s exists", (name) => {
@@ -99,5 +99,81 @@ describe("gw-setup", () => {
 
   it("handles only new projects in v0.1 and says so", () => {
     expect(command("gw-setup")).toMatch(/existing project/i);
+  });
+});
+
+describe("gw-next", () => {
+  const steps = () => section(command("gw-next"), "Steps");
+
+  it("picks the lowest-numbered todo or rejected card whose dependencies are all done", () => {
+    const text = steps();
+    expect(text).toMatch(/lowest/i);
+    expect(text).toContain("depends_on");
+    expect(text).toContain("`done`");
+    expect(text).toContain("`rejected`");
+  });
+
+  it("compares card IDs as numbers, so 1.2 comes before 1.10", () => {
+    expect(steps()).toMatch(/1\.2.*before.*1\.10/);
+  });
+
+  it("runs tester, then implementer, then reviewer", () => {
+    const text = steps();
+    const order = ["roles/tester.md", "roles/implementer.md", "roles/reviewer.md"].map((r) => text.indexOf(r));
+    expect(order.every((i) => i >= 0)).toBe(true);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+  });
+
+  it("sends a rejected card straight to the implementer", () => {
+    expect(steps()).toMatch(/rejected[^\n]*implementer/i);
+  });
+
+  it("stops at awaiting-approval in per-card mode", () => {
+    const text = steps();
+    expect(text).toContain("`per-card`");
+    expect(text).toContain("`awaiting-approval`");
+    expect(text).toMatch(/stop/i);
+  });
+});
+
+describe("gw-approve", () => {
+  it("refuses when Evidence is empty or a linked file is missing", () => {
+    const text = section(command("gw-approve"), "Steps");
+    expect(text).toMatch(/refuse/i);
+    expect(text).toMatch(/empty/i);
+    expect(text).toMatch(/missing/i);
+  });
+
+  it("commits with the card-ID format and marks the card done", () => {
+    const text = command("gw-approve");
+    expect(text).toContain("[<card-id>] <card title>");
+    expect(text).toContain("`done`");
+  });
+
+  it("can approve a whole phase in per-phase mode", () => {
+    const text = command("gw-approve");
+    expect(text).toContain("`per-phase`");
+    expect(text).toMatch(/phase <n> approved/i);
+  });
+
+  it("only approves a card that is awaiting approval", () => {
+    expect(section(command("gw-approve"), "Steps")).toContain("`awaiting-approval`");
+  });
+});
+
+describe("gw-reject", () => {
+  it("records the reason under History and marks the card rejected", () => {
+    const text = section(command("gw-reject"), "Steps");
+    expect(text).toContain("History");
+    expect(text).toMatch(/reason/i);
+    expect(text).toContain("`rejected`");
+  });
+
+  it("asks for a reason if none is given", () => {
+    expect(section(command("gw-reject"), "Steps")).toMatch(/no reason|without a reason/i);
+  });
+
+  it("says the implementer picks it up next", () => {
+    expect(command("gw-reject")).toMatch(/implementer/i);
   });
 });
