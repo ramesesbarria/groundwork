@@ -1,0 +1,9 @@
+$ cd cli && npx vitest run test/first-ten-minutes.test.ts
+     × comes right after Install and before How it works 3ms
+     × is a transcript under about 30 lines 0ms
+     × goes idea → questions → plan → card → approval stop → commit 3ms
+     × shows the approval stop in the 3-part format 1ms
+     × uses only the commands a first-timer needs 0ms
+     × cli/README.md has a two-line version 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  6 failed (6)

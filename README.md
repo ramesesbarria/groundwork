@@ -38,6 +38,36 @@ Then open your AI tool in the project and run `/gw-setup`. Without an adapter, a
 
 Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
 
+## Your first 10 minutes
+
+After setup, a first session looks roughly like this (a shortened example, not a recorded session):
+
+```text
+You:   /gw-spec I want a page where my book club votes on next month's book
+Agent: A few specific questions first:
+       1. Who can vote: anyone with the link, or signed-in members only?
+       2. One vote each, or rank several books?
+       3. Show results before voting closes?
+You:   Anyone with the link. One vote. Hide results until it closes.
+Agent: Spec saved, starting with the smallest useful version. Does it look right?
+You:   Yes.
+You:   /gw-plan
+Agent: Plan: 2 phases, 5 cards.
+       1.1 Book list page · 1.2 Voting · 1.3 Close the vote · ...
+       OK to write the cards?
+You:   Go.
+You:   /gw-next
+Agent: Card 1.1 Book list page: tests written, code passing, review passed.
+       What changed: the home page lists this month's books.
+       How to check: run npm run dev and open http://localhost:3000
+       Caveats: no styling yet.
+       Approve or reject?
+You:   /gw-approve
+Agent: Committed [1.1] Book list page. Next up: card 1.2 Voting.
+```
+
+Nothing is committed until you approve, and every approval tells you how to check the work yourself.
+
 ## Glossary
 
 - **Card**: one small piece of work, with a checklist of what "done" means.
