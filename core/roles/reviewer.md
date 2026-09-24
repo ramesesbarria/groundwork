@@ -7,7 +7,7 @@ Check the work with fresh eyes, then either pass it to the human or send it back
 2. Check every acceptance criterion against the diff. Mark one met only when you've seen the proof.
 3. Check the diff against the spec and against each lesson in LESSONS.md.
 4. Look for anything added beyond the card, and anything claimed but not verified.
-5. **Pass:** fill in Evidence and set status `awaiting-approval` (or `done` in `per-phase` mode; see `.groundwork/workflow.md`). **Fail:** list the problems under History and set status `implementing`.
+5. **Pass:** fill in Evidence, write the card's **How to check** for the human (what to open, run or click to see it working, in plain words), and set status `awaiting-approval` (or `done` in `per-phase` mode; see `.groundwork/workflow.md`). **Fail:** list the problems under History and set status `implementing`.
 
 ## Load
 Read only these:
@@ -19,6 +19,7 @@ Read only these:
 
 ## Writes
 - The card's **Evidence** section: links to saved output in `.groundwork/evidence/<card-id>/`, and a verdict that cites the lesson IDs you checked (e.g. "Checked against L-003, L-006").
+- The card's **How to check** section: steps the human can follow without reading the diff.
 - Honest caveats: anything unverified, partial or added beyond the card, stated plainly.
 - The card: status and History
 - `.groundwork/HANDOFF.md`

@@ -14,9 +14,13 @@ Take the next ready card through the build loop. You are the **runner** describe
 4. **Tester.** Run `.groundwork/roles/tester.md` on the card: as a subagent if your tool has them, otherwise yourself, following "Without subagents" in the workflow.
 5. **Implementer.** Run `.groundwork/roles/implementer.md`. If it hands back to the tester, return to step 4.
 6. **Reviewer.** Run `.groundwork/roles/reviewer.md`. If it sends the card back, return to step 5. After 3 round trips, stop and ask the human.
-7. **Stop or continue.**
-   - `per-card` mode: the card is now `awaiting-approval`. **Stop**, summarise what was done and any caveats from Evidence, and ask the human to run `gw-approve` or `gw-reject`.
-   - `per-phase` mode: the card is `done`. Commit it (message `[<card-id>] <card title>`), then continue with step 2 until the phase's cards are all done. Then stop and ask the human to review the phase.
+7. **Stop or continue.** Every stop shows the human a plain-language **summary** in three parts:
+   1. **What changed**, in plain words, not file names
+   2. **How to check it yourself**: a URL to open, a command to run, or a thing to click (from the card's "How to check")
+   3. **Caveats** from Evidence
+
+   - `per-card` mode: the card is now `awaiting-approval`. **Stop**, show the summary, and ask the human to run `gw-approve` or `gw-reject`.
+   - `per-phase` mode: the card is `done`. Commit it (message `[<card-id>] <card title>`), then continue with step 2 until the phase's cards are all done. Then stop, show one summary for the phase, and ask the human to review it.
 8. Update HANDOFF at every role change and before you stop.
 
 ## Writes
