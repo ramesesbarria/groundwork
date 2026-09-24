@@ -1,0 +1,25 @@
+{
+  "name": "groundwork-ai",
+  "version": "0.0.0",
+  "description": "A tool-agnostic workflow for building software with AI agents.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "groundwork": "dist/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

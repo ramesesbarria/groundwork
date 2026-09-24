@@ -1,0 +1,12 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints the package version with --version 4ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints usage listing the planned commands when run with no arguments 2ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > fails with a helpful message on an unknown command 1ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:08:59
+   Duration  442ms (transform 57%, import 29%, worker 7%, tests 7%)
+
