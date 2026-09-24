@@ -42,7 +42,7 @@ Load only the files it lists under Load.
         "hooks": [
           {
             "type": "command",
-            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs\\""
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs\\" \\"$CLAUDE_PROJECT_DIR\\""
           }
         ]
       }

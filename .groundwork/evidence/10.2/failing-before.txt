@@ -1,0 +1,5 @@
+$ cd cli && npx vitest run test/core-adapter-free.test.ts
+     × no core file mentions a specific tool, apart from the allow-list 7ms
+     × AGENTS.md leads to every main command without an adapter 30ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  2 failed | 1 passed (3)

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Groundwork session-start orientation. Adapters call it when a session starts, is cleared or compacted,
-// e.g. for Claude Code: node .groundwork/hooks/session-start.mjs
-// It prints a few lines from .groundwork/HANDOFF.md, so the agent knows where things stand before
-// the human asks. Outside a Groundwork project it prints nothing.
+// Groundwork session-start orientation. Adapters call it when a session starts, is cleared or compacted:
+//   node .groundwork/hooks/session-start.mjs [project folder]      (default: the current folder)
+// It prints a few plain-text lines from .groundwork/HANDOFF.md, so the agent knows where things stand
+// before the human asks. Outside a Groundwork project it prints nothing.
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -44,8 +44,6 @@ export function orientation(projectDir) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const text = orientation(process.env.CLAUDE_PROJECT_DIR || process.cwd());
-  if (text) {
-    process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: text } }));
-  }
+  const text = orientation(process.argv[2] || process.cwd());
+  if (text) process.stdout.write(`${text}\n`);
 }

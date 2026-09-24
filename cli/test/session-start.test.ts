@@ -76,16 +76,21 @@ describe("orientation text", () => {
 });
 
 describe("the hook script", () => {
-  const runHook = (projectDir: string) =>
-    spawnSync(process.execPath, [hookScript], { encoding: "utf8", cwd: projectDir, env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir } });
+  // Card 10.2: the hook is tool-neutral. The adapter passes the project folder, and the output is plain
+  // text, which Claude Code adds as context for a SessionStart hook.
+  const runHook = (projectDir: string) => spawnSync(process.execPath, [hookScript, projectDir], { encoding: "utf8" });
 
-  it("prints Claude Code's SessionStart JSON with the orientation as context", () => {
+  it("prints the orientation as plain text for the folder it's given", () => {
     const dir = projectWith(SAMPLE);
     const result = runHook(dir);
     expect(result.status).toBe(0);
-    const out = JSON.parse(result.stdout);
-    expect(out.hookSpecificOutput.hookEventName).toBe("SessionStart");
-    expect(out.hookSpecificOutput.additionalContext).toBe(orientation(dir));
+    expect(result.stdout).toBe(`${orientation(dir)}\n`);
+  });
+
+  it("uses the current folder when none is given", () => {
+    const dir = projectWith(SAMPLE);
+    const result = spawnSync(process.execPath, [hookScript], { encoding: "utf8", cwd: dir });
+    expect(result.stdout).toBe(`${orientation(dir)}\n`);
   });
 
   it("prints nothing outside a Groundwork project", () => {
