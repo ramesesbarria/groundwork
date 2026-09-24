@@ -25,7 +25,7 @@ function frontmatter(md: string): Record<string, string> {
 }
 
 // Each card adds its commands here.
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick"];
+const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick", "gw-decide", "gw-ui-spec"];
 
 describe("command files", () => {
   it.each(COMMANDS)("%s exists", (name) => {
