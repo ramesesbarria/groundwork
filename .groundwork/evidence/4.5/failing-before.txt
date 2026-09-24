@@ -1,0 +1,318 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/decide-ui-spec.test.ts (12 tests | 12 failed) 13ms
+   ❯ gw-decide (6)
+     × writes a decision record from the template with 2–4 options and trade-offs 4ms
+     × waits for the human and records the choice in their words 0ms
+     × marks a replaced decision as superseded 0ms
+     × updates the commands when the stack changes 0ms
+     × never chooses for the human 0ms
+     × is what gw-plan uses for its decisions 4ms
+   ❯ gw-ui-spec (6)
+     × covers states, transitions, constraints and screen sizes 0ms
+     × says which elements move, and handles long text 0ms
+     × offers two approaches with trade-offs 0ms
+     × writes the behavior as checkable criteria on the card and waits for OK before code 0ms
+     × says how the behavior is verified: screenshots at each size, or manual checks 0ms
+     × records a known-good state before a redesign 1ms
+ ❯ test/commands.test.ts (71 tests | 8 failed) 27ms
+   ❯ command files (44)
+     × gw-decide exists 4ms
+     × gw-ui-spec exists 1ms
+     × gw-decide has name and description frontmatter (used by adapters) 1ms
+     × gw-ui-spec has name and description frontmatter (used by adapters) 0ms
+     × gw-decide has purpose, steps and writes sections 0ms
+     × gw-ui-spec has purpose, steps and writes sections 0ms
+     × gw-decide stays under 800 tokens 0ms
+     × gw-ui-spec stays under 800 tokens 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 20 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/commands.test.ts > command files > gw-decide exists
+ FAIL  test/commands.test.ts > command files > gw-ui-spec exists
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/commands.test.ts:32:60
+     30| describe("command files", () => {
+     31|   it.each(COMMANDS)("%s exists", (name) => {
+     32|     expect(existsSync(new URL(`${name}.md`, commandsDir))).toBe(true);
+       |                                                            ^
+     33|   });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-decide has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-ui-spec has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-decide has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-ui-spec has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-decide stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/20]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-ui-spec stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > writes a decision record from the template with 2–4 options and trade-offs
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:16:31
+ ❯ test/decide-ui-spec.test.ts:19:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > waits for the human and records the choice in their words
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:16:31
+ ❯ test/decide-ui-spec.test.ts:26:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > marks a replaced decision as superseded
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:16:31
+ ❯ test/decide-ui-spec.test.ts:32:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > updates the commands when the stack changes
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:16:31
+ ❯ test/decide-ui-spec.test.ts:36:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > never chooses for the human
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-decide.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/decide-ui-spec.test.ts:41:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-decide > is what gw-plan uses for its decisions
+AssertionError: expected '## Steps\n1. Read the spec, `.groundw…' to contain 'gw-decide'
+
+- Expected
++ Received
+
+- gw-decide
++ ## Steps
++ 1. Read the spec, `.groundwork/decisions/` and HANDOFF. If HANDOFF doesn't say the spec was confirmed, ask once: "The spec hasn't been confirmed. Plan from it as it is?"
++ 2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Update HANDOFF before you stop to wait for the human's choice. Record their answer in their words, then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
++ 3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase.
++ 4. Split each phase into **cards**. Each card:
++    - is small enough for tester → implementer → reviewer in one session,
++    - has acceptance criteria that can each be checked, by a test where possible,
++    - lists the cards it needs first in `depends_on`.
++ 5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
++ 6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`.
++ 7. Update HANDOFF: phase 1, next step is `gw-next`.
++
+
+ ❯ test/decide-ui-spec.test.ts:45:50
+     43|
+     44|   it("is what gw-plan uses for its decisions", () => {
+     45|     expect(section(command("gw-plan"), "Steps")).toContain("gw-decide"…
+       |                                                  ^
+     46|   });
+     47| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > covers states, transitions, constraints and screen sizes
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:53:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > says which elements move, and handles long text
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:58:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > offers two approaches with trade-offs
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:63:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > writes the behavior as checkable criteria on the card and waits for OK before code
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:67:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > says how the behavior is verified: screenshots at each size, or manual checks
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/20]⎯
+
+ FAIL  test/decide-ui-spec.test.ts > gw-ui-spec > records a known-good state before a redesign
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-ui-spec.md'
+ ❯ command test/decide-ui-spec.test.ts:6:3
+      4|
+      5| const command = (name: string) =>
+      6|   readFileSync(new URL(`../../core/commands/${name}.md`, import.meta.u…
+       |   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ steps test/decide-ui-spec.test.ts:50:31
+ ❯ test/decide-ui-spec.test.ts:80:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/20]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  20 failed | 63 passed (83)
+   Start at  21:39:40
+   Duration  237ms (transform 45%, tests 30%, import 19%, worker 5%)
+

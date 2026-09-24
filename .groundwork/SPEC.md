@@ -302,7 +302,6 @@ docs/
 
 1. **Token counting**: a rough estimate (characters ÷ 4) or a real tokenizer? A real one is more accurate, but tokenizers differ by model.
 2. **OpenCode details**: check the current folder names for commands, agents and plugins, and whether its plugin hooks can block a shell command the way Claude Code hooks do.
-3. **UI verification**: should `gw-ui-spec` require screenshots for approval, and which tool takes them (browser MCP or Playwright)?
-4. **npm package name**: `groundwork` is taken on npm (an old scaffolding tool, v0.2.1). `groundwork-ai` was free on 2026-09-24. A scoped name like `@<user>/groundwork` is the other option. The GitHub repo and brand can still be "Groundwork."
+3. **npm package name**: `groundwork` is taken on npm (an old scaffolding tool, v0.2.1). `groundwork-ai` was free on 2026-09-24. A scoped name like `@<user>/groundwork` is the other option. The GitHub repo and brand can still be "Groundwork."
 
-**Decided (2026-09-24):** commits include the card ID · evidence is linked, not pasted · MIT license.
+**Decided (2026-09-24):** commits include the card ID · evidence is linked, not pasted · MIT license · UI criteria are verified by screenshots at each screen size when the tool can take them, otherwise by manual checks (card 4.5).

@@ -9,7 +9,7 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
 
 ## Steps
 1. Read the spec, `.groundwork/decisions/` and HANDOFF. If HANDOFF doesn't say the spec was confirmed, ask once: "The spec hasn't been confirmed. Plan from it as it is?"
-2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Update HANDOFF before you stop to wait for the human's choice. Record their answer in their words, then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
+2. **Decisions first.** For each choice the build needs that hasn't been made (framework, database, hosting, auth…), follow `.groundwork/commands/gw-decide.md`. It updates HANDOFF before waiting for the human, and fills in the commands once the stack is chosen.
 3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase.
 4. Split each phase into **cards**. Each card:
    - is small enough for tester → implementer → reviewer in one session,

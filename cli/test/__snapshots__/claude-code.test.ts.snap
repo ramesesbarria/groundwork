@@ -56,6 +56,12 @@ description: Approve the card awaiting approval (or a whole phase in per-phase m
 ---
 Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 ",
+  ".claude/skills/gw-decide/SKILL.md": "---
+name: gw-decide
+description: Lay out 2–4 options for a decision (stack, library, service), wait for the human's choice, and record it.
+---
+Read \`.groundwork/commands/gw-decide.md\` now and follow it exactly.
+",
   ".claude/skills/gw-handoff/SKILL.md": "---
 name: gw-handoff
 description: Write the current state to .groundwork/HANDOFF.md so any session, tool or model can continue from it.
@@ -104,10 +110,16 @@ description: Write or update the project spec by asking the human specific quest
 ---
 Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
 ",
+  ".claude/skills/gw-ui-spec/SKILL.md": "---
+name: gw-ui-spec
+description: Before any UI or animation work, agree in writing how it will look and behave, as checkable criteria on the card.
+---
+Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
+",
   "CLAUDE.md": "@AGENTS.md
 
 ## Claude Code
-Groundwork commands are skills: /gw-approve, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-setup, /gw-spec.
+Groundwork commands are skills: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-setup, /gw-spec, /gw-ui-spec.
 When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.
 ",
 }
