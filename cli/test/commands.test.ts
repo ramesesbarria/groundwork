@@ -25,7 +25,7 @@ function frontmatter(md: string): Record<string, string> {
 }
 
 // Each card adds its commands here.
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject"];
+const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume"];
 
 describe("command files", () => {
   it.each(COMMANDS)("%s exists", (name) => {
@@ -175,5 +175,49 @@ describe("gw-reject", () => {
 
   it("says the implementer picks it up next", () => {
     expect(command("gw-reject")).toMatch(/implementer/i);
+  });
+});
+
+const handoffTemplate = readFileSync(new URL("../../core/templates/HANDOFF.md", import.meta.url), "utf8");
+const handoffFields = [...handoffTemplate.matchAll(/^- \*\*(.+?):\*\*/gm)].map((m) => m[1]);
+
+describe("gw-handoff", () => {
+  it("writes every field in the HANDOFF template", () => {
+    expect(handoffFields).toEqual(
+      expect.arrayContaining(["Current card", "Status", "Last step", "Next step", "Failing checks"]),
+    );
+    const steps = section(command("gw-handoff"), "Steps");
+    for (const field of handoffFields) expect(steps, `gw-handoff doesn't mention "${field}"`).toContain(field);
+  });
+
+  it("overwrites HANDOFF instead of appending", () => {
+    expect(section(command("gw-handoff"), "Steps")).toMatch(/overwrite/i);
+  });
+
+  it("is also run before stopping", () => {
+    expect(command("gw-handoff")).toMatch(/before (you )?stop/i);
+  });
+});
+
+describe("gw-resume", () => {
+  const steps = () => section(command("gw-resume"), "Steps");
+
+  it("restarts from HANDOFF and the current card only", () => {
+    expect(steps()).toContain(".groundwork/HANDOFF.md");
+    expect(steps()).toMatch(/current card/i);
+    expect(steps()).toMatch(/only/i);
+  });
+
+  it("doesn't redo finished steps", () => {
+    expect(steps()).toMatch(/don't redo|do not redo/i);
+  });
+
+  it("treats the card's status as the truth when HANDOFF disagrees", () => {
+    expect(steps()).toMatch(/disagree/i);
+  });
+
+  it("continues with the role that matches the card's status", () => {
+    const text = steps();
+    for (const status of ["`testing`", "`implementing`", "`review`"]) expect(text).toContain(status);
   });
 });

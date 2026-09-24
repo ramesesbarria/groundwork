@@ -1,9 +1,9 @@
 # Handoff
 
-- **Phase:** 1 (Core workflow), v0.1 "Core loop". Running in per-phase mode at the human's request (2026-09-24): cards commit after review; nothing is pushed until phase 1 is approved.
-- **Current card:** none (1.4 done, committed locally)
+- **Phase:** 2 (Claude Code adapter + CLI), v0.1 "Core loop", running in `per-phase` mode at the human's request: cards commit after review, nothing is pushed until the phase is approved
+- **Current card:** none
 - **Status:** —
-- **Last step:** 1.4 committed locally
-- **Next step:** start 1.5 (Handoff and resume commands)
+- **Last step:** phase 1 approved by the human (2026-09-24) and pushed
+- **Next step:** start 2.1 (Claude Code adapter)
 - **Failing checks:** none
-- **Notes:** unpushed commits: 1.2 onward.
+- **Notes:** card 3.1 now also holds the resume test moved from 1.5.
