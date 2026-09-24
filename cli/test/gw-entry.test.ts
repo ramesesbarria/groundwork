@@ -72,7 +72,9 @@ describe("gw-resume is gone", () => {
   });
 
   it("no file refers to it, apart from old cards, evidence and the plan that cut it", () => {
-    const args = ["grep", "--untracked", "-l", "gw-resume", "--", ".", ":!.groundwork/cards", ":!.groundwork/evidence", ":!PLAN.md", ":!cli/test/gw-entry.test.ts"];
+    // `groundwork upgrade` (card 9.4) names it on purpose, to remove it from older projects.
+    const allowed = [":!.groundwork/cards", ":!.groundwork/evidence", ":!PLAN.md", ":!cli/test/gw-entry.test.ts", ":!cli/src/upgrade.ts", ":!cli/test/upgrade.test.ts"];
+    const args = ["grep", "--untracked", "-l", "gw-resume", "--", ".", ...allowed];
     let hits = "";
     try {
       hits = execFileSync("git", args, { cwd: repo, encoding: "utf8" });

@@ -36,7 +36,7 @@ npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 
 Then open your AI tool in the project and type `/gw`. It sets the project up the first time, and after that it always says where things stand and what's next. Without an adapter, ask the agent to read `.groundwork/commands/gw.md` and follow it.
 
-Later, `npx groundwork-ai status`, `doctor` and `retro` work the same way.
+Later, `npx groundwork-ai status`, `doctor`, `retro` and `upgrade` work the same way.
 
 ## Your first 10 minutes
 
@@ -134,6 +134,7 @@ In the terminal:
 | Command | What it does |
 |---|---|
 | `groundwork init` | Installs Groundwork (`--adapter claude-code\|opencode\|none`, `--dry-run`). Never replaces your CLAUDE.md or AGENTS.md (it adds one pointer line); asks before overwriting anything else; merges into existing settings. |
+| `groundwork upgrade` | Updates a project's Groundwork files (commands, roles, workflow, guards, hooks, templates and adapter files) to the CLI's version, after asking once. Your spec, handoff, lessons, cards, decisions and evidence stay exactly as they are. `--dry-run` shows the changes first. |
 | `groundwork adapter add <tool>` | Adds or refreshes an adapter |
 | `groundwork status` | Phase, cards by status, the next ready card, what's blocked |
 | `groundwork doctor` | Token budget, missing guards, drifted adapter files, cards whose status contradicts their history. Exits 1 on problems, so it can run in CI. |
@@ -181,7 +182,6 @@ Groundwork was built card by card using its own process. The whole trail is publ
 - **Only Claude Code blocks the agent from approving by itself.** There, `gw-approve` and `gw-reject` can't be invoked by the model. OpenCode has no such setting, so there, and in any tool without an adapter, the only safeguard is the commands' own text telling the agent that only you run them.
 - **Only Claude Code gets the session-start orientation.** OpenCode has no documented way for a plugin to add context when a session starts, so there (and without an adapter) the agent relies on AGENTS.md telling it to read HANDOFF first, or on you typing `/gw`.
 - **Token counts are estimates** (characters ÷ 4), not a real tokenizer.
-- **There's no `upgrade` command.** A project installed with an older version keeps its older `.groundwork/`, and `doctor` can't tell it's behind.
 - **Setup for existing projects is untested** on a real codebase.
 - **No evals.** Benchmarks comparing tools and models come later; they're not a current goal.
 

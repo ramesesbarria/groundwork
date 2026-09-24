@@ -7,6 +7,7 @@ import { planAdapter } from "./init.js";
 import { estimateTokens } from "./tokens.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
 import { parseCard } from "./cards.js";
+import { compareVersions, VERSION } from "./version.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
@@ -47,14 +48,17 @@ function checkGuards(groundwork: string, guards: string[], f: Findings) {
   }
 }
 
-function checkAdapters(cwd: string, groundwork: string, f: Findings) {
+function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Findings) {
   const core = readCore(groundwork);
   for (const tool of ["claude-code", "opencode"] as const) {
     const planned = planAdapter(core, tool).filter((file) => file.mode !== "append-lines");
     const installed = planned.some((file) => file.mode === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
     if (!installed) continue;
 
-    const fix = `Run \`groundwork adapter add ${tool}\` to refresh it (it asks before overwriting).`;
+    // An older project's adapter files are out of date because the whole install is: upgrade fixes both.
+    const fix = behind
+      ? "Run `groundwork upgrade` to update it."
+      : `Run \`groundwork adapter add ${tool}\` to refresh it (it asks before overwriting).`;
     for (const file of planned) {
       const current = read(join(cwd, file.path));
       if (file.path === "CLAUDE.md") {
@@ -114,16 +118,26 @@ function checkLessons(cwd: string, groundwork: string, cardText: string, f: Find
   }
 }
 
+// True when the project's Groundwork files are older than this CLI.
+function checkVersion(projectVersion: string | undefined, f: Findings): boolean {
+  if (projectVersion !== undefined && compareVersions(projectVersion, VERSION) >= 0) return false;
+  const from = projectVersion ? `version ${projectVersion}` : "an older version (no version stamp)";
+  f.suggestions.push(`This project's Groundwork files are from ${from}; the CLI is ${VERSION}. Run \`groundwork upgrade\` to update them.`);
+  return true;
+}
+
 export function doctor(io: Pick<Io, "cwd">): RunResult {
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
 
-  const config = JSON.parse(read(join(groundwork, "config.json")) || "{}") as { tokenBudget?: number; guards?: string[] };
+  const configText = read(join(groundwork, "config.json"));
+  const config = JSON.parse(configText || "{}") as { tokenBudget?: number; guards?: string[]; version?: string };
   const f: Findings = { problems: [], suggestions: [] };
 
+  const behind = configText !== "" && checkVersion(config.version, f);
   const budgetLine = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
   checkGuards(groundwork, config.guards ?? [], f);
-  checkAdapters(io.cwd, groundwork, f);
+  checkAdapters(io.cwd, groundwork, behind, f);
   const cardText = checkCards(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 

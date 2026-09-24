@@ -12,6 +12,10 @@
     "$schema": {
       "type": "string"
     },
+    "version": {
+      "description": "The Groundwork version that installed or last upgraded this project's .groundwork/ files. Written by `groundwork init` and `groundwork upgrade`; `groundwork doctor` compares it with the CLI.",
+      "type": "string"
+    },
     "approvalMode": {
       "description": "per-card: the human approves every card before it is committed. per-phase: cards commit after review passes, and the human approves the phase as a whole.",
       "enum": [
