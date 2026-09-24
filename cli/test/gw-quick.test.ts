@@ -94,3 +94,38 @@ describe("gw-quick: fixing a bug", () => {
     expect(rule).toMatch(/bug/i);
   });
 });
+
+// Card 9.5: a third size for feasibility questions. The answer is kept, not the code.
+describe("gw-quick: trying something out", () => {
+  const trySection = () => section(core("commands/gw-quick.md"), "Trying something out");
+  const rule = () => core("templates/AGENTS.md").split("\n").find((line) => line.includes("gw-quick")) ?? "";
+
+  it("has a try branch that starts from a one-line question", () => {
+    expect(trySection()).toMatch(/question in one line/i);
+  });
+
+  it("works on a throwaway branch or scratch folder, never the main branch", () => {
+    expect(trySection()).toMatch(/throwaway branch|scratch folder/i);
+    expect(trySection()).toMatch(/never[^\n]*main branch/i);
+  });
+
+  it("reports an answer and a recommendation", () => {
+    expect(trySection()).toMatch(/answer/i);
+    expect(trySection()).toMatch(/recommendation/i);
+  });
+
+  it("never merges the code; keeping it means a card", () => {
+    expect(trySection()).toMatch(/(don't|never) merge/i);
+    expect(trySection()).toMatch(/keep[^\n]*card/i);
+  });
+
+  it("the routing rule names all three paths: try, quick and card", () => {
+    expect(rule()).toMatch(/\btry\b/i);
+    expect(rule()).toMatch(/\bquick\b/i);
+    expect(rule()).toMatch(/\bcard\b/i);
+  });
+
+  it("the AGENTS.md template stays at about 400 tokens", () => {
+    expect(Math.ceil(core("templates/AGENTS.md").length / 4)).toBeLessThan(450);
+  });
+});

@@ -37,6 +37,15 @@ Cause first, then the fix. In step 3 above:
 
 If there's still no cause after two honest attempts, **stop**: say what you tried and suggest a card, so it gets planned and reviewed properly.
 
+## Trying something out
+For a question like "Can this library do X?" or "Is this even possible?". The answer is what you keep, not the code.
+1. State the question in one line.
+2. Try it on a throwaway branch (`try/<topic>`) or in a scratch folder outside the project. Never on the main branch.
+3. Report the answer, the evidence behind it, and a recommendation.
+4. Don't merge the code. If the human wants to keep it, that's a new card. Delete the branch once they have the answer.
+
+Steps 5–8 above don't apply: nothing is committed to the main branch.
+
 ## Writes
 - The change itself, and any test for it
 - One commit
