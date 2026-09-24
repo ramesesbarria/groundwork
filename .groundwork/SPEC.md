@@ -34,6 +34,7 @@ It comes from real use. Its author built a portfolio, a church website and an ev
 | Size | Grows forever | `doctor` measures the token cost and flags bloat |
 | Tools | Usually one | Markdown core + adapters, each checked in its tool |
 | Progress | Lives in the chat | HANDOFF file, so any tool or model can resume |
+| Scope | How the agent works on a task | The project layer: spec, cards, approvals, handoff and lessons. Task-level skill packs (e.g. superpowers) sit alongside it |
 
 ---
 

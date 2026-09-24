@@ -8,6 +8,8 @@
 
 Groundwork is a set of plain-markdown instructions plus a small CLI that you install into a project. It gives your AI coding agent a real development process: it interviews you for a spec, breaks the work into cards, builds each card with separate tester, implementer and reviewer roles, and stops for your approval before anything is committed. When the agent makes the same mistake twice, the mistake becomes a rule. When a rule keeps being broken, it becomes a guard that blocks the action.
 
+**Groundwork is the project layer.** It owns the spec, the cards, your approvals, where things stand between sessions, and the lessons learned, so it answers "where is my project, what's next, what did I approve?" How the agent works on a single task is left to your tool and any skill packs you use with it.
+
 ```mermaid
 flowchart LR
   idea([Idea]) --> spec[gw-spec<br/>specific questions]
@@ -162,9 +164,11 @@ The core is plain markdown, so any agent that can read files can follow it. Adap
 
 | Tool | What you get | Verified |
 |---|---|---|
-| **Claude Code** | Skills, subagents with limited tools (the reviewer can't edit files), a `PreToolUse` guard hook, `CLAUDE.md` → `AGENTS.md` | Skills appear in `/gw` autocomplete, and setup, spec and plan ran in a real session ([dogfood](.groundwork/evidence/3.1/dogfood-writeup.md)) |
+| **Claude Code** | Skills, subagents with limited tools (the reviewer can't edit files), a `PreToolUse` guard hook, a session-start hook that says where things stand, `CLAUDE.md` → `AGENTS.md` | Skills appear in `/gw` autocomplete, and setup, spec and plan ran in a real session ([dogfood](.groundwork/evidence/3.1/dogfood-writeup.md)) |
 | **OpenCode** | Commands, subagents with permissions (reviewer `edit: deny`, planner `bash: deny`), a guard plugin | OpenCode 2.0.3 loads the agents with those permissions ([check](.groundwork/evidence/4.3/opencode-check.txt)) |
 | **Anything else** | `AGENTS.md` plus the markdown in `.groundwork/` | — |
+
+**Works with skill packs.** Groundwork is the project layer, so it should work alongside skill packs such as [superpowers](https://github.com/obra/superpowers), which shape how the agent handles each task. Nobody has run the two together yet, so treat that as untested.
 
 ## Built with itself
 
