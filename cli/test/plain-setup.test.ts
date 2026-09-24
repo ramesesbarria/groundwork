@@ -39,7 +39,9 @@ describe("setup without jargon", () => {
   });
 
   it("the existing-project path asks the same plain question", () => {
-    expect(section(setup, "Existing project")).not.toMatch(/approval-mode question/i);
+    const guide = read("core/guides/existing-project.md");
+    expect(guide).not.toMatch(/approval-mode question/i);
+    expect(guide).toMatch(/approval question from `gw-setup` step 2/);
   });
 });
 

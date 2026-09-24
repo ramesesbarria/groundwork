@@ -6,6 +6,8 @@ import { planInit } from "../src/init.js";
 import { readCore } from "../src/core.js";
 
 const setup = readFileSync(new URL("../../core/commands/gw-setup.md", import.meta.url), "utf8");
+// Card 7.11 moved the existing-project steps into their own guide, which gw-setup links to.
+const guide = readFileSync(new URL("../../core/guides/existing-project.md", import.meta.url), "utf8");
 
 function section(md: string, heading: string): string {
   const start = md.indexOf(`## ${heading}`);
@@ -15,7 +17,11 @@ function section(md: string, heading: string): string {
 }
 
 describe("gw-setup for existing projects", () => {
-  const existing = () => section(setup, "Existing project");
+  const existing = () => section(guide, "Existing project");
+
+  it("gw-setup sends existing projects to the guide", () => {
+    expect(section(setup, "Purpose")).toContain(".groundwork/guides/existing-project.md");
+  });
 
   it("no longer tells the human existing projects aren't supported", () => {
     expect(setup).not.toMatch(/arrives in Groundwork v0\.2/);
@@ -52,6 +58,36 @@ describe("gw-setup for existing projects", () => {
     expect(text).toMatch(/accepted/);
     expect(text).toContain(".groundwork/decisions/");
     expect(section(setup, "Must not")).toMatch(/propose|change the stack/i);
+  });
+
+  // Card 7.11: imported rules keep their strength.
+  describe("importing existing rules", () => {
+    const importStep = () => existing().split(/\n(?=\d+\. )/).find((s) => /import/i.test(s) && /LESSONS/.test(s)) ?? "";
+
+    it("imports each rule into LESSONS with origin imported", () => {
+      expect(importStep()).toMatch(/each rule/i);
+      expect(importStep()).toMatch(/origin "imported"/);
+    });
+
+    it("asks which rules must stay always-on", () => {
+      expect(importStep()).toMatch(/always-on/i);
+      expect(importStep()).toMatch(/ask/i);
+    });
+
+    it("keeps those as RULEs in AGENTS.md's Rules section, with their lesson ID", () => {
+      expect(importStep()).toMatch(/RULE/);
+      expect(importStep()).toMatch(/Rules section/);
+      expect(importStep()).toMatch(/lesson ID/i);
+      expect(importStep()).toMatch(/NOTE/);
+    });
+
+    it("shows what goes where before writing anything", () => {
+      expect(importStep()).toMatch(/show[^\n]*what goes where[^\n]*before/i);
+    });
+
+    it("never drops a rule without showing the human", () => {
+      expect(section(setup, "Must not")).toMatch(/drop[^\n]*rule[^\n]*show/i);
+    });
   });
 
   it("keeps a copy of the AGENTS.md template, so a kept AGENTS.md can be rebuilt", () => {
