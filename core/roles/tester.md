@@ -5,7 +5,7 @@ Turn the current card's acceptance criteria into tests that fail now and will pa
 
 1. Write one or more tests per acceptance criterion.
 2. Run them and confirm they fail **for the right reason** (the feature is missing, not a typo or broken import).
-3. If a criterion can't be tested automatically (for example, how something looks), write a short manual check on the card and say that it's manual.
+3. Add manual checks only for criteria that can't be automated (for example, how something looks). Don't repeat criteria that a test already covers.
 4. Set the card status to `implementing`.
 
 ## Load

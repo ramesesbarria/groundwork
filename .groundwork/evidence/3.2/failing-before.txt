@@ -1,0 +1,359 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/dogfood-fixes.test.ts (11 tests | 11 failed) 97ms
+   ❯ scope check (L-003) (2)
+     × gw-spec asks for the smallest first version and moves the rest to later phases 5ms
+     × the planner role keeps the first phase small 1ms
+   ❯ 'you decide' (L-011) (1)
+     × gw-spec uses its suggestions, marks them as defaults, and lists extra choices 1ms
+   ❯ gw-plan (L-007, L-008) (2)
+     × checks the spec was confirmed 1ms
+     × updates HANDOFF before stopping to wait for decisions 1ms
+   ❯ tester (L-009) (1)
+     × adds manual checks only for criteria that can't be automated 1ms
+   ❯ AGENTS.md template (L-010) (1)
+     × states the commit rule for both approval modes 4ms
+   ❯ commit-ready install (L-012) (4)
+     × init writes a .gitattributes that keeps Groundwork's files LF 39ms
+     × init adds its lines to an existing .gitattributes without asking or removing anything 18ms
+     × running init again doesn't duplicate the .gitattributes lines 26ms
+     × gw-setup ends by suggesting a commit 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dogfood-fixes.test.ts > scope check (L-003) > gw-spec asks for the smallest first version and moves the rest to later phases
+AssertionError: expected '## Steps\n1. Read `.groundwork/SPEC.m…' to match /smallest/i
+
+- Expected:
+/smallest/i
+
++ Received:
+"## Steps
+1. Read `.groundwork/SPEC.md` and any notes or drafts the human points you to.
+2. List what's missing or unclear: users, features, rules, edge cases, constraints.
+3. Ask a **batch of 3–5 specific questions**, in plain English. Good: \"Can one guest join two events at the same time?\" Where you have a sensible default, offer it: \"I'd suggest X because Y. OK?\"
+4. Write the answers into the spec straight away, in the right section.
+5. Repeat until every feature has its rules and edge cases, and Open questions only holds things the human chose to leave for later.
+6. Summarise the spec in a few plain sentences and ask the human to confirm it.
+7. Update HANDOFF: next step is `gw-plan`.
+"
+
+ ❯ test/dogfood-fixes.test.ts:32:19
+     30|   it("gw-spec asks for the smallest first version and moves the rest t…
+     31|     const steps = section(read("commands/gw-spec.md"), "Steps");
+     32|     expect(steps).toMatch(/smallest/i);
+       |                   ^
+     33|     expect(steps).toMatch(/later phase/i);
+     34|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > scope check (L-003) > the planner role keeps the first phase small
+AssertionError: expected '# Role: Planner\n\n## Job\nTurn ideas…' to match /smallest/i
+
+- Expected:
+/smallest/i
+
++ Received:
+"# Role: Planner
+
+## Job
+Turn ideas into a spec, and the spec into phases and cards. You shape the work; you never do it.
+
+- **Spec:** interview the human in small batches of specific questions (\"Can a guest belong to two events?\"), never broad ones (\"Do you agree with section 2?\"). Write answers into `.groundwork/SPEC.md` as you go.
+- **Plan:** split the spec into phases, and phases into cards. A good card:
+  - can go through tester → implementer → reviewer in one session,
+  - has acceptance criteria that are each checkable, by a test where possible,
+  - lists the cards it depends on in `depends_on`.
+- **Stack choices:** when a decision is needed, write `.groundwork/decisions/NNNN-<topic>.md` with 2–4 options and their trade-offs, then ask the human to choose.
+
+## Load
+Read only these:
+- `.groundwork/HANDOFF.md`
+- `.groundwork/SPEC.md`
+- `.groundwork/decisions/` (titles first; open a file only if it matters)
+- `.groundwork/cards/`: frontmatter only, to see what exists
+- Notes or drafts the human points you to
+
+## Writes
+- `.groundwork/SPEC.md`
+- New card files in `.groundwork/cards/<id>-<slug>.md` (from the card template, status `todo`)
+- Decision records in `.groundwork/decisions/`
+- The commands in `.groundwork/config.json` and `AGENTS.md`, once a stack decision is made
+- `.groundwork/HANDOFF.md` before you stop
+
+## Must not
+- Write code or tests.
+- Choose a stack, library or service for the human. Present options; they decide.
+- Fill gaps in the spec with guesses. Ask, or list the gap under Open questions.
+- Change a card that is past `todo` without telling the human.
+"
+
+ ❯ test/dogfood-fixes.test.ts:37:38
+     35|
+     36|   it("the planner role keeps the first phase small", () => {
+     37|     expect(read("roles/planner.md")).toMatch(/smallest/i);
+       |                                      ^
+     38|   });
+     39| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > 'you decide' (L-011) > gw-spec uses its suggestions, marks them as defaults, and lists extra choices
+AssertionError: expected '## Steps\n1. Read `.groundwork/SPEC.m…' to match /you decide|your call/i
+
+- Expected:
+/you decide|your call/i
+
++ Received:
+"## Steps
+1. Read `.groundwork/SPEC.md` and any notes or drafts the human points you to.
+2. List what's missing or unclear: users, features, rules, edge cases, constraints.
+3. Ask a **batch of 3–5 specific questions**, in plain English. Good: \"Can one guest join two events at the same time?\" Where you have a sensible default, offer it: \"I'd suggest X because Y. OK?\"
+4. Write the answers into the spec straight away, in the right section.
+5. Repeat until every feature has its rules and edge cases, and Open questions only holds things the human chose to leave for later.
+6. Summarise the spec in a few plain sentences and ask the human to confirm it.
+7. Update HANDOFF: next step is `gw-plan`.
+"
+
+ ❯ test/dogfood-fixes.test.ts:44:19
+     42|   it("gw-spec uses its suggestions, marks them as defaults, and lists …
+     43|     const steps = section(read("commands/gw-spec.md"), "Steps");
+     44|     expect(steps).toMatch(/you decide|your call/i);
+       |                   ^
+     45|     expect(steps).toContain("*(default)*");
+     46|     expect(steps).toMatch(/list/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > gw-plan (L-007, L-008) > checks the spec was confirmed
+AssertionError: expected '## Steps\n1. Read the spec and `.grou…' to match /confirmed/i
+
+- Expected:
+/confirmed/i
+
++ Received:
+"## Steps
+1. Read the spec and `.groundwork/decisions/`.
+2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Ask the human to choose and record their answer. Then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
+3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase.
+4. Split each phase into **cards**. Each card:
+   - is small enough for tester → implementer → reviewer in one session,
+   - has acceptance criteria that can each be checked, by a test where possible,
+   - lists the cards it needs first in `depends_on`.
+5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
+6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`.
+7. Update HANDOFF: phase 1, next step is `gw-next`.
+"
+
+ ❯ test/dogfood-fixes.test.ts:54:21
+     52|
+     53|   it("checks the spec was confirmed", () => {
+     54|     expect(steps()).toMatch(/confirmed/i);
+       |                     ^
+     55|   });
+     56|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > gw-plan (L-007, L-008) > updates HANDOFF before stopping to wait for decisions
+AssertionError: expected '## Steps\n1. Read the spec and `.grou…' to match /HANDOFF[^\n]*before[^\n]*(wait|stop)…/i
+
+- Expected:
+/HANDOFF[^\n]*before[^\n]*(wait|stop)|before[^\n]*(wait|stop)[^\n]*HANDOFF/i
+
++ Received:
+"## Steps
+1. Read the spec and `.groundwork/decisions/`.
+2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Ask the human to choose and record their answer. Then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
+3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase.
+4. Split each phase into **cards**. Each card:
+   - is small enough for tester → implementer → reviewer in one session,
+   - has acceptance criteria that can each be checked, by a test where possible,
+   - lists the cards it needs first in `depends_on`.
+5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
+6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`.
+7. Update HANDOFF: phase 1, next step is `gw-next`.
+"
+
+ ❯ test/dogfood-fixes.test.ts:58:21
+     56|
+     57|   it("updates HANDOFF before stopping to wait for decisions", () => {
+     58|     expect(steps()).toMatch(/HANDOFF[^\n]*before[^\n]*(wait|stop)|befo…
+       |                     ^
+     59|   });
+     60| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > tester (L-009) > adds manual checks only for criteria that can't be automated
+AssertionError: expected '# Role: Tester\n\n## Job\nTurn the cu…' to match /only for criteria that can't be (tes…/i
+
+- Expected:
+/only for criteria that can't be (tested|automated)/i
+
++ Received:
+"# Role: Tester
+
+## Job
+Turn the current card's acceptance criteria into tests that fail now and will pass when the card is done.
+
+1. Write one or more tests per acceptance criterion.
+2. Run them and confirm they fail **for the right reason** (the feature is missing, not a typo or broken import).
+3. If a criterion can't be tested automatically (for example, how something looks), write a short manual check on the card and say that it's manual.
+4. Set the card status to `implementing`.
+
+## Load
+Read only these:
+- `.groundwork/HANDOFF.md`
+- The current card in `.groundwork/cards/`
+- Existing tests near the code this card touches, to match their style
+- The project's test command in `.groundwork/config.json`
+
+## Writes
+- Test files
+- The card: status, plus any manual checks
+- The failing test output, saved to `.groundwork/evidence/<card-id>/`
+- `.groundwork/HANDOFF.md`
+
+## Must not
+- Write the implementation, not even a stub that makes a test pass.
+- Weaken a test to make it easier to pass later.
+- Test things the card doesn't ask for. Note extra ideas in HANDOFF instead.
+"
+
+ ❯ test/dogfood-fixes.test.ts:65:18
+     63|   it("adds manual checks only for criteria that can't be automated", (…
+     64|     const text = read("roles/tester.md");
+     65|     expect(text).toMatch(/only for criteria that can't be (tested|auto…
+       |                  ^
+     66|   });
+     67| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > AGENTS.md template (L-010) > states the commit rule for both approval modes
+AssertionError: expected '# {{project_name}}\n\nThis project us…' not to contain 'Don\'t commit until the human approves'
+
+- Expected
++ Received
+
+- Don't commit until the human approves
++ # {{project_name}}
++
++ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The plan, cards and lessons live in `.groundwork/`. This file stays short on purpose, so load the other files only when a step needs them.
++
++ ## Project
++ {{project_summary}}
++
++ ## Commands
++ - Install: `{{install_command}}`
++ - Test: `{{test_command}}`
++ - Lint: `{{lint_command}}`
++ - Build: `{{build_command}}`
++
++ ## How we work
++ 1. **Start by reading `.groundwork/HANDOFF.md`.** It says where things stand and what's next.
++ 2. **Work one card at a time** from `.groundwork/cards/`. Load only the current card.
++ 3. **Follow `.groundwork/workflow.md`** and the file for your role in `.groundwork/roles/` (planner, tester, implementer, reviewer).
++ 4. **No evidence, no done.** Proof goes in `.groundwork/evidence/<card-id>/` and is linked from the card.
++ 5. **Don't commit until the human approves** (see `approvalMode` in `.groundwork/config.json`). Commit format: `[<card-id>] <card title>`.
++ 6. **Update `.groundwork/HANDOFF.md`** at every role change and before you stop.
++ 7. **Don't change the stack silently.** Stack choices are recorded in `.groundwork/decisions/`; propose a new decision instead.
++ 8. **Ask specific questions in plain English** when you need input.
++
++ ## Rules
++ <!-- Promoted from .groundwork/LESSONS.md. Each rule keeps its lesson ID so its origin can be traced.
++      Keep this list short: `groundwork doctor` measures this file against the token budget. -->
++
+
+ ❯ test/dogfood-fixes.test.ts:72:24
+     70|   it("states the commit rule for both approval modes", () => {
+     71|     const agents = read("templates/AGENTS.md");
+     72|     expect(agents).not.toContain("Don't commit until the human approve…
+       |                        ^
+     73|     expect(agents).toContain("`per-card`");
+     74|     expect(agents).toContain("`per-phase`");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > commit-ready install (L-012) > init writes a .gitattributes that keeps Groundwork's files LF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\AppData\Local\Temp\groundwork-fixes-aYnOT1\.gitattributes'
+ ❯ test/dogfood-fixes.test.ts:82:24
+     80|     const dir = tempProject();
+     81|     await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: n…
+     82|     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8…
+       |                        ^
+     83|     expect(attributes).toContain(".groundwork/** text eol=lf");
+     84|     expect(attributes).toContain("AGENTS.md text eol=lf");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > commit-ready install (L-012) > init adds its lines to an existing .gitattributes without asking or removing anything
+AssertionError: expected '*.png binary\n' to contain '.groundwork/** text eol=lf'
+
+- Expected
++ Received
+
+- .groundwork/** text eol=lf
++ *.png binary
++
+
+ ❯ test/dogfood-fixes.test.ts:100:24
+     98|     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8…
+     99|     expect(attributes.startsWith("*.png binary\n")).toBe(true);
+    100|     expect(attributes).toContain(".groundwork/** text eol=lf");
+       |                        ^
+    101|     expect(asked).toEqual([]);
+    102|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > commit-ready install (L-012) > running init again doesn't duplicate the .gitattributes lines
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\AppData\Local\Temp\groundwork-fixes-ND7x2H\.gitattributes'
+ ❯ test/dogfood-fixes.test.ts:108:24
+    106|     await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuesti…
+    107|     await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuesti…
+    108|     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8…
+       |                        ^
+    109|     expect(attributes.split(".groundwork/** text eol=lf").length).toBe…
+    110|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  test/dogfood-fixes.test.ts > commit-ready install (L-012) > gw-setup ends by suggesting a commit
+AssertionError: expected '## Steps\n1. Check that `.groundwork/…' to match /commit/i
+
+- Expected:
+/commit/i
+
++ Received:
+"## Steps
+1. Check that `.groundwork/` exists. If it doesn't, tell the human to run `npx groundwork-ai init` and stop.
+2. Ask these questions together, in plain English:
+   - What's the project called, and what does it do, in one sentence?
+   - Have you already chosen a stack (language, framework, database)? If yes, which?
+   - Approve every card yourself (`per-card`, recommended), or once per phase (`per-phase`)?
+3. If a stack is chosen, ask for the install, test, lint and build commands, and suggest the usual ones for that stack. If no stack is chosen yet, leave the commands empty; they get filled in after the stack decision during planning.
+4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md` (name, summary, date, commands), and write `.groundwork/config.json`.
+5. Show the human the finished AGENTS.md and ask if anything is wrong.
+6. Update HANDOFF: next step is `gw-spec`.
+"
+
+ ❯ test/dogfood-fixes.test.ts:113:60
+    111|
+    112|   it("gw-setup ends by suggesting a commit", () => {
+    113|     expect(section(read("commands/gw-setup.md"), "Steps")).toMatch(/co…
+       |                                                            ^
+    114|   });
+    115| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed (11)
+   Start at  21:28:34
+   Duration  343ms (tests 52%, transform 35%, import 10%, worker 2%)
+

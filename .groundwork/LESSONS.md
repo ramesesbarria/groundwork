@@ -55,3 +55,7 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-013 · Process cost should match the size of the change
 - Level: NOTE (light path `gw-quick` planned, card 4.1)
 - Origin: the human, after the dogfood run: "isn't this so much work for a simple dev kit". The full loop costs the same for a typo as for a feature.
+
+### L-014 · Edit code with the file-edit tool, not through script string literals
+- Level: NOTE (repeated once already; next repeat → RULE)
+- Origin: building Groundwork. Twice, a Python script that edited TypeScript turned `\n` escapes into real line breaks: a regex in card 1.4's tests, and `cli/src/init.ts` in card 3.2 (restored from git, redone with the edit tool).
