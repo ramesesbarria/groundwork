@@ -44,9 +44,17 @@ function readCommits(cwd: string): Commit[] | undefined {
     });
 }
 
-const cardIdOf = (subject: string) => subject.match(/^\[(\d+(?:\.\d+)*)\]/)?.[1];
+export const DEFAULT_COMMIT_FORMAT = "[{id}] {title}";
 
-function gitSignals(commits: Commit[]): Signal[] {
+// A matcher for commit subjects written in the project's commitFormat; group 1 is the card ID.
+export function cardIdPattern(format: string): RegExp {
+  const escaped = format.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^${escaped.replace("\\{id\\}", "(\\d+(?:\\.\\d+)*)").replace("\\{title\\}", ".*")}$`);
+}
+
+function gitSignals(commits: Commit[], format: string): Signal[] {
+  const pattern = cardIdPattern(format);
+  const cardIdOf = (subject: string) => pattern.exec(subject)?.[1];
   const signals: Signal[] = [];
   commits.forEach((commit, i) => {
     if (/^revert\b/i.test(commit.subject)) {
@@ -130,8 +138,10 @@ export function retro(io: Pick<Io, "cwd">): RunResult {
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
 
+  const configPath = join(groundwork, "config.json");
+  const config = existsSync(configPath) ? (JSON.parse(readFileSync(configPath, "utf8")) as { commitFormat?: string }) : {};
   const commits = readCommits(io.cwd);
-  const signals = [...(commits ? gitSignals(commits) : []), ...cardSignals(groundwork)];
+  const signals = [...(commits ? gitSignals(commits, config.commitFormat || DEFAULT_COMMIT_FORMAT) : []), ...cardSignals(groundwork)];
   const output = report(signals, commits ? undefined : "Not a git repo (or no commits yet), so only Groundwork's own files were read.");
   writeFileSync(join(groundwork, "retro.md"), output + "\n");
   return { code: 0, output };
