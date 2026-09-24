@@ -96,10 +96,6 @@ describe("gw-setup", () => {
   it("never picks a stack for the user", () => {
     expect(section(command("gw-setup"), "Must not")).toMatch(/stack/i);
   });
-
-  it("handles only new projects in v0.1 and says so", () => {
-    expect(command("gw-setup")).toMatch(/existing project/i);
-  });
 });
 
 describe("gw-next", () => {

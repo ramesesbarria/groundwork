@@ -94,7 +94,7 @@ Read \`.groundwork/commands/gw-resume.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-setup/SKILL.md": "---
 name: gw-setup
-description: Set up Groundwork for a new project. A short interview fills in AGENTS.md and .groundwork/config.json.
+description: Set up Groundwork for a new or existing project. Fills in AGENTS.md and .groundwork/config.json.
 ---
 Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
 ",

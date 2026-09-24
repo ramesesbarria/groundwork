@@ -48,6 +48,8 @@ export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
     path: TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`,
     content,
   }));
+  // A spare copy of the AGENTS.md template, so gw-setup can rebuild AGENTS.md if the user kept their own.
+  files.push({ path: ".groundwork/templates/AGENTS.md", content: core["templates/AGENTS.md"] ?? "" });
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
   files.push({ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" });
   if (adapter === "claude-code") {
