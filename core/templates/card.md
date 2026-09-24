@@ -21,4 +21,8 @@ depends_on: []
      Approval is refused while this section is empty. -->
 
 ## History
-<!-- One line per event: date, what happened, and why (e.g. rejected: <reason>). -->
+<!-- One line per event: date, what happened, and why. `groundwork retro` and `doctor` read these formats exactly:
+     - YYYY-MM-DD rejected: <reason>
+     - YYYY-MM-DD review → implementing: <problems>
+     - YYYY-MM-DD approved by human
+     Anything else: "YYYY-MM-DD <what happened>". -->

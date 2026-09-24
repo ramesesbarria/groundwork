@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseCard } from "./cards.js";
-import { sectionBody } from "./frontmatter.js";
+import { sectionBody, withoutComments } from "./frontmatter.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
@@ -74,7 +74,7 @@ function cardSignals(groundwork: string): Signal[] {
     const text = readFileSync(join(dir, name), "utf8");
     const card = parseCard(text);
     if (!card) continue;
-    for (const line of sectionBody(text, "History").split("\n")) {
+    for (const line of withoutComments(sectionBody(text, "History")).split("\n")) {
       const rejected = line.match(/rejected:\s*(.+)$/i);
       if (rejected) signals.push({ kind: "rejection", text: `card ${card.id}: ${rejected[1].trim()}` });
       const sentBack = line.match(/review → implementing:?\s*(.+)$/i);

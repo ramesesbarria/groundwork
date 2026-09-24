@@ -10,6 +10,9 @@ export function parseFrontmatter(md: string): Record<string, string> {
   return fields;
 }
 
+// Templates explain themselves in HTML comments; readers must not mistake those for content.
+export const withoutComments = (md: string) => md.replace(/<!--[\s\S]*?-->/g, "");
+
 // The text of one "## Heading" section, without the heading line.
 export function sectionBody(md: string, heading: string): string {
   const start = md.indexOf(`## ${heading}`);

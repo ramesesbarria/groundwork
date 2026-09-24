@@ -5,14 +5,13 @@ import { join } from "node:path";
 import { readCore } from "./core.js";
 import { planAdapter } from "./init.js";
 import { estimateTokens } from "./tokens.js";
-import { sectionBody } from "./frontmatter.js";
+import { sectionBody, withoutComments } from "./frontmatter.js";
 import { parseCard } from "./cards.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
 
 const read = (path: string) => (existsSync(path) ? readFileSync(path, "utf8") : "");
-const withoutComments = (md: string) => md.replace(/<!--[\s\S]*?-->/g, "");
 
 interface Findings {
   problems: string[];
@@ -76,7 +75,7 @@ function checkCards(groundwork: string, f: Findings): string {
     allText += text;
     const card = parseCard(text);
     if (!card) continue;
-    const decisions = sectionBody(text, "History")
+    const decisions = withoutComments(sectionBody(text, "History"))
       .split("\n")
       .filter((line) => /\b(approved|rejected)\b/i.test(line));
     const last = decisions.at(-1) ?? "";

@@ -1,0 +1,7 @@
+$ cd cli && npx vitest run test/history-format.test.ts
+     × the template shows the three formats the tools parse 6ms
+     × the workflow points to the template for the formats 1ms
+     × retro finds every signal in a card written from the examples 53ms
+     × doctor reads the approval line 30ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  4 failed (4)
