@@ -549,7 +549,7 @@ Re-plan Phase 10 from what 6.1 finds.
 **Goal:** "bring your messy project under Groundwork" is a flow that has actually been run, not just written.
 **Changes:**
 - Run `gw-setup` on one of your real existing repos (the church website or MyPortfolio).
-- Fix whatever it gets wrong in the "Existing project" section of `core/commands/gw-setup.md`: marking things *found* or *guessed*, recording the stack already in use, importing an old CLAUDE.md into LESSONS.
+- Fix whatever it gets wrong in `core/guides/existing-project.md` (moved out of `gw-setup` in card 7.11): marking things *found* or *guessed*, recording the stack already in use, importing an old CLAUDE.md into LESSONS.
 - Add an `existing-project` walkthrough to the README.
 
 **Acceptance criteria:**
