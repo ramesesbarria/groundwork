@@ -98,6 +98,12 @@ description: Continue unfinished work from .groundwork/HANDOFF.md and the curren
 ---
 Read \`.groundwork/commands/gw-resume.md\` now and follow it exactly.
 ",
+  ".claude/skills/gw-retro/SKILL.md": "---
+name: gw-retro
+description: Look back at repeated mistakes and propose moving lessons up the ladder (note, rule, guard). Nothing changes without the human's OK.
+---
+Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
+",
   ".claude/skills/gw-setup/SKILL.md": "---
 name: gw-setup
 description: Set up Groundwork for a new or existing project. Fills in AGENTS.md and .groundwork/config.json.
@@ -119,7 +125,7 @@ Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
   "CLAUDE.md": "@AGENTS.md
 
 ## Claude Code
-Groundwork commands are skills: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-setup, /gw-spec, /gw-ui-spec.
+Groundwork commands are skills: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.
 When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.
 ",
 }

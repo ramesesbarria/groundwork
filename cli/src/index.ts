@@ -4,6 +4,7 @@ import { init } from "./init.js";
 import { status } from "./status.js";
 import { adapter } from "./adapter.js";
 import { doctor } from "./doctor.js";
+import { retro } from "./retro.js";
 
 export interface RunResult {
   code: number;
@@ -36,7 +37,7 @@ const COMMANDS: Record<string, string> = {
   adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode)",
   status: "Show the current phase, cards by status, and what's ready or blocked",
   doctor: "Check harness health and the context token budget (exits 1 on problems)",
-  retro: "(planned) Collect signals for /gw-retro from git and .groundwork/",
+  retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
 };
 
 function usage(): string {
@@ -65,6 +66,7 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "status") return status(fullIo);
   if (cmd === "adapter") return adapter(args, fullIo);
   if (cmd === "doctor") return doctor(fullIo);
+  if (cmd === "retro") return retro(fullIo);
   if (cmd in COMMANDS) {
     return { code: 1, output: `'${cmd}' is planned but not implemented yet.` };
   }
