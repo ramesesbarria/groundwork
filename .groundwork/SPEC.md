@@ -156,7 +156,7 @@ Agent commands use the `gw-` prefix to avoid clashing with built-in or user comm
 | `/gw-reject <reason>` | Sends the card back. The reason is recorded on the card and feeds `retro`. |
 | `/gw-ui-spec` | Before UI or animation work: writes the states, transitions and constraints, and waits for your OK. |
 | `/gw-handoff` | Writes HANDOFF.md now (also happens automatically at each role boundary). |
-| `/gw-resume` | Reads HANDOFF and the current card and continues where things stopped. |
+| `/gw` | The one command to remember: says where things stand from HANDOFF and the cards, then runs the next step, including resuming a card in progress. |
 | `/gw-retro` | Reads the `groundwork retro` report and proposes ledger changes (see §9). |
 
 CLI:
@@ -282,7 +282,7 @@ PLAN.md            # the current improvement plan
 
 | Version | Name | Includes |
 |---|---|---|
-| **v0.1** | Core loop | Core markdown, 4 roles, cards, `gw-setup` (new projects), `gw-spec`, `gw-plan`, `gw-next`, `gw-approve`, `gw-reject`, `gw-handoff`, `gw-resume`, the Claude Code adapter, `groundwork init`, manual LESSONS ledger |
+| **v0.1** | Core loop | Core markdown, 4 roles, cards, `gw-setup` (new projects), `gw-spec`, `gw-plan`, `gw-next`, `gw-approve`, `gw-reject`, `gw-handoff`, a resume command (merged into `/gw` in v0.5), the Claude Code adapter, `groundwork init`, manual LESSONS ledger |
 | **v0.2** | Any tool | OpenCode adapter, guards plus their wiring, existing-project onboarding, `gw-decide`, `gw-ui-spec`, a "resume in a different tool" demo |
 | **v0.3** | Learns | `groundwork retro` with `/gw-retro`, the escalation ladder, `groundwork doctor` |
 | **v0.5** | Intuitive | The plan in `PLAN.md`: self-triggering commands, `/gw`, session-start orientation, plain approval stops, a friendlier loop for bugs, experiments and existing projects |

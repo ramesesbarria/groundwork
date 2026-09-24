@@ -52,7 +52,8 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
     "@AGENTS.md",
     "",
     "## Claude Code",
-    `Groundwork commands are skills: ${commands.map((c) => `/${c.name}`).join(", ")}.`,
+    `Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.`,
+    `The others: ${commands.filter((c) => c.name !== "gw").map((c) => `/${c.name}`).join(", ")}.`,
     `When a command says to run a role, use its subagent: ${roles.map((r) => `gw-${r.name}`).join(", ")}.`,
     "",
   ].join("\n");

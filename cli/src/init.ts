@@ -90,9 +90,9 @@ export const isGroundworkSource = (dir: string) =>
   existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
 
 export const NEXT_STEPS: Record<Adapter, string> = {
-  "claude-code": "Next: open Claude Code in this folder and run /gw-setup.",
-  opencode: "Next: open OpenCode in this folder and run /gw-setup.",
-  none: "Next: ask your AI tool to read .groundwork/commands/gw-setup.md and follow it.",
+  "claude-code": "Next: open Claude Code in this folder and type /gw. It works out what to do next.",
+  opencode: "Next: open OpenCode in this folder and type /gw. It works out what to do next.",
+  none: "Next: ask your AI tool to read .groundwork/commands/gw.md and follow it.",
 };
 
 const ADAPTER_QUESTION = [

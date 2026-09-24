@@ -8,7 +8,7 @@ description: Use when there's a plan and the human wants to keep building, for e
 Take the next ready card through the build loop. You are the **runner** described in `.groundwork/workflow.md`: you hand the card to each role in turn, but you don't do their work yourself.
 
 ## Steps
-1. Read `.groundwork/HANDOFF.md` and `.groundwork/config.json`. If HANDOFF shows a card still in progress, run `gw-resume` instead.
+1. Read `.groundwork/HANDOFF.md` and `.groundwork/config.json`. If HANDOFF shows a card still in progress, resume it as `gw` describes under "Resuming a card" instead.
 2. **Pick the card.** From `.groundwork/cards/`, take the **lowest-numbered** card whose status is `todo` or `rejected` and whose `depends_on` cards are all `done`. Compare IDs as numbers, part by part, so 1.2 comes before 1.10. If no card is ready, say which cards are blocked and by what, then stop.
 3. **Start it.** A `todo` card: set status `testing` and add a History line. A `rejected` card: set status `implementing` and go straight to the implementer in step 5; the reason is under History.
 4. **Tester.** Run `.groundwork/roles/tester.md` on the card: as a subagent if your tool has them, otherwise yourself, following "Without subagents" in the workflow.

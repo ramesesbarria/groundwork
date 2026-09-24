@@ -13,7 +13,7 @@ const coreDir = fileURLToPath(new URL("../../core/", import.meta.url));
 const core = readCore(coreDir);
 const out = generateOpenCode(core);
 
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 const ROLES = ["planner", "tester", "implementer", "reviewer"];
 
 const temps: string[] = [];

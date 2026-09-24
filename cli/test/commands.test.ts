@@ -25,7 +25,7 @@ function frontmatter(md: string): Record<string, string> {
 }
 
 // Each card adds its commands here.
-const COMMANDS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-resume", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 
 describe("command files", () => {
   it.each(COMMANDS)("%s exists", (name) => {
@@ -195,8 +195,9 @@ describe("gw-handoff", () => {
   });
 });
 
-describe("gw-resume", () => {
-  const steps = () => section(command("gw-resume"), "Steps");
+// Card 8.1: the old resume command was merged into /gw, which resumes a card in progress.
+describe("gw (resuming a card)", () => {
+  const steps = () => section(command("gw"), "Steps") + section(command("gw"), "Resuming a card");
 
   it("restarts from HANDOFF and the current card only", () => {
     expect(steps()).toContain(".groundwork/HANDOFF.md");
