@@ -1,6 +1,6 @@
 ---
 name: gw-setup
-description: Set up Groundwork for a new or existing project. Fills in AGENTS.md and .groundwork/config.json.
+description: Use when Groundwork was just installed and AGENTS.md or .groundwork/config.json isn't filled in yet. Sets up a new or existing project with a short interview.
 ---
 # gw-setup
 
