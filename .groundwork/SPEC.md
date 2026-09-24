@@ -99,7 +99,8 @@ Agent commands (/gw-*):
 ```
 AGENTS.md                      # small, always loaded; points into .groundwork/
 .groundwork/
-  config.json                  # approval mode, token budget, test/lint commands
+  config.json                  # approval mode, token budget, test/lint/build commands
+  config.schema.json           # lets editors validate config.json
   SPEC.md                      # what we're building
   HANDOFF.md                   # current state: where we are, what's next
   LESSONS.md                   # rule ledger (see §9)

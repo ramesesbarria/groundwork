@@ -1,0 +1,11 @@
+{
+  "$schema": "./config.schema.json",
+  "approvalMode": "per-card",
+  "tokenBudget": 2000,
+  "commands": {
+    "install": "",
+    "test": "",
+    "lint": "",
+    "build": ""
+  }
+}
