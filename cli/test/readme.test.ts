@@ -33,7 +33,7 @@ describe("README", () => {
     const firstScreen = readme.slice(0, readme.indexOf("## Why"));
     expect(firstScreen).toMatch(/tool-agnostic workflow for building software with AI agents/i);
     expect(firstScreen).toContain("```mermaid");
-    expect(firstScreen).toMatch(/groundwork init|bin\.js init/);
+    expect(firstScreen).toMatch(/groundwork(-ai)? init|bin\.js init/);
   });
 
   it("has the sections the card asks for", () => {

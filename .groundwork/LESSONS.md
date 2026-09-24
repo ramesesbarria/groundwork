@@ -71,3 +71,7 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-017 · When changing a core file, check the files that refer to it
 - Level: NOTE
 - Origin: found by `groundwork retro` on this repo (card 5.2) and accepted by the human through `/gw-retro`. 3 of 5 review send-backs had this cause: `reviewer.md` contradicted per-phase mode (card 1.2), `planner.md` didn't allow what `gw-plan` and `gw-spec` do (1.3), and `gw-approve` couldn't approve a phase `gw-next` asked for (1.4).
+
+### L-018 · Only commit and push when the checks pass
+- Level: NOTE
+- Origin: after publishing 0.3.0. A shell command ran the tests, then committed and pushed with `;`, so a failing README test (it didn't recognize `npx groundwork-ai init`) went to GitHub and CI went red on commit 0c15814. Fixed in the next commit. Chain with `&&` so a failure stops the commit.
