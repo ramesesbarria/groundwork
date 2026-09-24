@@ -1,0 +1,2 @@
+core/commands/gw-handoff.md: 1554 chars ≈ 389 tokens (limit 800)
+core/commands/gw-resume.md: 1483 chars ≈ 371 tokens (limit 800)
