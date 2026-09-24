@@ -12,8 +12,9 @@ The first entries were imported from the author's Claude Code /insights report (
 - Origin: imported. A report was built from a checkout 45 commits behind origin.
 
 ### L-003 · Propose the lean version first
-- Level: NOTE
+- Level: RULE (in `core/roles/planner.md` and `gw-spec`, card 3.2)
 - Origin: imported. The first harness design was too heavy and had to be cut back to 3 files.
+- History: note (2026-09-24, imported) → rule (2026-09-24, repeated in the dogfood run: a "tiny sample app" spec grew into a multi-user phone app with push notifications, card 3.1 F4)
 
 ### L-004 · Write a behavior spec before UI animation work
 - Level: NOTE
@@ -26,3 +27,31 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-006 · Claim only what the evidence shows
 - Level: NOTE
 - Origin: imported. A job-application answer described a portfolio bug as a production incident.
+
+### L-007 · Update HANDOFF before every stop, including stops to wait for the human
+- Level: NOTE (fixed in `gw-plan`, card 3.2)
+- Origin: dogfood run, card 3.1 F5. `gw-plan` stopped to wait for stack choices without updating HANDOFF, which then described the previous step.
+
+### L-008 · Check the previous step was confirmed before building on it
+- Level: NOTE (fixed in `gw-plan`, card 3.2)
+- Origin: dogfood run, card 3.1 F7. `gw-plan` ran on a spec the human hadn't confirmed and didn't notice.
+
+### L-009 · Manual checks only for what can't be automated
+- Level: NOTE (fixed in `core/roles/tester.md`, card 3.2)
+- Origin: dogfood run, card 3.1 F8. The tester repeated every acceptance criterion as a manual check, doubling the card.
+
+### L-010 · Templates must read correctly in every config mode
+- Level: NOTE (fixed in the AGENTS.md template, card 3.2)
+- Origin: dogfood run, card 3.1 F6, found by the model during `gw-setup`. AGENTS.md said "don't commit until the human approves", which is wrong in `per-phase` mode.
+
+### L-011 · When the human says "you decide", use visible defaults
+- Level: NOTE (written into `gw-spec`, card 3.2)
+- Origin: dogfood run, card 3.1 F3. The model marked every default *(default)* and listed extra choices. Good behavior, but improvised, so it's now written down.
+
+### L-012 · A fresh install should be commit-ready
+- Level: NOTE (fixed in `init` and `gw-setup`, card 3.2)
+- Origin: dogfood run, card 3.1 F1 and F2. Line-ending warnings on every installed file on Windows (no `.gitattributes`), and nothing suggested committing after setup.
+
+### L-013 · Process cost should match the size of the change
+- Level: NOTE (light path `gw-quick` planned, card 4.1)
+- Origin: the human, after the dogfood run: "isn't this so much work for a simple dev kit". The full loop costs the same for a typo as for a feature.

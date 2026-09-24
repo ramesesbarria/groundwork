@@ -1,9 +1,9 @@
 # Handoff
 
-- **Phase:** 3 (Dogfood), v0.1 "Core loop"
+- **Phase:** 3–5, finishing Groundwork before the human builds their real app. Commit per card; push at the end of each milestone (v0.1, v0.2, v0.3).
 - **Current card:** none
 - **Status:** —
-- **Last step:** phase 2 approved by the human (2026-09-24), pushed, CI passed on Linux and Windows
-- **Next step:** start 3.1 (dogfood run). It needs the human: the spec interview, approvals, and the fresh-session resume test.
+- **Last step:** closed 3.1 and planned cards 3.2–6.1
+- **Next step:** build 3.2 (dogfood fixes)
 - **Failing checks:** none
-- **Notes:** 3.1 is the first time the generated skills and subagents run inside real Claude Code.
+- **Notes:** v0.2 = gw-quick, guards + Claude Code hooks, OpenCode adapter, existing projects, gw-decide + gw-ui-spec, status + adapter commands. v0.3 = doctor, retro, README. No npm publish without the human.
