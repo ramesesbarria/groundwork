@@ -113,10 +113,14 @@ AGENTS.md                      # small, always loaded; points into .groundwork/
     1.2/test-output.txt        # proof files, linked from the card
   guards/
     no-ai-trailers.mjs
+  hooks/
+    session-start.mjs          # prints where things stand when a session starts (Claude Code)
+  guides/
+    existing-project.md        # gw-setup's steps for a repo that already has code
   roles/
     planner.md  tester.md  implementer.md  reviewer.md
   commands/
-    gw-setup.md  gw-spec.md  gw-plan.md  gw-next.md  …   # tool-neutral; adapters point here
+    gw.md  gw-setup.md  gw-spec.md  gw-plan.md  gw-next.md  …   # tool-neutral; adapters point here
   workflow.md                  # the loop, step by step, tool-neutral
 
 # plus the adapter output, e.g.:
@@ -266,6 +270,8 @@ core/              # the markdown that gets copied into .groundwork/
   roles/           # planner, tester, implementer, reviewer
   templates/       # AGENTS.md, SPEC.md, HANDOFF.md, LESSONS.md, card, decision, config
   guards/          # built-in guards (no-ai-trailers) and the runner that loads them
+  hooks/           # session-start orientation
+  guides/          # longer steps a command links to (existing-project setup)
 cli/               # TypeScript, tested with vitest
   src/             # init, adapter, status, doctor, retro
   src/adapters/    # claude-code, opencode: generate tool files from core/

@@ -13,6 +13,12 @@ const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in
 
 const read = (path: string) => (existsSync(path) ? readFileSync(path, "utf8") : "");
 
+// What's lost when one of Groundwork's Claude Code hooks is missing.
+const HOOK_EFFECT: Record<string, string> = {
+  PreToolUse: "guard hook, so guards won't run",
+  SessionStart: "session-start hook, so new sessions aren't told where things stand",
+};
+
 interface Findings {
   problems: string[];
   suggestions: string[];
@@ -55,9 +61,12 @@ function checkAdapters(cwd: string, groundwork: string, f: Findings) {
         // Users may keep their own CLAUDE.md; it only has to load AGENTS.md.
         if (!current.includes("@AGENTS.md")) f.problems.push(`CLAUDE.md doesn't load AGENTS.md. Add the line @AGENTS.md.`);
       } else if (file.mode === "merge-settings") {
-        const hook = JSON.parse(file.content).hooks.PreToolUse[0].hooks[0].command as string;
-        if (!current.includes(hook.replace(/"/g, '\\"'))) {
-          f.problems.push(`${file.path} is missing Groundwork's guard hook, so guards won't run. ${fix}`);
+        const hooks = JSON.parse(file.content).hooks as Record<string, { hooks: { command: string }[] }[]>;
+        for (const [event, entries] of Object.entries(hooks)) {
+          const command = entries[0].hooks[0].command;
+          if (!current.includes(command.replace(/"/g, '\\"'))) {
+            f.problems.push(`${file.path} is missing Groundwork's ${HOOK_EFFECT[event] ?? `${event} hook`}. ${fix}`);
+          }
         }
       } else if (current !== file.content) {
         f.problems.push(`${file.path} ${current === "" ? "is missing" : "differs from what Groundwork would generate"}. ${fix}`);
