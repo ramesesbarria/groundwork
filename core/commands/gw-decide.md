@@ -12,9 +12,9 @@ Record a decision the human makes, with the options they chose from. Groundwork 
 2. Write `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with status `proposed`:
    - **Context:** what needs deciding, why now, and the constraints that matter.
    - **Options:** 2–4 options. For each: what it is, pros, cons, and what switching away later would cost.
-3. Summarise the options in a few lines. If one clearly fits a stated constraint, you can say "if X matters most, B fits" but not "choose B".
-4. Update HANDOFF, then **wait** for the human's choice. "Your call" isn't enough for a decision: ask them to pick.
-5. Record the choice in their words under Decision, set status `accepted`, and fill in Consequences.
+3. Summarise the options in a few lines. You may add one line starting **Recommendation:** naming the option you'd pick and why (e.g. "**Recommendation:** B, because one small app doesn't need a database server"). It's always labeled, never mixed into the options.
+4. Update HANDOFF, then **wait** for the human's choice. If they say "your call" or "you decide", ask once: "Shall I go with my recommendation, B?" Only a clear yes counts.
+5. Record the choice in their words under Decision. If they took the recommendation, write "accepted the recommendation" and quote their reply. Set status `accepted`, and fill in Consequences.
 6. If this replaces an earlier decision, set that one's status to `superseded` and link to the new one.
 7. If the stack changed, update the commands in `.groundwork/config.json` and `AGENTS.md`.
 
@@ -24,5 +24,5 @@ Record a decision the human makes, with the options they chose from. Groundwork 
 - `.groundwork/HANDOFF.md`
 
 ## Must not
-- Choose for the human, or record a default as their decision.
+- Choose for the human, or record a default or your recommendation as their decision without their answer. Nothing is picked silently.
 - Leave out an option because you don't like it, if it fits the constraints.

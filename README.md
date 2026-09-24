@@ -104,7 +104,7 @@ AGENTS.md                 short, always loaded; points into .groundwork/
 - **No evidence, no approval.** A card can't be approved while its Evidence section is empty.
 - **You choose how often to approve:** every card (`per-card`, the default) or once per phase (`per-phase`).
 - **A light path for small changes.** `gw-quick` skips the card and the roles, but the tests still have to pass.
-- **Stack-neutral.** For every stack decision, Groundwork writes 2–4 options with trade-offs and waits for you. "Your call" isn't accepted for those.
+- **Stack-neutral.** For every stack decision, Groundwork writes 2–4 options with trade-offs, may add a labeled recommendation, and waits for you. Nothing is picked until you answer; "go with your recommendation" counts, and is recorded as that.
 
 ## Commands
 

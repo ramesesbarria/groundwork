@@ -1,0 +1,9 @@
+$ cd cli && npx vitest run test/decide-ui-spec.test.ts
+     × may recommend one option, always labeled as a recommendation with its reason 4ms
+     × records taking the recommendation as the human's explicit choice, in their words 1ms
+     × still doesn't accept "you decide" as a choice without a clear yes 1ms
+     × the planner may recommend but never chooses silently 0ms
+     × the decision template records whether the recommendation was taken 0ms
+     × README and SPEC describe the labeled recommendation 1ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  6 failed | 13 passed (19)

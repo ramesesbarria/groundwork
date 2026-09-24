@@ -62,7 +62,7 @@ It comes from real use. Its author built a portfolio, a church website and an ev
 3. **Guards over reminders.** If a rule matters and keeps getting broken, a guard blocks the action.
 4. **Spec before code**, and a behavior spec before any UI animation.
 5. **Evidence over claims.** "Done" means tests passed and there's proof.
-6. **Stack-neutral.** Show trade-offs, record the user's choice, never pick silently.
+6. **Stack-neutral.** Show trade-offs, optionally with a labeled recommendation, record the user's choice, never pick silently (decision 0001).
 7. **Plain English.** Specific questions, not "do you agree with section 2?"
 8. **Resumable.** Any session can die at any point, and the next one picks up from files.
 
