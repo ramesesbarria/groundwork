@@ -1,0 +1,315 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/gw-quick.test.ts (7 tests | 7 failed) 11ms
+   ❯ gw-quick (7)
+     × says when to use it and when to make a card instead 3ms
+     × stops and suggests a card if the change grows 0ms
+     × needs no card file or separate roles 0ms
+     × requires tests, lint and build to pass before committing 0ms
+     × follows LESSONS and the approval mode 0ms
+     × uses a [quick] commit message and leaves one line in HANDOFF 0ms
+     × is mentioned in the workflow and the AGENTS.md template 5ms
+ ❯ test/commands.test.ts (64 tests | 4 failed) 26ms
+   ❯ command files (36)
+     × gw-quick exists 6ms
+     × gw-quick has name and description frontmatter (used by adapters) 1ms
+     × gw-quick has purpose, steps and writes sections 0ms
+     × gw-quick stays under 800 tokens 0ms
+ ❯ test/claude-code.test.ts (29 tests | 3 failed) 14ms
+   ❯ Claude Code adapter (28)
+     × generates exactly the expected files 5ms
+     × skill gw-quick has the command's name and description 0ms
+     × skill gw-quick points to the core command instead of copying it 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/claude-code.test.ts > Claude Code adapter > generates exactly the expected files
+AssertionError: expected [ …(13) ] to deeply equal [ …(14) ]
+
+- Expected
++ Received
+
+@@ -5,11 +5,10 @@
+    ".claude/agents/gw-tester.md",
+    ".claude/skills/gw-approve/SKILL.md",
+    ".claude/skills/gw-handoff/SKILL.md",
+    ".claude/skills/gw-next/SKILL.md",
+    ".claude/skills/gw-plan/SKILL.md",
+-   ".claude/skills/gw-quick/SKILL.md",
+    ".claude/skills/gw-reject/SKILL.md",
+    ".claude/skills/gw-resume/SKILL.md",
+    ".claude/skills/gw-setup/SKILL.md",
+    ".claude/skills/gw-spec/SKILL.md",
+    "CLAUDE.md",
+
+ ❯ test/claude-code.test.ts:37:37
+     35| describe("Claude Code adapter", () => {
+     36|   it("generates exactly the expected files", () => {
+     37|     expect(Object.keys(out).sort()).toEqual(
+       |                                     ^
+     38|       [
+     39|         "CLAUDE.md",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  test/claude-code.test.ts > Claude Code adapter > skill gw-quick has the command's name and description
+TypeError: Cannot read properties of undefined (reading 'match')
+ ❯ frontmatter test/claude-code.test.ts:14:20
+     12|
+     13| function frontmatter(md: string): Record<string, string> {
+     14|   const match = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+       |                    ^
+     15|   if (!match) return {};
+     16|   return Object.fromEntries(
+ ❯ test/claude-code.test.ts:47:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  test/claude-code.test.ts > Claude Code adapter > skill gw-quick points to the core command instead of copying it
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ test/claude-code.test.ts:55:19
+     53|   it.each(COMMANDS)("skill %s points to the core command instead of co…
+     54|     const skill = out[`.claude/skills/${name}/SKILL.md`];
+     55|     expect(skill).toContain(`.groundwork/commands/${name}.md`);
+       |                   ^
+     56|     expect(skill).not.toContain("## Steps");
+     57|     expect(estimateTokens(skill)).toBeLessThan(150);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-quick exists
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/commands.test.ts:32:60
+     30| describe("command files", () => {
+     31|   it.each(COMMANDS)("%s exists", (name) => {
+     32|     expect(existsSync(new URL(`${name}.md`, commandsDir))).toBe(true);
+       |                                                            ^
+     33|   });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-quick has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-quick has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-quick stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > says when to use it and when to make a card instead
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:18:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > stops and suggests a card if the change grows
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:24:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > needs no card file or separate roles
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:28:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > requires tests, lint and build to pass before committing
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:33:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > follows LESSONS and the approval mode
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:40:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > uses a [quick] commit message and leaves one line in HANDOFF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-quick.md'
+ ❯ core test/gw-quick.test.ts:5:32
+      3| import { readFileSync } from "node:fs";
+      4|
+      5| const core = (path: string) => readFileSync(new URL(`../../core/${path…
+       |                                ^
+      6|
+      7| function section(md: string, heading: string): string {
+ ❯ quick test/gw-quick.test.ts:15:23
+ ❯ test/gw-quick.test.ts:47:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  test/gw-quick.test.ts > gw-quick > is mentioned in the workflow and the AGENTS.md template
+AssertionError: expected '# Groundwork workflow\n\nHow a card g…' to contain 'gw-quick'
+
+- Expected
++ Received
+
+- gw-quick
++ # Groundwork workflow
++
++ How a card goes from idea to commit. This works in any AI tool. Adapters only add shortcuts.
++
++ **The runner** is the main session: the one you type `gw-next` into. It picks cards, hands them to each role in turn, and commits after approval. The roles are described in `.groundwork/roles/`.
++
++ ## The loop
++
++ 1. **Pick.** The runner picks the lowest-numbered card with status `todo` or `rejected` whose `depends_on` cards are all `done`.
++ 2. **Test.** The tester writes failing tests and saves the failing output as evidence.
++ 3. **Implement.** The implementer makes the tests pass, and the full suite, lint and build too.
++ 4. **Review.** The reviewer reruns everything, checks every criterion, and fills in Evidence, or sends the card back.
++ 5. **Approve.** In `per-card` mode the runner stops, and the human approves or rejects.
++ 6. **Commit.** After approval the runner commits and moves to the next card.
++
++ ## Card statuses
++
++ | From | To | Who | When |
++ |---|---|---|---|
++ | `todo` | `testing` | runner | Starts the card |
++ | `testing` | `implementing` | tester | Failing tests are written and saved |
++ | `implementing` | `review` | implementer | Tests, lint and build all pass |
++ | `implementing` | `testing` | implementer | A test looks wrong; reason written on the card |
++ | `review` | `implementing` | reviewer | Problems found; listed under History |
++ | `review` | `awaiting-approval` | reviewer | Passed, in `per-card` mode |
++ | `review` | `done` | reviewer | Passed, in `per-phase` mode (the runner commits) |
++ | `awaiting-approval` | `done` | human | Approves (the runner commits) |
++ | `awaiting-approval` | `rejected` | human | Rejects, with a reason |
++ | `done` | `rejected` | human | Rejects a card during a phase review |
++ | `rejected` | `implementing` | runner | Picks the card up again; the reason is on the card |
++
++ No other changes are allowed. Every change gets one line under the card's History.
++
++ ## Approval
++
++ Set `approvalMode` in `.groundwork/config.json`:
++
++ - **`per-card`** (default): the runner stops at `awaiting-approval`. The human approves or rejects each card.
++ - **`per-phase`**: cards that pass review are committed one by one without stopping. When the phase's last card is done, the runner stops and the human reviews the phase. They can reject any card, which goes back into the loop. Nothing is pushed until the phase is approved.
++
++ **No evidence, no approval.** A card can't be approved while its Evidence section is empty or links to a missing file. Evidence is saved in `.groundwork/evidence/<card-id>/` and linked from the card.
++
++ **After approval** the runner:
++ 1. sets the card to `done` and adds a History line,
++ 2. updates HANDOFF.md,
++ 3. commits the card's changes with the message `[<card-id>] <card title>`, plus a short body saying what changed,
++ 4. moves to the next card, or stops if the human asked it to.
++
++ Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).
++
++ ## HANDOFF
++
++ `.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. Update it:
++ - at **every role change**,
++ - after every approval or rejection,
++ - **before you stop** for any reason, including when you're running out of context or usage.
++
++ A fresh session, in any tool or with any model, must be able to continue from HANDOFF.md plus the current card alone.
++
++ ## Without subagents
++
++ If your tool can't start separate agents, one session plays every role in turn:
++
++ 1. Before each role, read that role's file in `.groundwork/roles/` and **only** the files it lists under Load.
++ 2. Finish the role completely, update the card status and HANDOFF, then switch.
++ 3. As reviewer, reread the diff from the start as if someone else wrote it. Don't rely on memory from implementing it.
++
++ It's weaker than a truly fresh reviewer, which is why the reviewer reruns every check itself instead of trusting earlier output.
++
+
+ ❯ test/gw-quick.test.ts:53:33
+     51|
+     52|   it("is mentioned in the workflow and the AGENTS.md template", () => {
+     53|     expect(core("workflow.md")).toContain("gw-quick");
+       |                                 ^
+     54|     expect(core("templates/AGENTS.md")).toContain("gw-quick");
+     55|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  14 failed | 86 passed (100)
+   Start at  21:31:25
+   Duration  251ms (transform 52%, import 22%, tests 21%, worker 5%)
+

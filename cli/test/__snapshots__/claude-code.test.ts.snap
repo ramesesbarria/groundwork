@@ -58,6 +58,12 @@ description: Break the spec into phases and cards, with one card file per card, 
 ---
 Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
 ",
+  ".claude/skills/gw-quick/SKILL.md": "---
+name: gw-quick
+description: Make a small, low-risk change in one pass, without a card or separate roles. Tests must still pass.
+---
+Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
+",
   ".claude/skills/gw-reject/SKILL.md": "---
 name: gw-reject
 description: Reject the card awaiting approval with a reason. It goes back to the implementer.
@@ -85,7 +91,7 @@ Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
   "CLAUDE.md": "@AGENTS.md
 
 ## Claude Code
-Groundwork commands are skills: /gw-approve, /gw-handoff, /gw-next, /gw-plan, /gw-reject, /gw-resume, /gw-setup, /gw-spec.
+Groundwork commands are skills: /gw-approve, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-resume, /gw-setup, /gw-spec.
 When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.
 ",
 }

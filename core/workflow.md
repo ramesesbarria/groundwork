@@ -13,6 +13,8 @@ How a card goes from idea to commit. This works in any AI tool. Adapters only ad
 5. **Approve.** In `per-card` mode the runner stops, and the human approves or rejects.
 6. **Commit.** After approval the runner commits and moves to the next card.
 
+Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, checks must still pass).
+
 ## Card statuses
 
 | From | To | Who | When |

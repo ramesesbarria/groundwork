@@ -20,6 +20,7 @@ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The
 6. **Update `.groundwork/HANDOFF.md`** at every role change and before you stop.
 7. **Don't change the stack silently.** Stack choices are recorded in `.groundwork/decisions/`; propose a new decision instead.
 8. **Ask specific questions in plain English** when you need input.
+9. **Small, low-risk change?** Use `.groundwork/commands/gw-quick.md` instead of a card.
 
 ## Rules
 <!-- Promoted from .groundwork/LESSONS.md. Each rule keeps its lesson ID so its origin can be traced.
