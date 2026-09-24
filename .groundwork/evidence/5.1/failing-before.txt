@@ -1,0 +1,182 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/doctor.test.ts (9 tests | 9 failed) 287ms
+   ❯ groundwork doctor (9)
+     × says to run init when Groundwork isn't installed 5ms
+     × passes on a fresh install and reports the always-loaded token estimate 46ms
+     × fails when the always-loaded files are over the token budget, and says what to do 33ms
+     × flags a guard listed in config that doesn't exist 34ms
+     × flags adapter files that differ from what the core would generate 34ms
+     × flags a Claude Code settings file that lost the guard hook 33ms
+     × flags a card whose History says approved but whose status isn't done 34ms
+     × flags rules in AGENTS.md without a lesson ID 33ms
+     × suggests archiving lessons no card has cited, without failing 34ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > says to run init when Groundwork isn't installed
+AssertionError: expected '\'doctor\' is planned but not impleme…' to match /groundwork init/
+
+- Expected:
+/groundwork init/
+
++ Received:
+"'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:38:20
+     36|     const { code, output } = await doctor(tempDir());
+     37|     expect(code).toBe(1);
+     38|     expect(output).toMatch(/groundwork init/);
+       |                    ^
+     39|   });
+     40|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > passes on a fresh install and reports the always-loaded token estimate
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ test/doctor.test.ts:43:18
+     41|   it("passes on a fresh install and reports the always-loaded token es…
+     42|     const { code, output } = await doctor(await installed());
+     43|     expect(code).toBe(0);
+       |                  ^
+     44|     expect(output).toMatch(/Always loaded: ≈\d+ tokens \(budget 2000\)…
+     45|     expect(output).toMatch(/no problems/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > fails when the always-loaded files are over the token budget, and says what to do
+AssertionError: expected '\'doctor\' is planned but not impleme…' to match /over the \d+-token budget/i
+
+- Expected:
+/over the \d+-token budget/i
+
++ Received:
+"'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:53:20
+     51|     const { code, output } = await doctor(dir);
+     52|     expect(code).toBe(1);
+     53|     expect(output).toMatch(/over the \d+-token budget/i);
+       |                    ^
+     54|     expect(output).toMatch(/LESSONS/);
+     55|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > flags a guard listed in config that doesn't exist
+AssertionError: expected '\'doctor\' is planned but not impleme…' to contain 'no-secrets'
+
+Expected: "no-secrets"
+Received: "'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:62:20
+     60|     const { code, output } = await doctor(dir);
+     61|     expect(code).toBe(1);
+     62|     expect(output).toContain("no-secrets");
+       |                    ^
+     63|     expect(output).not.toMatch(/no-ai-trailers[^\n]*doesn't exist/);
+     64|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > flags adapter files that differ from what the core would generate
+AssertionError: expected '\'doctor\' is planned but not impleme…' to contain '.claude/skills/gw-next/SKILL.md'
+
+Expected: ".claude/skills/gw-next/SKILL.md"
+Received: "'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:71:20
+     69|     const { code, output } = await doctor(dir);
+     70|     expect(code).toBe(1);
+     71|     expect(output).toContain(".claude/skills/gw-next/SKILL.md");
+       |                    ^
+     72|     expect(output).toMatch(/groundwork adapter add claude-code/);
+     73|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > flags a Claude Code settings file that lost the guard hook
+AssertionError: expected '\'doctor\' is planned but not impleme…' to contain '.claude/settings.json'
+
+Expected: ".claude/settings.json"
+Received: "'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:80:20
+     78|     const { code, output } = await doctor(dir);
+     79|     expect(code).toBe(1);
+     80|     expect(output).toContain(".claude/settings.json");
+       |                    ^
+     81|   });
+     82|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > flags a card whose History says approved but whose status isn't done
+AssertionError: expected '\'doctor\' is planned but not impleme…' to match /1\.1[^\n]*approved[^\n]*testing|1\.1…/i
+
+- Expected:
+/1\.1[^\n]*approved[^\n]*testing|1\.1[^\n]*testing[^\n]*approved/i
+
++ Received:
+"'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:91:20
+     89|     const { code, output } = await doctor(dir);
+     90|     expect(code).toBe(1);
+     91|     expect(output).toMatch(/1\.1[^\n]*approved[^\n]*testing|1\.1[^\n]*…
+       |                    ^
+     92|   });
+     93|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > flags rules in AGENTS.md without a lesson ID
+AssertionError: expected '\'doctor\' is planned but not impleme…' to contain 'Always use tabs.'
+
+Expected: "Always use tabs."
+Received: "'doctor' is planned but not implemented yet."
+
+ ❯ test/doctor.test.ts:98:20
+     96|     appendFileSync(join(dir, "AGENTS.md"), "- Always use tabs.\n- L-00…
+     97|     const { output } = await doctor(dir);
+     98|     expect(output).toContain("Always use tabs.");
+       |                    ^
+     99|     expect(output).not.toMatch(/Pull before analyzing[^\n]*lesson ID/);
+    100|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  test/doctor.test.ts > groundwork doctor > suggests archiving lessons no card has cited, without failing
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ test/doctor.test.ts:113:18
+    111|     );
+    112|     const { code, output } = await doctor(dir);
+    113|     expect(code).toBe(0);
+       |                  ^
+    114|     expect(output).toMatch(/L-002[^\n]*never cited/i);
+    115|     expect(output).not.toMatch(/L-001[^\n]*never cited/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed (9)
+   Start at  21:46:06
+   Duration  498ms (tests 74%, transform 19%, import 6%, worker 1%)
+
