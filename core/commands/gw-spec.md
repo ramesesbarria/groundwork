@@ -9,12 +9,14 @@ Turn a rough idea into `.groundwork/SPEC.md`: detailed enough to plan cards from
 
 ## Steps
 1. Read `.groundwork/SPEC.md` and any notes or drafts the human points you to.
-2. List what's missing or unclear: users, features, rules, edge cases, constraints.
-3. Ask a **batch of 3–5 specific questions**, in plain English. Good: "Can one guest join two events at the same time?" Where you have a sensible default, offer it: "I'd suggest X because Y. OK?"
-4. Write the answers into the spec straight away, in the right section.
-5. Repeat until every feature has its rules and edge cases, and Open questions only holds things the human chose to leave for later.
-6. Summarise the spec in a few plain sentences and ask the human to confirm it.
-7. Update HANDOFF: next step is `gw-plan`.
+2. **Scope first.** Before any details, ask: "What's the smallest version that would be useful to you?" Write that into Goals. Everything else goes under a "Later phases" heading in Features, in a line each, and gets no detail yet.
+3. List what's missing or unclear about the first version only: users, features, rules, edge cases, constraints.
+4. Ask a **batch of 3–5 specific questions**, in plain English. Good: "Can one guest join two events at the same time?" Where you have a sensible default, offer it: "I'd suggest X because Y. OK?"
+5. If the human says "you decide" or "your call", use your suggested answers, mark each one *(default)* in the spec, and list any extra choices you made beyond the questions you asked. Never present a default as the human's decision. Don't widen the scope while filling gaps.
+6. Write the answers into the spec straight away, in the right section.
+7. Repeat until every first-version feature has its rules and edge cases, and Open questions only holds things the human chose to leave for later.
+8. Summarise the spec in a few plain sentences and ask the human to confirm it.
+9. Update HANDOFF: note whether the spec is confirmed; next step is `gw-plan`.
 
 ## Writes
 - `.groundwork/SPEC.md`

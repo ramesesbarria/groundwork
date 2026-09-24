@@ -11,7 +11,20 @@ export type Adapter = (typeof ADAPTERS)[number];
 export interface PlannedFile {
   path: string;
   content: string;
+  // "replace" (default): write the file, asking first if a different one exists.
+  // "append-lines": add any of our lines the file is missing, keeping everything else.
+  mode?: "replace" | "append-lines";
 }
+
+// Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise (L-012).
+const GITATTRIBUTES = [
+  "# Groundwork: same line endings on every OS",
+  ".groundwork/** text eol=lf",
+  "AGENTS.md text eol=lf",
+  "CLAUDE.md text eol=lf",
+  ".claude/** text eol=lf",
+  "",
+].join("\n");
 
 // Where templates land in a project. Every other core file keeps its path inside .groundwork/.
 const TEMPLATE_TARGETS: Record<string, string> = {
@@ -32,6 +45,7 @@ export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
     content,
   }));
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
+  files.push({ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" });
   if (adapter === "claude-code") {
     for (const [path, content] of Object.entries(generateClaudeCode(core))) files.push({ path, content });
   }
@@ -97,6 +111,23 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
   for (const file of planInit(readCore(locateCore()), adapter)) {
     const target = join(io.cwd, file.path);
     const exists = existsSync(target);
+
+    if (file.mode === "append-lines" && exists) {
+      const current = readFileSync(target, "utf8");
+      const have = new Set(current.split(/\r?\n/));
+      const missing = file.content.split("\n").filter((line) => line !== "" && !have.has(line));
+      if (missing.length === 0) {
+        if (dryRun) lines.push(`  unchanged  ${file.path}`);
+        continue;
+      }
+      lines.push(`  add lines  ${file.path}`);
+      if (!dryRun) {
+        const separator = current === "" || current.endsWith("\n") ? "" : "\n";
+        writeFileSync(target, `${current}${separator}${missing.join("\n")}\n`);
+      }
+      continue;
+    }
+
     const same = exists && readFileSync(target, "utf8") === file.content;
 
     if (dryRun) {

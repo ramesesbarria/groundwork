@@ -8,8 +8,8 @@ description: Break the spec into phases and cards, with one card file per card, 
 Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act as the planner. Follow `.groundwork/roles/planner.md`.
 
 ## Steps
-1. Read the spec and `.groundwork/decisions/`.
-2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Ask the human to choose and record their answer. Then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
+1. Read the spec, `.groundwork/decisions/` and HANDOFF. If HANDOFF doesn't say the spec was confirmed, ask once: "The spec hasn't been confirmed. Plan from it as it is?"
+2. **Decisions first.** If the build needs a choice that hasn't been made (framework, database, hosting, auth…), write a decision record in `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with 2–4 options and their trade-offs. Update HANDOFF before you stop to wait for the human's choice. Record their answer in their words, then fill in the empty commands in `.groundwork/config.json` and `AGENTS.md`.
 3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase.
 4. Split each phase into **cards**. Each card:
    - is small enough for tester → implementer → reviewer in one session,

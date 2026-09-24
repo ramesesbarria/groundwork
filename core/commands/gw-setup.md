@@ -19,6 +19,7 @@ v0.1 supports **new projects only**. If the folder already has application code,
 4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md` (name, summary, date, commands), and write `.groundwork/config.json`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
 6. Update HANDOFF: next step is `gw-spec`.
+7. Suggest committing the setup now (e.g. `Set up Groundwork`), so the first card's commit only holds that card's work.
 
 ## Writes
 - `AGENTS.md`
