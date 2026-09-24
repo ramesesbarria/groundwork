@@ -97,6 +97,7 @@ AGENTS.md                 short, always loaded; points into .groundwork/
   roles/                  planner, tester, implementer, reviewer
   commands/               the gw-* commands, tool-neutral
   guards/                 scripts that block actions
+  hooks/                  session-start orientation, read by the Claude Code adapter
 ```
 
 - **Four roles, each with a "must not".** The tester can't write the implementation. The implementer can't edit tests. The reviewer can't fix code; it sends the card back. The planner never picks your stack.
@@ -178,6 +179,7 @@ Groundwork was built card by card using its own process. The whole trail is publ
 - **Resuming in a different tool hasn't been tested yet**, and neither has whether Claude Code actually runs the role subagents.
 - **Guards inside the tools are unconfirmed.** The Claude Code hook relies on `$CLAUDE_PROJECT_DIR` being expanded (not verified on Windows), and the OpenCode plugin is tested in isolation, not inside OpenCode. Guards only see command text, so `git commit -F file` isn't checked.
 - **Only Claude Code blocks the agent from approving by itself.** There, `gw-approve` and `gw-reject` can't be invoked by the model. OpenCode has no such setting, so there, and in any tool without an adapter, the only safeguard is the commands' own text telling the agent that only you run them.
+- **Only Claude Code gets the session-start orientation.** OpenCode has no documented way for a plugin to add context when a session starts, so there (and without an adapter) the agent relies on AGENTS.md telling it to read HANDOFF first, or on you typing `/gw`.
 - **Token counts are estimates** (characters ÷ 4), not a real tokenizer.
 - **There's no `upgrade` command.** A project installed with an older version keeps its older `.groundwork/`, and `doctor` can't tell it's behind.
 - **Setup for existing projects is untested** on a real codebase.

@@ -36,6 +36,17 @@ Load only the files it lists under Load.
 ",
   ".claude/settings.json": "{
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs\\""
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|MultiEdit",

@@ -7,6 +7,6 @@
 - **Current card:** none
 - **Status:** —
 - **Last step:** Groundwork installed
-- **Next step:** run `gw-setup`
+- **Next step:** set up the project: type `/gw` (it runs `gw-setup`)
 - **Failing checks:** none
 - **Notes:**
