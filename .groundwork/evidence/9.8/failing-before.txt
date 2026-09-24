@@ -1,0 +1,10 @@
+$ cd cli && npx vitest run test/baseline.test.ts
+     × setup runs test, lint and build once and saves the result 5ms
+     × links the baseline from HANDOFF as known failing 1ms
+     × with no tests at all, it leads to a decision, not a dead end 1ms
+     × the workflow defines both rules: all pass, or no new failures against a baseline 1ms
+     × roles/implementer.md uses no new failures when there's a baseline 1ms
+     × roles/reviewer.md uses no new failures when there's a baseline 0ms
+     × commands/gw-quick.md uses no new failures when there's a baseline 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  7 failed (7)

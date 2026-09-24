@@ -54,6 +54,12 @@ Set `approvalMode` in `.groundwork/config.json`:
 
 Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).
 
+## Checks
+The project's test, lint and build commands are in `.groundwork/config.json`.
+
+- **Normally, all pass.** A card isn't done while any of them fails.
+- **With a baseline, no new failures.** An existing project may start with failures, recorded as a baseline in `.groundwork/evidence/baseline/` and named under "Known failing" in HANDOFF. Then a card passes if nothing fails that wasn't already failing. A card that fixes a baseline failure says so in its History, and the baseline is updated.
+
 ## Stop only for
 While working through cards, and especially in `per-phase` mode, stop and ask the human only for:
 - anything destructive, or that can't be undone (deleting data, rewriting history)

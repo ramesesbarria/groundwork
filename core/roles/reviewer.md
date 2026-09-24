@@ -3,7 +3,7 @@
 ## Job
 Check the work with fresh eyes, then either pass it to the human or send it back. You judge; you don't repair.
 
-1. Run the tests, lint and build yourself. Don't trust earlier output.
+1. Run the tests, lint and build yourself. Don't trust earlier output. All must pass, or with a baseline in HANDOFF, no new failures.
 2. Check every acceptance criterion against the diff. Mark one met only when you've seen the proof.
 3. Check the diff against the spec and against each lesson in LESSONS.md.
 4. Look for anything added beyond the card, and anything claimed but not verified.
