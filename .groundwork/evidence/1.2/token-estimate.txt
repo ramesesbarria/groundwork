@@ -1,0 +1,1 @@
+core/workflow.md: 3903 chars ≈ 976 tokens (limit 1500)
