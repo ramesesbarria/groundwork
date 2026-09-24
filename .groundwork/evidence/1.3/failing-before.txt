@@ -1,0 +1,293 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/commands.test.ts (21 tests | 21 failed) 18ms
+   ❯ command files (12)
+     × gw-setup exists 7ms
+     × gw-spec exists 1ms
+     × gw-plan exists 1ms
+     × gw-setup has name and description frontmatter (used by adapters) 1ms
+     × gw-spec has name and description frontmatter (used by adapters) 0ms
+     × gw-plan has name and description frontmatter (used by adapters) 0ms
+     × gw-setup has purpose, steps and writes sections 0ms
+     × gw-spec has purpose, steps and writes sections 0ms
+     × gw-plan has purpose, steps and writes sections 0ms
+     × gw-setup stays under 800 tokens 0ms
+     × gw-spec stays under 800 tokens 1ms
+     × gw-plan stays under 800 tokens 0ms
+   ❯ gw-spec (3)
+     × asks specific questions in batches 0ms
+     × forbids section-level questions 0ms
+     × runs as the planner 0ms
+   ❯ gw-plan (3)
+     × writes one card file per card from the template, with criteria and depends_on 0ms
+     × gets the human's OK before writing cards 0ms
+     × runs as the planner 0ms
+   ❯ gw-setup (3)
+     × writes AGENTS.md and config.json from a short interview 0ms
+     × never picks a stack for the user 0ms
+     × handles only new projects in v0.1 and says so 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/commands.test.ts > command files > gw-setup exists
+ FAIL  test/commands.test.ts > command files > gw-spec exists
+ FAIL  test/commands.test.ts > command files > gw-plan exists
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/commands.test.ts:32:60
+     30| describe("command files", () => {
+     31|   it.each(COMMANDS)("%s exists", (name) => {
+     32|     expect(existsSync(new URL(`${name}.md`, commandsDir))).toBe(true);
+       |                                                            ^
+     33|   });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-setup has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-spec has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-plan has name and description frontmatter (used by adapters)
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:36:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-setup has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-spec has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-plan has purpose, steps and writes sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-setup stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-spec stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯
+
+ FAIL  test/commands.test.ts > command files > gw-plan stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:49:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯
+
+ FAIL  test/commands.test.ts > gw-spec > asks specific questions in batches
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:55:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/21]⎯
+
+ FAIL  test/commands.test.ts > gw-spec > forbids section-level questions
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:61:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/21]⎯
+
+ FAIL  test/commands.test.ts > gw-spec > runs as the planner
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-spec.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:66:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/21]⎯
+
+ FAIL  test/commands.test.ts > gw-plan > writes one card file per card from the template, with criteria and depends_on
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:72:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/21]⎯
+
+ FAIL  test/commands.test.ts > gw-plan > gets the human's OK before writing cards
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:80:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/21]⎯
+
+ FAIL  test/commands.test.ts > gw-plan > runs as the planner
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-plan.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:84:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/21]⎯
+
+ FAIL  test/commands.test.ts > gw-setup > writes AGENTS.md and config.json from a short interview
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:90:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/21]⎯
+
+ FAIL  test/commands.test.ts > gw-setup > never picks a stack for the user
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:97:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/21]⎯
+
+ FAIL  test/commands.test.ts > gw-setup > handles only new projects in v0.1 and says so
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\commands\gw-setup.md'
+ ❯ command test/commands.test.ts:6:35
+      4|
+      5| const commandsDir = new URL("../../core/commands/", import.meta.url);
+      6| const command = (name: string) => readFileSync(new URL(`${name}.md`, c…
+       |                                   ^
+      7|
+      8| function section(md: string, heading: string): string {
+ ❯ test/commands.test.ts:101:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/21]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed (21)
+   Start at  17:26:46
+   Duration  325ms (transform 46%, import 24%, tests 23%, worker 6%)
+

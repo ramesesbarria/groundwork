@@ -16,11 +16,13 @@ Read only these:
 - `.groundwork/SPEC.md`
 - `.groundwork/decisions/` (titles first; open a file only if it matters)
 - `.groundwork/cards/`: frontmatter only, to see what exists
+- Notes or drafts the human points you to
 
 ## Writes
 - `.groundwork/SPEC.md`
 - New card files in `.groundwork/cards/<id>-<slug>.md` (from the card template, status `todo`)
 - Decision records in `.groundwork/decisions/`
+- The commands in `.groundwork/config.json` and `AGENTS.md`, once a stack decision is made
 - `.groundwork/HANDOFF.md` before you stop
 
 ## Must not
