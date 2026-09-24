@@ -3,10 +3,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCore, type CoreFiles } from "./core.js";
 import { generateClaudeCode } from "./adapters/claude-code.js";
+import { generateOpenCode } from "./adapters/opencode.js";
 import { mergeSettings } from "./settings.js";
 import type { Io, RunResult } from "./index.js";
 
-export const ADAPTERS = ["claude-code", "none"] as const;
+export const ADAPTERS = ["claude-code", "opencode", "none"] as const;
 export type Adapter = (typeof ADAPTERS)[number];
 
 export interface PlannedFile {
@@ -25,6 +26,7 @@ const GITATTRIBUTES = [
   "AGENTS.md text eol=lf",
   "CLAUDE.md text eol=lf",
   ".claude/** text eol=lf",
+  ".opencode/** text eol=lf",
   "",
 ].join("\n");
 
@@ -53,6 +55,9 @@ export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
       files.push({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" });
     }
   }
+  if (adapter === "opencode") {
+    for (const [path, content] of Object.entries(generateOpenCode(core))) files.push({ path, content });
+  }
   return files.sort((a, b) => a.path.localeCompare(b.path));
 }
 
@@ -74,14 +79,16 @@ const KEPT_ADVICE: Record<string, string> = {
 
 const NEXT_STEPS: Record<Adapter, string> = {
   "claude-code": "Next: open Claude Code in this folder and run /gw-setup.",
+  opencode: "Next: open OpenCode in this folder and run /gw-setup.",
   none: "Next: ask your AI tool to read .groundwork/commands/gw-setup.md and follow it.",
 };
 
 const ADAPTER_QUESTION = [
   "Which AI tool should Groundwork set up?",
   "  1) Claude Code",
-  "  2) None: plain markdown, works with any tool",
-  "Choose 1 or 2 [1]: ",
+  "  2) OpenCode",
+  "  3) None: plain markdown, works with any tool",
+  "Choose 1, 2 or 3 [1]: ",
 ].join("\n");
 
 function parseArgs(args: string[]): { dryRun: boolean; adapter?: string } {
@@ -99,7 +106,8 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   if (dryRun) return "claude-code"; // a dry run never asks anything
   const answer = (await io.ask(ADAPTER_QUESTION)).trim();
   if (answer === "" || answer === "1") return "claude-code";
-  if (answer === "2") return "none";
+  if (answer === "2") return "opencode";
+  if (answer === "3") return "none";
   return answer;
 }
 

@@ -30,6 +30,20 @@ export function toAction(tool, input) {
         return null;
     }
   }
+  if (tool === "opencode") {
+    // OpenCode tool names and arguments: opencode.ai/docs/tools. apply_patch isn't covered yet.
+    const args = input.args ?? {};
+    switch (input.tool) {
+      case "bash":
+        return { kind: "command", command: String(args.command ?? "") };
+      case "write":
+        return { kind: "write", path: String(args.filePath ?? ""), content: String(args.content ?? "") };
+      case "edit":
+        return { kind: "write", path: String(args.filePath ?? ""), content: String(args.newString ?? "") };
+      default:
+        return null;
+    }
+  }
   return null;
 }
 
