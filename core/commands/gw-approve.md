@@ -16,12 +16,13 @@ If the human didn't ask for this in their own words, stop and ask them to approv
    - any file it links to in `.groundwork/evidence/<card-id>/` is missing, or
    - any acceptance criterion is unchecked with no explanation next to it.
    When you refuse, say exactly what's missing. Don't fill it in yourself.
-3. Set the card status to `done` and add a History line: date, "approved by human".
-4. Update `.groundwork/HANDOFF.md`: card done, and the next step.
-5. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` and a short body saying what changed. Stage only this card's files.
-6. Show the human the commit, then run `gw-next` if they asked to keep going.
+3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, and caveats. It's the human's last look before the commit.
+4. Set the card status to `done` and add a History line: date, "approved by human".
+5. Update `.groundwork/HANDOFF.md`: card done, and the next step.
+6. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` and a short body saying what changed. Stage only this card's files.
+7. Show the human the commit, then run `gw-next` if they asked to keep going.
 
-**Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
+**Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. Show one summary for the phase (step 3). If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
 
 ## Writes
 - The card: status and History

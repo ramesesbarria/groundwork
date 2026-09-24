@@ -10,7 +10,7 @@ How a card goes from idea to commit. This works in any AI tool. Adapters only ad
 2. **Test.** The tester writes failing tests and saves the failing output as evidence.
 3. **Implement.** The implementer makes the tests pass, and the full suite, lint and build too.
 4. **Review.** The reviewer reruns everything, checks every criterion, and fills in Evidence, or sends the card back.
-5. **Approve.** In `per-card` mode the runner stops, and the human approves or rejects.
+5. **Approve.** In `per-card` mode the runner stops and shows what changed, how to check it yourself, and caveats. The human approves or rejects.
 6. **Commit.** After approval the runner commits and moves to the next card.
 
 Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, checks must still pass).
