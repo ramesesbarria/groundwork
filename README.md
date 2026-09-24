@@ -10,7 +10,7 @@
 - **Lean on purpose.** The always-loaded context has a measured token budget.
 - **Works with your tool.** Plain-markdown core, with adapters for Claude Code and OpenCode.
 
-See [SPEC.md](SPEC.md) for the full design.
+See [SPEC.md](.groundwork/SPEC.md) for the full design.
 
 ## License
 
