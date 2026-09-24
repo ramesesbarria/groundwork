@@ -3,6 +3,7 @@
   "approvalMode": "per-card",
   "tokenBudget": 2000,
   "guards": [],
+  "commitFormat": "[{id}] {title}",
   "commands": {
     "install": "",
     "test": "",

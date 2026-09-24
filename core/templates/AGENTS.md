@@ -16,7 +16,7 @@ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The
 2. **Work one card at a time** from `.groundwork/cards/`. Load only the current card.
 3. **Follow `.groundwork/workflow.md`** and the file for your role in `.groundwork/roles/` (planner, tester, implementer, reviewer).
 4. **No evidence, no done.** Proof goes in `.groundwork/evidence/<card-id>/` and is linked from the card.
-5. **Commit only when the workflow allows.** In `per-card` mode, after the human approves the card; in `per-phase` mode, after review passes (`approvalMode` in the config). Commit format: `[<card-id>] <card title>`.
+5. **Commit only when the workflow allows.** In `per-card` mode, after the human approves the card; in `per-phase` mode, after review passes (`approvalMode` in the config). Commit format: `commitFormat` in the config (default `[<card-id>] <card title>`).
 6. **Update `.groundwork/HANDOFF.md`** at every role change and before you stop.
 7. **Don't change the stack silently.** Stack choices are recorded in `.groundwork/decisions/`; propose a new decision instead.
 8. **Ask specific questions in plain English** when you need input.

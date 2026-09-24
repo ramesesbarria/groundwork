@@ -49,7 +49,7 @@ Set `approvalMode` in `.groundwork/config.json`:
 **After approval** the runner:
 1. sets the card to `done` and adds a History line,
 2. updates HANDOFF.md,
-3. commits the card's changes with the message `[<card-id>] <card title>`, plus a short body saying what changed,
+3. commits the card's changes with the message `[<card-id>] <card title>` (or the project's `commitFormat` in the config), plus a short body saying what changed,
 4. moves to the next card, or stops if the human asked it to.
 
 Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).

@@ -21,7 +21,7 @@ Take the next ready card through the build loop. You are the **runner** describe
    4. **Calls** the agent made: every `call:` line from the card's History, if any
 
    - `per-card` mode: the card is now `awaiting-approval`. **Stop**, show the summary, and ask the human to run `gw-approve` or `gw-reject`.
-   - `per-phase` mode: the card is `done`. Commit it (message `[<card-id>] <card title>`), then continue with step 2 until the phase's cards are all done. Then stop, show one summary for the phase, and ask the human to review it.
+   - `per-phase` mode: the card is `done`. Commit it (message `[<card-id>] <card title>`, or the config's `commitFormat`), then continue with step 2 until the phase's cards are all done. Then stop, show one summary for the phase, and ask the human to review it.
 8. Update HANDOFF at every role change and before you stop.
 
 ## Writes

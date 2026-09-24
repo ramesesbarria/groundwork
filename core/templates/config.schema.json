@@ -36,6 +36,11 @@
       },
       "uniqueItems": true
     },
+    "commitFormat": {
+      "description": "The first line of each card's commit. {id} is the card ID and {title} its title, e.g. \"feat: {title} ({id})\". Quick changes use \"quick\" as the ID. Default: \"[{id}] {title}\".",
+      "type": "string",
+      "default": "[{id}] {title}"
+    },
     "commands": {
       "description": "Shell commands the agents run. Leave a command empty if the project doesn't have it.",
       "type": "object",
