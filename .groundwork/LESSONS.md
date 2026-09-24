@@ -59,3 +59,7 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-014 · Edit code with the file-edit tool, not through script string literals
 - Level: NOTE (repeated once already; next repeat → RULE)
 - Origin: building Groundwork. Twice, a Python script that edited TypeScript turned `\n` escapes into real line breaks: a regex in card 1.4's tests, and `cli/src/init.ts` in card 3.2 (restored from git, redone with the edit tool).
+
+### L-015 · Change into the target folder before running a command that writes files
+- Level: GUARD (`init` refuses to run in Groundwork's own source repo, added with this lesson)
+- Origin: card 4.3. While checking the OpenCode adapter, `node cli/dist/bin.js init … && cd "$T"` ran `init` *before* moving into the temp folder, so it installed Groundwork into its own repo. `git add -A` committed 38 stray files in `[4.3]` (not pushed). `init`'s ask-before-overwrite kept the real SPEC, HANDOFF and LESSONS safe. Went straight to a guard because it's cheap and the damage was large.

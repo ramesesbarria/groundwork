@@ -1,7 +1,1 @@
 * text=auto eol=lf
-# Groundwork: same line endings on every OS
-.groundwork/** text eol=lf
-AGENTS.md text eol=lf
-CLAUDE.md text eol=lf
-.claude/** text eol=lf
-.opencode/** text eol=lf

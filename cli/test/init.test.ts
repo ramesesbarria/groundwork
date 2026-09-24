@@ -140,6 +140,14 @@ describe("groundwork init", () => {
     expect(output).toMatch(/AGENTS\.md.*(exists|ask)/i);
   });
 
+  it("refuses to install into Groundwork's own source repo", async () => {
+    const repo = fileURLToPath(new URL("../../", import.meta.url));
+    const { code, output } = await run(["init", "--adapter", "none"], { cwd: repo, ask: answers().ask });
+    expect(code).toBe(1);
+    expect(output).toMatch(/Groundwork's own/i);
+    expect(existsSync(join(repo, "AGENTS.md"))).toBe(false);
+  });
+
   it("tells the user what to do next", async () => {
     const { output } = await run(["init", "--adapter", "claude-code"], { cwd: tempProject(), ask: answers().ask });
     expect(output).toContain("/gw-setup");

@@ -113,7 +113,18 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   return answer;
 }
 
+// Groundwork's own source repo has core/ and the CLI side by side. Installing into it would mix
+// install output with the source (it happened once: lesson L-015).
+export const isGroundworkSource = (dir: string) =>
+  existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
+
 export async function init(args: string[], io: Io): Promise<RunResult> {
+  if (isGroundworkSource(io.cwd)) {
+    return {
+      code: 1,
+      output: "This is Groundwork's own source repo, not a project to install into. Run init in your project's folder.",
+    };
+  }
   const { dryRun, adapter: given } = parseArgs(args);
   const adapter = await chooseAdapter(io, given, dryRun);
   if (!isAdapter(adapter)) {
