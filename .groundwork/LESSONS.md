@@ -63,3 +63,7 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-015 · Change into the target folder before running a command that writes files
 - Level: GUARD (`init` refuses to run in Groundwork's own source repo, added with this lesson)
 - Origin: card 4.3. While checking the OpenCode adapter, `node cli/dist/bin.js init … && cd "$T"` ran `init` *before* moving into the temp folder, so it installed Groundwork into its own repo. `git add -A` committed 38 stray files in `[4.3]` (not pushed). `init`'s ask-before-overwrite kept the real SPEC, HANDOFF and LESSONS safe. Went straight to a guard because it's cheap and the damage was large.
+
+### L-016 · A status change that doesn't apply must fail loudly
+- Level: NOTE (a `doctor` check is planned in card 5.1)
+- Origin: card 2.2. Its status stayed `testing` after approval: the shell command meant to move it on failed on quoting, and the later "replace `implementing` with `done`" silently matched nothing. The card's History said "approved" while its status disagreed. Found the first time `groundwork status` ran on this repo (card 4.6). Edits now assert that they matched.
