@@ -20,6 +20,7 @@ The one command to remember. Work out where the project is, tell the human, then
 | No cards yet | `gw-plan` |
 | A card is `testing`, `implementing` or `review` | Resume it (below) |
 | A card is `awaiting-approval` | Show the summary from `gw-next` step 7, then ask the human to approve or reject. Don't run either yourself |
+| HANDOFF says a phase was just approved, with no retro since | Show that phase's recap from JOURNAL.md and suggest `gw-retro`; carry on with `gw-next` if the human would rather |
 | Otherwise | `gw-next` |
 
 ## Resuming a card

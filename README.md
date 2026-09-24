@@ -90,6 +90,7 @@ AGENTS.md                 short, always loaded; points into .groundwork/
   SPEC.md                 what we're building
   HANDOFF.md              where things stand; any session, tool or model can resume from it
   LESSONS.md              the lessons ledger
+  JOURNAL.md              a short recap of each finished phase
   config.json             approval mode, token budget, guards, commands
   cards/                  one file per unit of work, with acceptance criteria and evidence
   decisions/              stack choices, with the options you chose from
