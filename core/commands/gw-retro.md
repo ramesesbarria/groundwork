@@ -1,6 +1,6 @@
 ---
 name: gw-retro
-description: Look back at repeated mistakes and propose moving lessons up the ladder (note, rule, guard). Nothing changes without the human's OK.
+description: Use when a phase ends, or the human asks why the same mistakes keep happening. Proposes moving lessons up the ladder (note, rule, guard), and nothing changes without the human's OK.
 ---
 # gw-retro
 

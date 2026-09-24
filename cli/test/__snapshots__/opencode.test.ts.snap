@@ -35,84 +35,84 @@ You are the Groundwork tester. Read \`.groundwork/roles/tester.md\` now and foll
 Load only the files it lists under Load.
 ",
   ".opencode/commands/gw-approve.md": "---
-description: Approve the card awaiting approval (or a whole phase in per-phase mode). Checks evidence, marks it done and commits it.
+description: Use when the human says to approve the card awaiting approval, or a whole phase in per-phase mode. Checks the evidence, marks it done and commits it.
 ---
 Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-decide.md": "---
-description: Lay out 2–4 options for a decision (stack, library, service), wait for the human's choice, and record it.
+description: Use when the work needs a choice the human hasn't made yet, such as a framework, database, library or service. Lays out 2–4 options, waits for the human's choice, and records it.
 ---
 Read \`.groundwork/commands/gw-decide.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-handoff.md": "---
-description: Write the current state to .groundwork/HANDOFF.md so any session, tool or model can continue from it.
+description: Use when stopping for any reason, such as the human ending the session or context running low. Writes the current state to .groundwork/HANDOFF.md so any session, tool or model can continue.
 ---
 Read \`.groundwork/commands/gw-handoff.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-next.md": "---
-description: Run the next card through the build loop (tester, implementer, reviewer) and stop for approval.
+description: Use when there's a plan and the human wants to keep building, for example by saying next or carry on. Runs the next card through tester, implementer and reviewer, then stops for approval.
 ---
 Read \`.groundwork/commands/gw-next.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-plan.md": "---
-description: Break the spec into phases and cards, with one card file per card, after recording any stack decisions.
+description: Use when the spec is confirmed and there are no cards yet, or the human wants to plan new work. Breaks the spec into phases and cards, after recording any stack decisions.
 ---
 Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-quick.md": "---
-description: Make a small, low-risk change in one pass, without a card or separate roles. Tests must still pass.
+description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value. Makes it in one pass without a card, and the tests must still pass.
 ---
 Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-reject.md": "---
-description: Reject the card awaiting approval with a reason. It goes back to the implementer.
+description: Use when the human says to reject the card awaiting approval, with a reason. The card goes back to the implementer.
 ---
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-resume.md": "---
-description: Continue unfinished work from .groundwork/HANDOFF.md and the current card, in any tool or with any model.
+description: Use when a session starts and HANDOFF shows a card in progress, or the human asks to pick up where they left off. Continues from .groundwork/HANDOFF.md and the current card.
 ---
 Read \`.groundwork/commands/gw-resume.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-retro.md": "---
-description: Look back at repeated mistakes and propose moving lessons up the ladder (note, rule, guard). Nothing changes without the human's OK.
+description: Use when a phase ends, or the human asks why the same mistakes keep happening. Proposes moving lessons up the ladder (note, rule, guard), and nothing changes without the human's OK.
 ---
 Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-setup.md": "---
-description: Set up Groundwork for a new or existing project. Fills in AGENTS.md and .groundwork/config.json.
+description: Use when Groundwork was just installed and AGENTS.md or .groundwork/config.json isn't filled in yet. Sets up a new or existing project with a short interview.
 ---
 Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-spec.md": "---
-description: Write or update the project spec by asking the human specific questions in small batches.
+description: Use when the human describes a new app or feature idea and there's no confirmed spec for it yet. Writes or updates the spec by asking specific questions in small batches.
 ---
 Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
   ".opencode/commands/gw-ui-spec.md": "---
-description: Before any UI or animation work, agree in writing how it will look and behave, as checkable criteria on the card.
+description: Use when a card involves UI or animation work, before anything is built. Agrees in writing how it will look and behave, as checkable criteria on the card.
 ---
 Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
 

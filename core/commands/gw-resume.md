@@ -1,6 +1,6 @@
 ---
 name: gw-resume
-description: Continue unfinished work from .groundwork/HANDOFF.md and the current card, in any tool or with any model.
+description: Use when a session starts and HANDOFF shows a card in progress, or the human asks to pick up where they left off. Continues from .groundwork/HANDOFF.md and the current card.
 ---
 # gw-resume
 

@@ -1,6 +1,6 @@
 ---
 name: gw-quick
-description: Make a small, low-risk change in one pass, without a card or separate roles. Tests must still pass.
+description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value. Makes it in one pass without a card, and the tests must still pass.
 ---
 # gw-quick
 

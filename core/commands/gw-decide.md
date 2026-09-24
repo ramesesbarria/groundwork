@@ -1,6 +1,6 @@
 ---
 name: gw-decide
-description: Lay out 2–4 options for a decision (stack, library, service), wait for the human's choice, and record it.
+description: Use when the work needs a choice the human hasn't made yet, such as a framework, database, library or service. Lays out 2–4 options, waits for the human's choice, and records it.
 ---
 # gw-decide
 

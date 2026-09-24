@@ -1,6 +1,6 @@
 ---
 name: gw-plan
-description: Break the spec into phases and cards, with one card file per card, after recording any stack decisions.
+description: Use when the spec is confirmed and there are no cards yet, or the human wants to plan new work. Breaks the spec into phases and cards, after recording any stack decisions.
 ---
 # gw-plan
 

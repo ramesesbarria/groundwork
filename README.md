@@ -133,6 +133,7 @@ Groundwork was built card by card using its own process. The whole trail is publ
 - **Not yet used end to end on a real project.** Setup, spec and plan have run in a real Claude Code session, and the rest is tested in isolation. A full run on a real app is next ([card 6.1](.groundwork/cards/6.1-real-app-run.md)).
 - **Resuming in a different tool hasn't been tested yet**, and neither has whether Claude Code actually runs the role subagents.
 - **Guards inside the tools are unconfirmed.** The Claude Code hook relies on `$CLAUDE_PROJECT_DIR` being expanded (not verified on Windows), and the OpenCode plugin is tested in isolation, not inside OpenCode. Guards only see command text, so `git commit -F file` isn't checked.
+- **Only Claude Code blocks the agent from approving by itself.** There, `gw-approve` and `gw-reject` can't be invoked by the model. OpenCode has no such setting, so there, and in any tool without an adapter, the only safeguard is the commands' own text telling the agent that only you run them.
 - **Token counts are estimates** (characters ÷ 4), not a real tokenizer.
 - **There's no `upgrade` command.** A project installed with an older version keeps its older `.groundwork/`, and `doctor` can't tell it's behind.
 - **Setup for existing projects is untested** on a real codebase.

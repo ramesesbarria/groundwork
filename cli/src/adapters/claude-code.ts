@@ -10,6 +10,10 @@ const ROLE_TOOLS: Record<string, string[]> = {
   reviewer: ["Read", "Grep", "Glob", "Bash"],
 };
 
+// Only the human approves or rejects. This field stops the model from invoking the skill on its own
+// while `/gw-approve` still works (code.claude.com/docs/en/skills, checked 2026-09-24).
+const HUMAN_ONLY = new Set(["gw-approve", "gw-reject"]);
+
 // Pure: core files in, Claude Code files out. Generated files point to the core instead of
 // copying it, so .groundwork/ stays the single source of truth.
 export function generateClaudeCode(core: CoreFiles): Record<string, string> {
@@ -21,6 +25,7 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
       "---",
       `name: ${name}`,
       `description: ${yamlValue(description)}`,
+      ...(HUMAN_ONLY.has(name) ? ["disable-model-invocation: true"] : []),
       "---",
       `Read \`.groundwork/commands/${name}.md\` now and follow it exactly.`,
       "",
