@@ -1,0 +1,9 @@
+{
+  "name": "groundwork-root",
+  "private": true,
+  "workspaces": ["cli"],
+  "scripts": {
+    "build": "npm run build -w groundwork-ai",
+    "test": "npm test -w groundwork-ai"
+  }
+}
