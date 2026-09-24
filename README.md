@@ -4,6 +4,8 @@
 
 **A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
 
+> **Early preview (v0.3).** Everything below works and is tested, but Groundwork hasn't been proven on a full real project yet. See [Honest limitations](#honest-limitations).
+
 Groundwork is a set of plain-markdown instructions plus a small CLI that you install into a project. It gives your AI coding agent a real development process: it interviews you for a spec, breaks the work into cards, builds each card with separate tester, implementer and reviewer roles, and stops for your approval before anything is committed. When the agent makes the same mistake twice, the mistake becomes a rule. When a rule keeps being broken, it becomes a guard that blocks the action.
 
 ```mermaid
@@ -102,6 +104,7 @@ Real examples from building Groundwork with Groundwork ([LESSONS.md](.groundwork
 - **L-003, "Propose the lean version first"**, was imported as a note, then promoted to a rule when the dogfood run repeated it: a "tiny sample app" spec grew into a multi-user phone app with push notifications.
 - **L-015** went straight to a guard. A check once ran `groundwork init` in the wrong folder and installed Groundwork into its own repo. `init` now refuses to run there.
 - **L-016** was found by `groundwork status` on its first real run: a card still said `testing` after it had been approved. `doctor` now checks for that.
+- **L-017** was found by `groundwork retro`: 3 of the 5 times the reviewer sent work back, one core file contradicted another. Accepted as a note through `/gw-retro`.
 
 The built-in `no-ai-trailers` guard blocks commit messages that add AI attribution. Turn guards on in `.groundwork/config.json`: `"guards": ["no-ai-trailers"]`.
 

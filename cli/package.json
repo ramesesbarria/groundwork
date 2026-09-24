@@ -1,8 +1,28 @@
 {
   "name": "groundwork-ai",
-  "version": "0.0.0",
-  "description": "A tool-agnostic workflow for building software with AI agents.",
+  "version": "0.3.0",
+  "description": "A tool-agnostic workflow for building software with AI agents: spec, plan, test-first build loop, human-approved ship.",
+  "keywords": [
+    "ai-agents",
+    "agentic",
+    "claude-code",
+    "opencode",
+    "agents-md",
+    "developer-workflow",
+    "spec-driven",
+    "tdd"
+  ],
+  "author": "Rameses Barria",
   "license": "MIT",
+  "homepage": "https://github.com/ramesesbarria/groundwork#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramesesbarria/groundwork.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/ramesesbarria/groundwork/issues"
+  },
   "type": "module",
   "bin": {
     "groundwork": "dist/bin.js"
@@ -17,7 +37,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p tsconfig.json && vitest run",
-    "prepack": "node scripts/copy-core.mjs",
+    "prepack": "npm run build && node scripts/copy-core.mjs",
     "postpack": "node scripts/copy-core.mjs --clean"
   },
   "devDependencies": {

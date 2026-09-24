@@ -67,3 +67,7 @@ The first entries were imported from the author's Claude Code /insights report (
 ### L-016 · A status change that doesn't apply must fail loudly
 - Level: NOTE (a `doctor` check is planned in card 5.1)
 - Origin: card 2.2. Its status stayed `testing` after approval: the shell command meant to move it on failed on quoting, and the later "replace `implementing` with `done`" silently matched nothing. The card's History said "approved" while its status disagreed. Found the first time `groundwork status` ran on this repo (card 4.6). Edits now assert that they matched.
+
+### L-017 · When changing a core file, check the files that refer to it
+- Level: NOTE
+- Origin: found by `groundwork retro` on this repo (card 5.2) and accepted by the human through `/gw-retro`. 3 of 5 review send-backs had this cause: `reviewer.md` contradicted per-phase mode (card 1.2), `planner.md` didn't allow what `gw-plan` and `gw-spec` do (1.3), and `gw-approve` couldn't approve a phase `gw-next` asked for (1.4).
