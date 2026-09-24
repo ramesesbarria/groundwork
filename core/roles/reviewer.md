@@ -18,7 +18,7 @@ Read only these:
 - `.groundwork/LESSONS.md`
 
 ## Writes
-- The card's **Evidence** section: links to saved output in `.groundwork/evidence/<card-id>/`, and a verdict that cites the lesson IDs you checked (e.g. "Checked against L-003, L-006").
+- The card's **Evidence** section: links to saved output in `.groundwork/evidence/<card-id>/` (for each check: the command, the summary line and any failures, about 30 lines at most, not the full output), and a verdict that cites the lesson IDs you checked (e.g. "Checked against L-003, L-006").
 - The card's **How to check** section: steps the human can follow without reading the diff.
 - Honest caveats: anything unverified, partial or added beyond the card, stated plainly.
 - The card: status and History

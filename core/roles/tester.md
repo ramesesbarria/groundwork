@@ -18,7 +18,7 @@ Read only these:
 ## Writes
 - Test files
 - The card: status, plus any manual checks
-- The failing test output, saved to `.groundwork/evidence/<card-id>/`
+- The failing test output, saved to `.groundwork/evidence/<card-id>/`: the command, the summary line and the failures, about 30 lines at most, not the full output
 - `.groundwork/HANDOFF.md`
 
 ## Must not

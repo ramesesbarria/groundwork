@@ -1,0 +1,6 @@
+$ cd cli && npx vitest run test/small-evidence.test.ts
+     × roles/tester.md says what to save and the size limit 4ms
+     × roles/reviewer.md says what to save and the size limit 1ms
+     × workflow.md says what to save and the size limit 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  3 failed | 1 passed (4)
