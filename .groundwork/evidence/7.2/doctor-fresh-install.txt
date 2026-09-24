@@ -1,0 +1,6 @@
+$ cd <fresh temp dir> && groundwork init && groundwork doctor
+Groundwork doctor
+
+Always loaded: ≈514 tokens (budget 2000)
+
+No problems found.
