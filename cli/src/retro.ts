@@ -19,7 +19,7 @@ interface Commit {
 }
 
 interface Signal {
-  kind: "revert" | "fix-after-card" | "rejection" | "send-back";
+  kind: "revert" | "fix-after-card" | "rejection" | "send-back" | "call-rejected";
   text: string;
 }
 
@@ -74,9 +74,17 @@ function cardSignals(groundwork: string): Signal[] {
     const text = readFileSync(join(dir, name), "utf8");
     const card = parseCard(text);
     if (!card) continue;
+    const calls: string[] = []; // judgment calls made so far on this card (card 9.6)
     for (const line of withoutComments(sectionBody(text, "History")).split("\n")) {
+      const call = line.match(/\bcall:\s*(.+)$/i);
+      if (call) calls.push(call[1].split(" — ")[0].trim());
       const rejected = line.match(/rejected:\s*(.+)$/i);
-      if (rejected) signals.push({ kind: "rejection", text: `card ${card.id}: ${rejected[1].trim()}` });
+      if (rejected) {
+        signals.push({ kind: "rejection", text: `card ${card.id}: ${rejected[1].trim()}` });
+        for (const what of calls.splice(0)) {
+          signals.push({ kind: "call-rejected", text: `card ${card.id}: call "${what}", then rejected: ${rejected[1].trim()}` });
+        }
+      }
       const sentBack = line.match(/review → implementing:?\s*(.+)$/i);
       if (sentBack) signals.push({ kind: "send-back", text: `card ${card.id}: ${sentBack[1].trim()}` });
     }
@@ -89,6 +97,7 @@ const SECTIONS: [Signal["kind"], string][] = [
   ["fix-after-card", "Fixes soon after a card"],
   ["rejection", "Rejections"],
   ["send-back", "Sent back by review"],
+  ["call-rejected", "Calls later rejected"],
 ];
 
 export function report(signals: Signal[], gitNote?: string): string {
@@ -104,7 +113,10 @@ export function report(signals: Signal[], gitNote?: string): string {
     lines.push(`## ${title} (${found.length})`, ...found.map((s) => `- ${s.text}`), "");
   }
   const byLesson = new Map<string, number>();
-  for (const s of signals) for (const id of new Set(s.text.match(/L-\d+/g) ?? [])) byLesson.set(id, (byLesson.get(id) ?? 0) + 1);
+  // A rejected call repeats its rejection's text, so it isn't counted a second time.
+  for (const s of signals.filter((s) => s.kind !== "call-rejected")) {
+    for (const id of new Set(s.text.match(/L-\d+/g) ?? [])) byLesson.set(id, (byLesson.get(id) ?? 0) + 1);
+  }
   if (byLesson.size > 0) {
     lines.push("## By lesson cited");
     for (const [id, n] of [...byLesson].sort((a, b) => b[1] - a[1])) lines.push(`- ${id}: ${n} signal${n === 1 ? "" : "s"}`);

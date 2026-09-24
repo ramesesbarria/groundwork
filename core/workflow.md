@@ -54,6 +54,17 @@ Set `approvalMode` in `.groundwork/config.json`:
 
 Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).
 
+## Stop only for
+While working through cards, and especially in `per-phase` mode, stop and ask the human only for:
+- anything destructive, or that can't be undone (deleting data, rewriting history)
+- security-sensitive changes (logins, secrets, permissions)
+- a new dependency or a stack change (these need a decision record: `gw-decide`)
+- a gap in the spec that changes what users see
+
+Everything else: make the call, and add a line to the card's History:
+`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`
+Every call is shown at approval, so nothing is decided out of sight.
+
 ## HANDOFF
 
 `.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. Update it:

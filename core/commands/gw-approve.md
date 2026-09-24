@@ -22,7 +22,7 @@ If the human didn't ask for this in their own words, stop and ask them to approv
 6. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` and a short body saying what changed. Stage only this card's files.
 7. Show the human the commit, then run `gw-next` if they asked to keep going.
 
-**Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. Show one summary for the phase (step 3). If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
+**Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. Show one summary for the phase (step 3), including every `call:` line from the phase's cards. If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
 
 ## Writes
 - The card: status and History
