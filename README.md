@@ -126,7 +126,7 @@ In the terminal:
 
 | Command | What it does |
 |---|---|
-| `groundwork init` | Installs Groundwork (`--adapter claude-code\|opencode\|none`, `--dry-run`). Asks before overwriting; merges into existing settings. |
+| `groundwork init` | Installs Groundwork (`--adapter claude-code\|opencode\|none`, `--dry-run`). Never replaces your CLAUDE.md or AGENTS.md (it adds one pointer line); asks before overwriting anything else; merges into existing settings. |
 | `groundwork adapter add <tool>` | Adds or refreshes an adapter |
 | `groundwork status` | Phase, cards by status, the next ready card, what's blocked |
 | `groundwork doctor` | Token budget, missing guards, drifted adapter files, cards whose status contradicts their history. Exits 1 on problems, so it can run in CI. |

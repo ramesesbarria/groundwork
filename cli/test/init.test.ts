@@ -96,24 +96,26 @@ describe("groundwork init", () => {
     expect(output).toContain("vim");
   });
 
+  // CLAUDE.md and AGENTS.md are never overwritten at all (card 7.10, keep-instructions.test.ts).
   it("asks before overwriting an existing file, and keeps it when told no", async () => {
     const dir = tempProject();
-    writeFileSync(join(dir, "CLAUDE.md"), "my own rules\n");
+    mkdirSync(join(dir, ".groundwork"));
+    writeFileSync(join(dir, ".groundwork/SPEC.md"), "my spec\n");
     const io = answers("n");
     const { code, output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
 
     expect(code).toBe(0);
-    expect(io.asked.some((q) => q.includes("CLAUDE.md"))).toBe(true);
-    expect(read(dir, "CLAUDE.md")).toBe("my own rules\n");
-    expect(output).toMatch(/skip.*CLAUDE\.md/i);
-    expect(output).toContain("@AGENTS.md"); // tells the user how to connect it by hand
+    expect(io.asked.some((q) => q.includes(".groundwork/SPEC.md"))).toBe(true);
+    expect(read(dir, ".groundwork/SPEC.md")).toBe("my spec\n");
+    expect(output).toMatch(/skip.*SPEC\.md/i);
   });
 
   it("overwrites an existing file when told yes", async () => {
     const dir = tempProject();
-    writeFileSync(join(dir, "AGENTS.md"), "old\n");
+    mkdirSync(join(dir, ".groundwork"));
+    writeFileSync(join(dir, ".groundwork/SPEC.md"), "old\n");
     await run(["init", "--adapter", "none"], { cwd: dir, ask: answers("y").ask });
-    expect(read(dir, "AGENTS.md")).toBe(core["templates/AGENTS.md"]);
+    expect(read(dir, ".groundwork/SPEC.md")).toBe(core["templates/SPEC.md"]);
   });
 
   it("doesn't ask about files that are already identical", async () => {
@@ -137,7 +139,7 @@ describe("groundwork init", () => {
     expect(readdirSync(dir)).toEqual(["AGENTS.md"]);
     expect(read(dir, "AGENTS.md")).toBe("old\n");
     expect(output).toContain(".groundwork/workflow.md");
-    expect(output).toMatch(/AGENTS\.md.*(exists|ask)/i);
+    expect(output).toMatch(/add lines\s+AGENTS\.md/i);
   });
 
   it("refuses to install into Groundwork's own source repo", async () => {
