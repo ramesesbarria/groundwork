@@ -12,7 +12,7 @@ Record a decision the human makes, with the options they chose from. Groundwork 
 2. Write `.groundwork/decisions/NNNN-<topic>.md` from `.groundwork/templates/decision.md`, with status `proposed`:
    - **Context:** what needs deciding, why now, and the constraints that matter.
    - **Options:** 2–4 options. For each: what it is, pros, cons, and what switching away later would cost.
-3. Summarise the options in a few lines. You may add one line starting **Recommendation:** naming the option you'd pick and why (e.g. "**Recommendation:** B, because one small app doesn't need a database server"). It's always labeled, never mixed into the options.
+3. Summarise the options in a few lines. You may add one line starting **Recommendation:** naming the option you'd pick and why (e.g. "**Recommendation:** B, because one small app doesn't need a database server"). It's always labeled, never mixed into the options. With `experience: new` in the config, include it; with `experienced`, leave it out unless the human asks for one.
 4. Update HANDOFF, then **wait** for the human's choice. If they say "your call" or "you decide", ask once: "Shall I go with my recommendation, B?" Only a clear yes counts.
 5. Record the choice in their words under Decision. If they took the recommendation, write "accepted the recommendation" and quote their reply. Set status `accepted`, and fill in Consequences.
 6. If this replaces an earlier decision, set that one's status to `superseded` and link to the new one.

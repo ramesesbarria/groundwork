@@ -1,0 +1,14 @@
+$ cd cli && npx vitest run test/experience.test.ts
+     × the config template has it, defaulting to new 5ms
+     × the schema allows new and experienced, and says what each changes 1ms
+     × setup asks one plain question and saves it 1ms
+     × the default approval mode follows it when the human is unsure 1ms
+     × the workflow documents both values 1ms
+     × commands/gw-next.md says what each value changes 1ms
+     × commands/gw-approve.md says what each value changes 0ms
+     × commands/gw-decide.md says what each value changes 0ms
+     × new always gets How to check at the approval stop 0ms
+     × experienced gets options without a recommendation unless asked 1ms
+     × AGENTS.md tells the agent to read the setting from the config each time 1ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  11 failed | 2 passed (13)

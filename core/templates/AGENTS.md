@@ -18,8 +18,8 @@ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The
 4. **No evidence, no done.** Proof goes in `.groundwork/evidence/<card-id>/` and is linked from the card.
 5. **Commit only when the workflow allows.** In `per-card` mode, after the human approves the card; in `per-phase` mode, after review passes (`approvalMode` in the config). Commit format: `commitFormat` in the config (default `[<card-id>] <card title>`).
 6. **Update `.groundwork/HANDOFF.md`** at every role change and before you stop.
-7. **Don't change the stack silently.** Stack choices are recorded in `.groundwork/decisions/`; propose a new decision instead.
-8. **Ask specific questions in plain English** when you need input.
+7. **Don't change the stack silently.** Propose a new decision in `.groundwork/decisions/`.
+8. **Ask specific questions in plain English** when you need input. Explain as much as `experience` in the config says.
 9. **Request without a command? Say the path in one line first:** a "can X do Y?" question is a try; small, low-risk or a bug is quick (both in `.groundwork/commands/gw-quick.md`); anything bigger gets a card. The human can override.
 
 ## Rules
