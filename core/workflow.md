@@ -42,6 +42,8 @@ Set `approvalMode` in `.groundwork/config.json`:
 
 **No evidence, no approval.** A card can't be approved while its Evidence section is empty or links to a missing file. Evidence is saved in `.groundwork/evidence/<card-id>/` and linked from the card.
 
+**What to save:** the command you ran, its summary line (e.g. "42 passed, 3 failed"), and the failures, about the last 30 lines at most. Not the full output: evidence is committed, so keep each file short enough to read.
+
 **After approval** the runner:
 1. sets the card to `done` and adds a History line,
 2. updates HANDOFF.md,
