@@ -1,0 +1,152 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+(node:24112) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ❯ test/readme.test.ts (5 tests | 5 failed) 13ms
+   ❯ README (5)
+     × opens with the tagline, the loop and the install steps 7ms
+     × has the sections the card asks for 1ms
+     × links to this repo's own trail and the dogfood write-up, and every local link exists 2ms
+     × doesn't offer npx install as working unless the package is actually on npm 1ms
+     × lists real limitations 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/readme.test.ts > README > opens with the tagline, the loop and the install steps
+AssertionError: expected '# Groundwork\n\n**A tool-agnostic wor…' to contain '```mermaid'
+
+- Expected
++ Received
+
+- ```mermaid
++ # Groundwork
++
++ **A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
++
++ > 🚧 Work in progress. Groundwork is being built with Groundwork: see [`.groundwork/`](.groundwork/) for the live plan, cards and lessons.
++
++ - **Spec before code.** Rough idea → written spec through specific questions.
++ - **A gated build loop.** Planner → tester → implementer → reviewer → you approve.
++ - **Rules that record their origin.** Every rule notes the mistake that created it, and repeated mistakes become guards that block the action.
++ - **Lean on purpose.** The always-loaded context has a measured token budget.
++ - **Works with your tool.** Plain-markdown core, with adapters for Claude Code and OpenCode.
++
++ See [SPEC.md](.groundwork/SPEC.md) for the full design.
++
++ ## License
++
++ [MIT](LICENSE)
+
+ ❯ test/readme.test.ts:35:25
+     33|     const firstScreen = readme.slice(0, readme.indexOf("## Why"));
+     34|     expect(firstScreen).toMatch(/tool-agnostic workflow for building s…
+     35|     expect(firstScreen).toContain("```mermaid");
+       |                         ^
+     36|     expect(firstScreen).toMatch(/groundwork init|bin\.js init/);
+     37|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/readme.test.ts > README > has the sections the card asks for
+AssertionError: missing "## Why it exists": expected '' not to be '' // Object.is equality
+ ❯ test/readme.test.ts:41:63
+     39|   it("has the sections the card asks for", () => {
+     40|     for (const heading of ["Why it exists", "How it works", "Commands"…
+     41|       expect(section(heading), `missing "## ${heading}"`).not.toBe("");
+       |                                                               ^
+     42|     }
+     43|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/readme.test.ts > README > links to this repo's own trail and the dogfood write-up, and every local link exists
+AssertionError: expected '# Groundwork\n\n**A tool-agnostic wor…' to contain '(.groundwork/cards/)'
+
+- Expected
++ Received
+
+- (.groundwork/cards/)
++ # Groundwork
++
++ **A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
++
++ > 🚧 Work in progress. Groundwork is being built with Groundwork: see [`.groundwork/`](.groundwork/) for the live plan, cards and lessons.
++
++ - **Spec before code.** Rough idea → written spec through specific questions.
++ - **A gated build loop.** Planner → tester → implementer → reviewer → you approve.
++ - **Rules that record their origin.** Every rule notes the mistake that created it, and repeated mistakes become guards that block the action.
++ - **Lean on purpose.** The always-loaded context has a measured token budget.
++ - **Works with your tool.** Plain-markdown core, with adapters for Claude Code and OpenCode.
++
++ See [SPEC.md](.groundwork/SPEC.md) for the full design.
++
++ ## License
++
++ [MIT](LICENSE)
++
+
+ ❯ test/readme.test.ts:46:20
+     44|
+     45|   it("links to this repo's own trail and the dogfood write-up, and eve…
+     46|     expect(readme).toContain("(.groundwork/cards/)");
+       |                    ^
+     47|     expect(readme).toContain("(.groundwork/LESSONS.md)");
+     48|     expect(readme).toContain("(.groundwork/evidence/3.1/dogfood-writeu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/readme.test.ts > README > doesn't offer npx install as working unless the package is actually on npm
+AssertionError: expected '# Groundwork\n\n**A tool-agnostic wor…' to match /not on npm yet/i
+
+- Expected:
+/not on npm yet/i
+
++ Received:
+"# Groundwork
+
+**A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
+
+> 🚧 Work in progress. Groundwork is being built with Groundwork: see [`.groundwork/`](.groundwork/) for the live plan, cards and lessons.
+
+- **Spec before code.** Rough idea → written spec through specific questions.
+- **A gated build loop.** Planner → tester → implementer → reviewer → you approve.
+- **Rules that record their origin.** Every rule notes the mistake that created it, and repeated mistakes become guards that block the action.
+- **Lean on purpose.** The always-loaded context has a measured token budget.
+- **Works with your tool.** Plain-markdown core, with adapters for Claude Code and OpenCode.
+
+See [SPEC.md](.groundwork/SPEC.md) for the full design.
+
+## License
+
+[MIT](LICENSE)
+"
+
+ ❯ test/readme.test.ts:55:20
+     53|   it("doesn't offer npx install as working unless the package is actua…
+     54|     if (npmPublished) return;
+     55|     expect(readme).toMatch(/not on npm yet/i);
+       |                    ^
+     56|     const install = section("Install");
+     57|     expect(install).toMatch(/git clone/);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/readme.test.ts > README > lists real limitations
+AssertionError: expected 0 to be greater than or equal to 4
+ ❯ test/readme.test.ts:62:26
+     60|   it("lists real limitations", () => {
+     61|     const items = section("Honest limitations").split("\n").filter((li…
+     62|     expect(items.length).toBeGreaterThanOrEqual(4);
+       |                          ^
+     63|   });
+     64| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  21:50:09
+   Duration  1.29s (import 96%, transform 2%, tests 1%)
+
