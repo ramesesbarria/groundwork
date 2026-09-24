@@ -12,7 +12,9 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 2. Ask these questions together, in plain English:
    - What's the project called, and what does it do, in one sentence?
    - Have you already chosen a stack (language, framework, database)? If yes, which?
-   - Approve every card yourself (`per-card`, recommended), or once per phase (`per-phase`)?
+   - Do you want to check every piece of work before it's saved, or each milestone?
+
+   Write the answer to `approvalMode` in the config: every piece of work → `per-card` (the default, and the safer choice if they're unsure); each milestone → `per-phase`.
 3. If a stack is chosen, ask for the install, test, lint and build commands, suggesting the usual ones. If not, leave them empty; they're filled in after the stack decision during planning.
 4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
@@ -25,7 +27,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 3. Draft a "current state" `.groundwork/SPEC.md`: what the app does today, from the code, with gaps under Open questions.
 4. For each stack choice already made (language, framework, database, hosting), write an `accepted` record in `.groundwork/decisions/`, with the reason "already in use".
 5. If a CLAUDE.md or an older AGENTS.md exists, offer to import its rules into `.groundwork/LESSONS.md` as NOTEs with origin "imported". If AGENTS.md isn't Groundwork's (no "How we work" section), rebuild it from `.groundwork/templates/AGENTS.md` after the import, with the human's OK.
-6. Ask the approval-mode question, then show everything marked *guessed* and ask the human to confirm or correct it.
+6. Ask the approval question from step 2, then show everything marked *guessed* and ask the human to confirm or correct it.
 7. Continue from step 4 above.
 
 ## Writes
