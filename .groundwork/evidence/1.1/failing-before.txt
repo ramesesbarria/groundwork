@@ -1,0 +1,305 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ❯ test/roles.test.ts (20 tests | 20 failed) 16ms
+   ❯ role files (20)
+     × has one file per role and nothing else 7ms
+     × planner has job, load, writes and must-not sections 1ms
+     × tester has job, load, writes and must-not sections 0ms
+     × implementer has job, load, writes and must-not sections 0ms
+     × reviewer has job, load, writes and must-not sections 0ms
+     × planner stays under 800 tokens 0ms
+     × tester stays under 800 tokens 0ms
+     × implementer stays under 800 tokens 0ms
+     × reviewer stays under 800 tokens 0ms
+     × planner says exactly which files to load, starting with HANDOFF 0ms
+     × tester says exactly which files to load, starting with HANDOFF 1ms
+     × implementer says exactly which files to load, starting with HANDOFF 0ms
+     × reviewer says exactly which files to load, starting with HANDOFF 0ms
+     × implementer loads the current card and its tests, not the whole spec 0ms
+     × reviewer checks the diff against the card, SPEC and LESSONS 0ms
+     × reviewer cites lesson IDs in its verdict 0ms
+     × planner has its key 'must not' from SPEC §6 0ms
+     × tester has its key 'must not' from SPEC §6 0ms
+     × implementer has its key 'must not' from SPEC §6 0ms
+     × reviewer has its key 'must not' from SPEC §6 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 20 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/roles.test.ts > role files > has one file per role and nothing else
+AssertionError: expected [] to deeply equal [ Array(4) ]
+
+- Expected
++ Received
+
+- [
+-   "implementer.md",
+-   "planner.md",
+-   "reviewer.md",
+-   "tester.md",
+- ]
++ []
+
+ ❯ test/roles.test.ts:20:42
+     18| describe("role files", () => {
+     19|   it("has one file per role and nothing else", () => {
+     20|     expect(readdirSync(rolesDir).sort()).toEqual(ROLES.map((r) => `${r…
+       |                                          ^
+     21|   });
+     22|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯
+
+ FAIL  test/roles.test.ts > role files > planner has job, load, writes and must-not sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\planner.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:24:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯
+
+ FAIL  test/roles.test.ts > role files > tester has job, load, writes and must-not sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\tester.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:24:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯
+
+ FAIL  test/roles.test.ts > role files > implementer has job, load, writes and must-not sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\implementer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:24:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer has job, load, writes and must-not sections
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:24:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/20]⎯
+
+ FAIL  test/roles.test.ts > role files > planner stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\planner.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:31:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/20]⎯
+
+ FAIL  test/roles.test.ts > role files > tester stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\tester.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:31:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/20]⎯
+
+ FAIL  test/roles.test.ts > role files > implementer stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\implementer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:31:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer stays under 800 tokens
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:31:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/20]⎯
+
+ FAIL  test/roles.test.ts > role files > planner says exactly which files to load, starting with HANDOFF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\planner.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:35:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/20]⎯
+
+ FAIL  test/roles.test.ts > role files > tester says exactly which files to load, starting with HANDOFF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\tester.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:35:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/20]⎯
+
+ FAIL  test/roles.test.ts > role files > implementer says exactly which files to load, starting with HANDOFF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\implementer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:35:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer says exactly which files to load, starting with HANDOFF
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:35:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/20]⎯
+
+ FAIL  test/roles.test.ts > role files > implementer loads the current card and its tests, not the whole spec
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\implementer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:41:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer checks the diff against the card, SPEC and LESSONS
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:48:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer cites lesson IDs in its verdict
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:56:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/20]⎯
+
+ FAIL  test/roles.test.ts > role files > planner has its key 'must not' from SPEC §6
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\planner.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:65:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/20]⎯
+
+ FAIL  test/roles.test.ts > role files > tester has its key 'must not' from SPEC §6
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\tester.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:65:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/20]⎯
+
+ FAIL  test/roles.test.ts > role files > implementer has its key 'must not' from SPEC §6
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\implementer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:65:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/20]⎯
+
+ FAIL  test/roles.test.ts > role files > reviewer has its key 'must not' from SPEC §6
+Error: ENOENT: no such file or directory, open 'C:\Users\rames\Documents\projects\groundwork\core\roles\reviewer.md'
+ ❯ role test/roles.test.ts:6:32
+      4|
+      5| const rolesDir = new URL("../../core/roles/", import.meta.url);
+      6| const role = (name: string) => readFileSync(new URL(`${name}.md`, role…
+       |                                ^
+      7|
+      8| // The text of one "## Heading" section, up to the next "## ".
+ ❯ test/roles.test.ts:65:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/20]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  20 failed (20)
+   Start at  17:21:14
+   Duration  283ms (transform 44%, import 25%, tests 24%, worker 7%)
+

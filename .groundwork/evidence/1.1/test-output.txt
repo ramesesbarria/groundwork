@@ -1,0 +1,45 @@
+
+ RUN  v5.0.1 C:/Users/rames/Documents/projects/groundwork/cli
+
+ ✓ test/roles.test.ts > role files > has one file per role and nothing else 2ms
+ ✓ test/roles.test.ts > role files > planner has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > tester has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > implementer has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > reviewer has job, load, writes and must-not sections 1ms
+ ✓ test/roles.test.ts > role files > planner stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > tester stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > implementer stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > reviewer stays under 800 tokens 0ms
+ ✓ test/roles.test.ts > role files > planner says exactly which files to load, starting with HANDOFF 1ms
+ ✓ test/roles.test.ts > role files > tester says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > implementer says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > reviewer says exactly which files to load, starting with HANDOFF 0ms
+ ✓ test/roles.test.ts > role files > implementer loads the current card and its tests, not the whole spec 0ms
+ ✓ test/roles.test.ts > role files > reviewer checks the diff against the card, SPEC and LESSONS 0ms
+ ✓ test/roles.test.ts > role files > reviewer cites lesson IDs in its verdict 0ms
+ ✓ test/roles.test.ts > role files > planner has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > tester has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > implementer has its key 'must not' from SPEC §6 0ms
+ ✓ test/roles.test.ts > role files > reviewer has its key 'must not' from SPEC §6 0ms
+ ✓ test/templates.test.ts > core templates > has exactly the templates init will copy 2ms
+ ✓ test/templates.test.ts > core templates > AGENTS.md has its required sections 1ms
+ ✓ test/templates.test.ts > core templates > SPEC.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > HANDOFF.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > LESSONS.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > card.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > decision.md has its required sections 0ms
+ ✓ test/templates.test.ts > core templates > keeps the AGENTS.md template under the 2,000-token budget 0ms
+ ✓ test/templates.test.ts > core templates > AGENTS.md points into .groundwork/ instead of repeating it 0ms
+ ✓ test/templates.test.ts > core templates > card template frontmatter matches the schema 1ms
+ ✓ test/templates.test.ts > core templates > card schema matches the card example in SPEC §8 0ms
+ ✓ test/templates.test.ts > core templates > config.json has a schema covering approval mode, token budget and commands 1ms
+ ✓ test/templates.test.ts > estimateTokens > estimates about one token per four characters, rounding up 0ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints the package version with --version 2ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > prints usage listing the planned commands when run with no arguments 0ms
+ ✓ test/smoke.test.ts > groundwork CLI (smoke) > fails with a helpful message on an unknown command 0ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  17:21:16
+   Duration  231ms (transform 44%, import 32%, tests 14%, worker 9%)
+
