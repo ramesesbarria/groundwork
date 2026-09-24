@@ -18,7 +18,7 @@ Turn repeated mistakes into lessons that stick. A lesson moves up the ladder eac
    - **Archive**: a lesson nothing has touched in a long time (see `groundwork doctor`).
 5. Show the proposals as a short list, each with its evidence, and **wait for** the human to accept or decline each one.
 6. Apply only the accepted ones. Update each lesson's Level and History line, e.g. "note (09-02) → rule (09-24, repeated in cards 1.3 and 1.5)".
-7. Update `.groundwork/HANDOFF.md`.
+7. Update `.groundwork/HANDOFF.md`, noting "retro done" and the date, so `gw` doesn't suggest it again for the same phase.
 
 ## Writes
 - `.groundwork/LESSONS.md`

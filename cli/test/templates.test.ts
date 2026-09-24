@@ -24,7 +24,7 @@ const statusesIn = (value: string) => value.split("|").map((s) => s.trim());
 describe("core templates", () => {
   it("has exactly the templates init will copy", () => {
     expect(readdirSync(new URL("core/templates/", root)).sort()).toEqual(
-      ["AGENTS.md", "HANDOFF.md", "LESSONS.md", "SPEC.md", "card.md", "config.json", "config.schema.json", "decision.md"],
+      ["AGENTS.md", "HANDOFF.md", "JOURNAL.md", "LESSONS.md", "SPEC.md", "card.md", "config.json", "config.schema.json", "decision.md"],
     );
   });
 

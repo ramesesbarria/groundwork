@@ -31,6 +31,7 @@ export const TEMPLATE_TARGETS: Record<string, string> = {
   "templates/SPEC.md": ".groundwork/SPEC.md",
   "templates/HANDOFF.md": ".groundwork/HANDOFF.md",
   "templates/LESSONS.md": ".groundwork/LESSONS.md",
+  "templates/JOURNAL.md": ".groundwork/JOURNAL.md",
   "templates/config.json": ".groundwork/config.json",
   "templates/config.schema.json": ".groundwork/config.schema.json",
 };

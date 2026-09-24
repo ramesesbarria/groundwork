@@ -104,6 +104,7 @@ AGENTS.md                      # small, always loaded; points into .groundwork/
   SPEC.md                      # what we're building
   HANDOFF.md                   # current state: where we are, what's next
   LESSONS.md                   # rule ledger (see §9)
+  JOURNAL.md                   # a short recap of each finished phase
   cards/
     1.1-auth-schema.md
     1.2-login-flow.md
