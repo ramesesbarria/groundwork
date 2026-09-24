@@ -1,0 +1,9 @@
+$ cd cli && npx vitest run test/judgment-calls.test.ts
+     × the workflow has a short Stop only for list, in plain words 5ms
+     × everything else is decided and logged as a call 1ms
+     × the card template shows the call format 5ms
+     × the approval summary lists the card's calls 1ms
+     × phase approval shows every call from that phase's cards 1ms
+     × finds a call that was followed by a rejection 57ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  6 failed (6)

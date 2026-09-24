@@ -25,4 +25,5 @@ depends_on: []
      - YYYY-MM-DD rejected: <reason>
      - YYYY-MM-DD review → implementing: <problems>
      - YYYY-MM-DD approved by human
+     - YYYY-MM-DD call: <what> — <why> — <cost if wrong>
      Anything else: "YYYY-MM-DD <what happened>". -->
