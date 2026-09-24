@@ -6,6 +6,7 @@ import { generateClaudeCode } from "./adapters/claude-code.js";
 import { generateOpenCode } from "./adapters/opencode.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
+import { VERSION } from "./version.js";
 
 export type { PlannedFile } from "./files.js";
 
@@ -25,7 +26,7 @@ const GITATTRIBUTES = [
 ].join("\n");
 
 // Where templates land in a project. Every other core file keeps its path inside .groundwork/.
-const TEMPLATE_TARGETS: Record<string, string> = {
+export const TEMPLATE_TARGETS: Record<string, string> = {
   "templates/AGENTS.md": "AGENTS.md",
   "templates/SPEC.md": ".groundwork/SPEC.md",
   "templates/HANDOFF.md": ".groundwork/HANDOFF.md",
@@ -63,11 +64,19 @@ export function planAdapter(core: CoreFiles, adapter: Adapter): PlannedFile[] {
   return files;
 }
 
+// The project's config with the Groundwork version that wrote its files, so doctor can tell when it's behind.
+export function stampVersion(configJson: string, version: string): string {
+  const { $schema, ...rest } = JSON.parse(configJson) as Record<string, unknown>;
+  delete rest.version;
+  return JSON.stringify({ ...($schema === undefined ? {} : { $schema }), version, ...rest }, null, 2) + "\n";
+}
+
 // Pure: which files `init` writes for this core and adapter.
-export function planInit(core: CoreFiles, adapter: Adapter): PlannedFile[] {
-  const files: PlannedFile[] = Object.entries(core).map(([path, content]) =>
-    withPointer({ path: TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`, content }),
-  );
+export function planInit(core: CoreFiles, adapter: Adapter, version = VERSION): PlannedFile[] {
+  const files: PlannedFile[] = Object.entries(core).map(([path, content]) => {
+    const target = TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`;
+    return withPointer({ path: target, content: target === ".groundwork/config.json" ? stampVersion(content, version) : content });
+  });
   // A spare copy of the AGENTS.md template, so gw-setup can rebuild AGENTS.md if the user kept their own.
   files.push({ path: ".groundwork/templates/AGENTS.md", content: core["templates/AGENTS.md"] ?? "" });
   for (const dir of EMPTY_DIRS) files.push({ path: `${dir}/.gitkeep`, content: "" });
