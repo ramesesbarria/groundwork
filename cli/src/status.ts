@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { blocked, nextReady, readCards } from "./cards.js";
-import { CARD_STATUSES } from "./schema.js";
+import { CARD_STATUSES, statusLabel } from "./schema.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
@@ -33,12 +33,12 @@ export function status(io: Pick<Io, "cwd">): RunResult {
 
   const counts = CARD_STATUSES.map((s) => [s, cards.filter((c) => c.status === s).length] as const)
     .filter(([, n]) => n > 0)
-    .map(([s, n]) => `${n} ${s}`);
+    .map(([s, n]) => `${n} ${statusLabel(s)}`);
   lines.push(`Cards:         ${counts.join(" · ")}`);
 
   const inProgress = cards.filter((c) => ["testing", "implementing", "review", "awaiting-approval"].includes(c.status));
   if (inProgress.length > 0) {
-    lines.push(`In progress:   ${inProgress.map((c) => `${c.id} ${c.title} (${c.status})`).join(", ")}`);
+    lines.push(`In progress:   ${inProgress.map((c) => `${c.id} ${c.title} (${statusLabel(c.status)})`).join(", ")}`);
   }
 
   const next = nextReady(cards);

@@ -31,6 +31,8 @@ Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, check
 | `done` | `rejected` | human | Rejects a card during a phase review |
 | `rejected` | `implementing` | runner | Picks the card up again; the reason is on the card |
 
+When you tell the human about a card, use plain labels, not these status names: `todo` → to do, `testing` → being tested, `implementing` → being built, `review` → in review, `awaiting-approval` → waiting for you, `done` → done, `rejected` → sent back.
+
 No other changes are allowed. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
 
 ## Approval

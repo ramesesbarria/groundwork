@@ -71,8 +71,8 @@ describe("groundwork status", () => {
     expect(output).toContain("1 (Local tracker)");
     expect(output).toContain("1.1 Skeleton");
     expect(output).toMatch(/1 done/);
-    expect(output).toMatch(/3 todo/);
-    expect(output).toMatch(/1 implementing/);
+    expect(output).toMatch(/3 to do/); // plain labels since card 9.3
+    expect(output).toMatch(/1 being built/);
     expect(output).toMatch(/Next ready:\s+1\.2 Meal rules/);
     expect(output).toMatch(/1\.3 Double feeding[^\n]*1\.2/);
     expect(output).toMatch(/In progress:[^\n]*\n?[^\n]*1\.4 Storage/);
