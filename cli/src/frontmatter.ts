@@ -1,3 +1,16 @@
+// YAML needs quotes around values like "`/gw`: …"; the value itself is what's inside them.
+function unquote(value: string): string {
+  if (value.length >= 2 && value.startsWith("'") && value.endsWith("'")) return value.slice(1, -1).replace(/''/g, "'");
+  if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
+    try {
+      return JSON.parse(value) as string;
+    } catch {
+      return value.slice(1, -1);
+    }
+  }
+  return value;
+}
+
 // Minimal "key: value" frontmatter reader. Groundwork's files only use flat, single-line values.
 export function parseFrontmatter(md: string): Record<string, string> {
   const match = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -5,7 +18,7 @@ export function parseFrontmatter(md: string): Record<string, string> {
   const fields: Record<string, string> = {};
   for (const line of match[1].split(/\r?\n/)) {
     const m = line.match(/^(\w+):\s*(.*)$/);
-    if (m) fields[m[1]] = m[2];
+    if (m) fields[m[1]] = unquote(m[2]);
   }
   return fields;
 }

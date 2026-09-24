@@ -13,6 +13,20 @@ export const CARD_STATUSES = [
 ] as const;
 export type CardStatus = (typeof CARD_STATUSES)[number];
 
+// What people see. Card files keep the internal statuses; core/workflow.md lists the same labels
+// and core/hooks/session-start.mjs repeats them (it can't import from the CLI).
+export const STATUS_LABELS: Record<CardStatus, string> = {
+  todo: "to do",
+  testing: "being tested",
+  implementing: "being built",
+  review: "in review",
+  "awaiting-approval": "waiting for you",
+  done: "done",
+  rejected: "sent back",
+};
+
+export const statusLabel = (status: string) => STATUS_LABELS[status as CardStatus] ?? status;
+
 export const APPROVAL_MODES = ["per-card", "per-phase"] as const;
 export type ApprovalMode = (typeof APPROVAL_MODES)[number];
 

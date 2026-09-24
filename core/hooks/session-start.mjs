@@ -13,7 +13,7 @@ const LABELS = {
   testing: "being tested",
   implementing: "being built",
   review: "in review",
-  "awaiting-approval": "waiting for your approval",
+  "awaiting-approval": "waiting for you",
   done: "done",
   rejected: "sent back",
 };
