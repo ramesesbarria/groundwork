@@ -15,7 +15,7 @@ Take the next ready card through the build loop. You are the **runner** describe
 5. **Implementer.** Run `.groundwork/roles/implementer.md`. If it hands back to the tester, return to step 4.
 6. **Reviewer.** Run `.groundwork/roles/reviewer.md`. If it sends the card back, return to step 5. After 3 round trips, stop and ask the human.
 
-   When you hand a card to a role (steps 4–6), give it the card, its role file and only facts you've checked, such as the commands in the config. Don't pass on guesses about what it can or can't do ("you probably have no browser"); it finds out by trying.
+   Hand each role the card, its role file and only facts you've checked. Never guesses like "you probably have no browser".
 7. **Stop or continue.** Every stop shows the human a plain-language **summary**:
    1. **What changed**, in plain words, not file names
    2. **How to check it yourself**: a URL to open, a command to run, or a thing to click (from the card's "How to check", starting with the `run` command when there's an app to open)
@@ -26,7 +26,7 @@ Take the next ready card through the build loop. You are the **runner** describe
 
    - `per-card` mode: the card is now `awaiting-approval`. **Stop**, show the summary, and ask the human to run `gw-approve` or `gw-reject`.
    - `per-phase` mode: the card is `done`. Commit it (message `[<card-id>] <card title>`, or the config's `commitFormat`), then continue with step 2 until the phase's cards are all done. Then stop, show one summary for the phase, and ask the human to review it.
-8. Update HANDOFF at every role change and before you stop.
+8. Update HANDOFF at every role change and before you stop. With subagents, only you write it, from their reports.
 
 ## Writes
 - The card: status and History

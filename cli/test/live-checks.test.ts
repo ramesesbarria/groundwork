@@ -60,7 +60,7 @@ describe("seeing it work", () => {
   it("the runner passes roles only checked facts, never guesses about their tools", () => {
     const steps = section(core("commands/gw-next.md"), "Steps");
     expect(steps).toMatch(/only facts you've checked/);
-    expect(steps).toMatch(/Don't pass on guesses/);
+    expect(steps).toMatch(/Never guesses/);
   });
 });
 
