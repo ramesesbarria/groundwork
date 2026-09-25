@@ -5,7 +5,7 @@ import { blocked, nextReady, readCards } from "./cards.js";
 import { CARD_STATUSES, statusLabel } from "./schema.js";
 import type { Io, RunResult } from "./index.js";
 
-const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
+const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
 
 // A "- **Field:** value" line from HANDOFF.md.
 function handoffField(handoff: string, field: string): string | undefined {

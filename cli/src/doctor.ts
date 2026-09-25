@@ -12,7 +12,7 @@ import { readProjectConfig } from "./config.js";
 import { rolesOf } from "./adapters/shared.js";
 import type { Io, RunResult } from "./index.js";
 
-const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
+const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
 
 const read = (path: string) => (existsSync(path) ? readFileSync(path, "utf8") : "");
 
@@ -70,8 +70,8 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
 
     // An older project's adapter files are out of date because the whole install is: upgrade fixes both.
     const fix = behind
-      ? "Run `groundwork upgrade` to update it."
-      : `Run \`groundwork adapter add ${tool}\` to refresh it (it asks before overwriting).`;
+      ? "Run `npx groundwork-ai upgrade` to update it."
+      : `Run \`npx groundwork-ai adapter add ${tool}\` to refresh it (it asks before overwriting).`;
     for (const file of planned) {
       const current = read(join(cwd, file.path));
       if (file.path === "CLAUDE.md") {
@@ -135,7 +135,7 @@ function checkLessons(cwd: string, groundwork: string, cardText: string, f: Find
 function checkVersion(projectVersion: string | undefined, f: Findings): boolean {
   if (projectVersion !== undefined && compareVersions(projectVersion, VERSION) >= 0) return false;
   const from = projectVersion ? `version ${projectVersion}` : "an older version (no version stamp)";
-  f.suggestions.push(`This project's Groundwork files are from ${from}; the CLI is ${VERSION}. Run \`groundwork upgrade\` to update them.`);
+  f.suggestions.push(`This project's Groundwork files are from ${from}; the CLI is ${VERSION}. Run \`npx groundwork-ai upgrade\` to update them.`);
   return true;
 }
 

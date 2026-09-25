@@ -176,7 +176,7 @@ describe("groundwork upgrade", () => {
   it("says to run init when Groundwork isn't installed", async () => {
     const { code, output } = await run(["upgrade"], { cwd: tempDir(), ask: answers().ask });
     expect(code).toBe(1);
-    expect(output).toMatch(/groundwork init/);
+    expect(output).toMatch(/npx groundwork-ai init/);
   });
 
   it("is listed in the CLI help and the README", async () => {
@@ -192,17 +192,17 @@ describe("doctor and versions", () => {
     const cfg = config(dir);
     cfg.version = "0.1.0";
     write(dir, ".groundwork/config.json", JSON.stringify(cfg));
-    expect((await run(["doctor"], { cwd: dir })).output).toMatch(/0\.1\.0[^\n]*groundwork upgrade/);
+    expect((await run(["doctor"], { cwd: dir })).output).toMatch(/0\.1\.0[^\n]*npx groundwork-ai upgrade/);
   });
 
   it("suggests an upgrade when there's no version stamp at all", async () => {
     const dir = await v03Project();
-    expect((await run(["doctor"], { cwd: dir })).output).toMatch(/groundwork upgrade/);
+    expect((await run(["doctor"], { cwd: dir })).output).toMatch(/npx groundwork-ai upgrade/);
   });
 
   it("points out-of-date adapter files at upgrade, not adapter add, when the project is behind", async () => {
     const output = (await run(["doctor"], { cwd: await v03Project() })).output;
-    expect(output).toMatch(/session-start hook[^\n]*groundwork upgrade/);
+    expect(output).toMatch(/session-start hook[^\n]*npx groundwork-ai upgrade/);
     expect(output).not.toMatch(/adapter add/);
   });
 

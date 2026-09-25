@@ -11,7 +11,7 @@ import { VERSION } from "./version.js";
 import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
 
-const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
+const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
 
 // Commands a later version removed. Their core file and adapter files go too.
 const RETIRED_COMMANDS = ["gw-resume"];
@@ -120,6 +120,6 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
 
   return {
     code: 0,
-    output: [`Upgraded Groundwork from ${from} to ${VERSION}.`, ...lines, ...removals, ...additions, ...fillIn, "", "Run `groundwork doctor` to check the result."].join("\n"),
+    output: [`Upgraded Groundwork from ${from} to ${VERSION}.`, ...lines, ...removals, ...additions, ...fillIn, "", "Run `npx groundwork-ai doctor` to check the result."].join("\n"),
   };
 }

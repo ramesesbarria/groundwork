@@ -61,7 +61,7 @@ describe("groundwork retro", () => {
   it("says to run init when Groundwork isn't installed", async () => {
     const { code, output } = await run(["retro"], { cwd: tempDir(), ask: noQuestions });
     expect(code).toBe(1);
-    expect(output).toMatch(/groundwork init/);
+    expect(output).toMatch(/npx groundwork-ai init/);
   });
 
   it("finds reverts", async () => {
