@@ -1,6 +1,7 @@
 // `groundwork upgrade`: bring a project's Groundwork files up to this version.
 // Groundwork's own files are replaced; the project's state (spec, handoff, lessons, cards, decisions,
-// evidence, config values, its own AGENTS.md and CLAUDE.md) is never touched.
+// evidence, config values, its own AGENTS.md and CLAUDE.md) is never touched. Command keys a newer
+// version added are put into the config empty, next to the project's own values.
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { readCore, type CoreFiles } from "./core.js";
@@ -28,6 +29,22 @@ export function isGeneratedClaudeMd(text: string): boolean {
   const lines = text.trim().split(/\r?\n/);
   if (lines[0] !== "@AGENTS.md" || lines[1] !== "" || lines[2] !== "## Claude Code") return false;
   return lines.slice(3).every((line) => /^(Groundwork commands are skills|The others:|When a command says to run a role)/.test(line));
+}
+
+type Commands = { commands?: Record<string, string> };
+
+// Command keys a newer template has that the project's config lacks (e.g. `run` in 0.6).
+export function missingCommands(configJson: string, templateJson: string): string[] {
+  const have = (JSON.parse(configJson) as Commands).commands ?? {};
+  const want = (JSON.parse(templateJson) as Commands).commands ?? {};
+  return Object.keys(want).filter((key) => !(key in have));
+}
+
+// Adds them empty, so every value the project already set stays exactly as it is.
+export function withCommands(configJson: string, keys: string[]): string {
+  const config = JSON.parse(configJson) as Commands & Record<string, unknown>;
+  config.commands = { ...config.commands, ...Object.fromEntries(keys.map((key) => [key, ""])) };
+  return JSON.stringify(config, null, 2) + "\n";
 }
 
 function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
@@ -64,7 +81,10 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const config = existsSync(configPath) ? (JSON.parse(readFileSync(configPath, "utf8")) as { version?: string }) : undefined;
   const from = config?.version ? `version ${config.version}` : "an older version";
 
-  const files = plan(io.cwd, readCore(locateCore()));
+  const core = readCore(locateCore());
+  const files = plan(io.cwd, core);
+  const newCommands = config === undefined ? [] : missingCommands(readFileSync(configPath, "utf8"), core["templates/config.json"] ?? "{}");
+  const additions = newCommands.map((key) => `  add        commands.${key} (empty) to .groundwork/config.json`);
   const yes = { ...io, ask: async () => "y" }; // the human confirms once, below, not per file
   const changes = (await applyFiles(files, yes, true)).lines
     .filter((line) => !line.includes("unchanged"))
@@ -72,10 +92,10 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const removals = retiredPaths.filter((path) => existsSync(join(io.cwd, path))).map((path) => `  remove     ${path}`);
   const restamp = config !== undefined && config.version !== VERSION;
 
-  if (changes.length === 0 && removals.length === 0 && !restamp) {
+  if (changes.length === 0 && removals.length === 0 && additions.length === 0 && !restamp) {
     return { code: 0, output: `Groundwork is already up to date (${VERSION}). Nothing to change.` };
   }
-  const list = [...changes, ...removals];
+  const list = [...changes, ...removals, ...additions];
   if (dryRun) {
     return { code: 0, output: [`Dry run: upgrading from ${from} to ${VERSION} would change:`, ...list, "Nothing was written."].join("\n") };
   }
@@ -93,10 +113,13 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
 
   const { lines } = await applyFiles(files, yes, false);
   for (const path of retiredPaths) rmSync(join(io.cwd, path), { recursive: true, force: true });
-  if (config !== undefined) writeFileSync(configPath, stampVersion(readFileSync(configPath, "utf8"), VERSION));
+  if (config !== undefined) {
+    writeFileSync(configPath, stampVersion(withCommands(readFileSync(configPath, "utf8"), newCommands), VERSION));
+  }
+  const fillIn = newCommands.length > 0 ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`] : [];
 
   return {
     code: 0,
-    output: [`Upgraded Groundwork from ${from} to ${VERSION}.`, ...lines, ...removals, "", "Run `groundwork doctor` to check the result."].join("\n"),
+    output: [`Upgraded Groundwork from ${from} to ${VERSION}.`, ...lines, ...removals, ...additions, ...fillIn, "", "Run `groundwork doctor` to check the result."].join("\n"),
   };
 }

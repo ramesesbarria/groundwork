@@ -99,6 +99,31 @@ describe("groundwork upgrade", () => {
     expect(cfg.commands.test).toBe("npm test");
   });
 
+  it("adds command keys a newer version introduced, empty, and says so", async () => {
+    const dir = await v03Project();
+    const cfg = config(dir);
+    delete cfg.commands.run;
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+
+    const dry = await run(["upgrade", "--dry-run"], { cwd: dir, ask: answers().ask });
+    expect(dry.output).toMatch(/add\s+commands\.run \(empty\)/);
+    expect(config(dir).commands).not.toHaveProperty("run");
+
+    const { output } = await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(config(dir).commands).toEqual({ install: "", test: "npm test", lint: "", build: "", run: "" });
+    expect(output).toMatch(/New command to fill in: run/);
+  });
+
+  it("leaves a command the project already set alone", async () => {
+    const dir = await v03Project();
+    const cfg = config(dir);
+    cfg.commands.run = "npm run dev";
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+    const { output } = await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(config(dir).commands.run).toBe("npm run dev");
+    expect(output).not.toMatch(/commands\.run/);
+  });
+
   it("refreshes the installed adapter: new skills, retired skills removed, new hooks merged", async () => {
     const dir = await v03Project();
     await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
