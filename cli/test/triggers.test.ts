@@ -1,4 +1,4 @@
-// Card 7.1: command descriptions say when to use them, and only the human can approve or reject.
+// Command descriptions say when to use them, and only the human can approve or reject.
 // Claude Code field checked against code.claude.com/docs/en/skills on 2026-09-24.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -60,9 +60,8 @@ describe("only the human approves or rejects", () => {
     expect(section(text, "Must not")).toMatch(/on your own/i);
   });
 
-  it("README lists the OpenCode gap under Honest limitations", () => {
-    const limits = section(readme, "Honest limitations");
-    expect(limits).toMatch(/OpenCode/);
-    expect(limits).toMatch(/gw-approve/);
+  it("the README's Claude Code row says approve and reject only run when you type them", () => {
+    const row = section(readme, "Adapters").split("\n").find((l) => l.startsWith("| **Claude Code**")) ?? "";
+    expect(row).toMatch(/`\/gw-approve` and `\/gw-reject` only run when you type them/);
   });
 });

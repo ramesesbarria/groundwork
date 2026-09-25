@@ -1,4 +1,4 @@
-// Card 5.1: `groundwork doctor` (SPEC §10).
+// `groundwork doctor`.
 import { afterEach, describe, expect, it } from "vitest";
 import { appendFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

@@ -1,4 +1,4 @@
-// Card 9.7: a short recap when a phase ends, then a nudge to run a retro.
+// A short recap when a phase ends, then a nudge to run a retro.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

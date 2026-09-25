@@ -1,9 +1,0 @@
-$ cd cli && npx vitest run test/gw-quick.test.ts
-     × has a bug branch 3ms
-     × reproduces the bug with a failing test first 1ms
-     × states the cause in one sentence, with evidence, before any fix 1ms
-     × stops and suggests a card after two honest attempts without a cause 1ms
-     × When to use it sends unclear bugs here instead of to a card 1ms
-     × the AGENTS.md routing rule mentions bugs 0ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  6 failed | 7 passed (13)

@@ -1,4 +1,4 @@
-// Card 7.3: every stop for approval shows what changed, how to check it yourself, and caveats.
+// Every stop for approval shows what changed, how to check it yourself, and caveats.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

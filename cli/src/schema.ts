@@ -1,4 +1,4 @@
-// Shapes of Groundwork's files. Templates and SPEC §8 are tested against these.
+// Shapes of Groundwork's files. The templates are tested against these.
 
 export const CARD_FIELDS = ["id", "title", "phase", "status", "depends_on"] as const;
 

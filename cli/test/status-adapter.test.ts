@@ -1,4 +1,4 @@
-// Card 4.6: `groundwork status` and `groundwork adapter add`.
+// `groundwork status` and `groundwork adapter add`.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

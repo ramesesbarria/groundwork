@@ -1,4 +1,4 @@
-// Card 9.11: Groundwork follows a repo's own commit style instead of forcing "[1.2] Title".
+// Groundwork follows a repo's own commit style instead of forcing "[1.2] Title".
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

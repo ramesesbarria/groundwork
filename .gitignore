@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.log
 cli/core/
+
+# Local development notes for Groundwork itself (not part of the product)
+.groundwork/
+PLAN.md

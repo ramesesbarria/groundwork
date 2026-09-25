@@ -1,4 +1,4 @@
-// Card 4.4: gw-setup on a repo that already has code (SPEC §11).
+// gw-setup on a repo that already has code.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -6,7 +6,7 @@ import { planInit } from "../src/init.js";
 import { readCore } from "../src/core.js";
 
 const setup = readFileSync(new URL("../../core/commands/gw-setup.md", import.meta.url), "utf8");
-// Card 7.11 moved the existing-project steps into their own guide, which gw-setup links to.
+// The existing-project steps live in their own guide, which gw-setup links to.
 const guide = readFileSync(new URL("../../core/guides/existing-project.md", import.meta.url), "utf8");
 
 function section(md: string, heading: string): string {
@@ -60,7 +60,7 @@ describe("gw-setup for existing projects", () => {
     expect(section(setup, "Must not")).toMatch(/propose|change the stack/i);
   });
 
-  // Card 7.11: imported rules keep their strength.
+  // Imported rules keep their strength.
   describe("importing existing rules", () => {
     const importStep = () => existing().split(/\n(?=\d+\. )/).find((s) => /import/i.test(s) && /LESSONS/.test(s)) ?? "";
 

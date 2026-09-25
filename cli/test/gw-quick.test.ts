@@ -1,4 +1,4 @@
-// Card 4.1: a light path for small changes (L-013).
+// A light path for small changes.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
@@ -55,7 +55,7 @@ describe("gw-quick", () => {
   });
 });
 
-// Card 9.1: bugs go through the quick path, cause first.
+// Bugs go through the quick path, cause first.
 describe("gw-quick: fixing a bug", () => {
   const bug = () => section(core("commands/gw-quick.md"), "Fixing a bug");
   const numbered = () => bug().split("\n").filter((line) => /^\d+\. /.test(line));
@@ -95,7 +95,7 @@ describe("gw-quick: fixing a bug", () => {
   });
 });
 
-// Card 9.5: a third size for feasibility questions. The answer is kept, not the code.
+// A third size for feasibility questions. The answer is kept, not the code.
 describe("gw-quick: trying something out", () => {
   const trySection = () => section(core("commands/gw-quick.md"), "Trying something out");
   const rule = () => core("templates/AGENTS.md").split("\n").find((line) => line.includes("gw-quick")) ?? "";

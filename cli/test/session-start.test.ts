@@ -1,4 +1,4 @@
-// Card 8.2: every new session, /clear or compaction starts with a few lines from HANDOFF.
+// Every new session, /clear or compaction starts with a few lines from HANDOFF.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -76,7 +76,7 @@ describe("orientation text", () => {
 });
 
 describe("the hook script", () => {
-  // Card 10.2: the hook is tool-neutral. The adapter passes the project folder, and the output is plain
+  // The hook is tool-neutral. The adapter passes the project folder, and the output is plain
   // text, which Claude Code adds as context for a SessionStart hook.
   const runHook = (projectDir: string) => spawnSync(process.execPath, [hookScript, projectDir], { encoding: "utf8" });
 
@@ -133,8 +133,9 @@ describe("wiring", () => {
     expect(agentsTemplate).toMatch(/Start by reading `\.groundwork\/HANDOFF\.md`/);
   });
 
-  it("the README notes that OpenCode has no session-start hook", () => {
-    const limits = readme.slice(readme.indexOf("## Honest limitations"));
-    expect(limits).toMatch(/OpenCode[^\n]*session/i);
+  it("the README lists the session-start hook under Claude Code only", () => {
+    const rows = readme.split("\n").filter((l) => l.startsWith("| **"));
+    expect(rows.find((l) => l.startsWith("| **Claude Code**"))).toMatch(/session-start hook/);
+    expect(rows.find((l) => l.startsWith("| **OpenCode**"))).not.toMatch(/session-start/);
   });
 });

@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/model-hints.test.ts
-     × Claude Code agents get a model line for each role that has a hint 4ms
-     × OpenCode agents get their own value when the hint is per tool 1ms
-     × the schema documents the optional models setting 0ms
-     × adapter add writes the project's hints, and doctor sees no drift afterwards 47ms
-     × doctor warns about a hint for a role that doesn't exist 45ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed | 3 passed (8)

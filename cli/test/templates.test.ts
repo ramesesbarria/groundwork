@@ -57,15 +57,6 @@ describe("core templates", () => {
     expect(statusesIn(fm.status)).toEqual([...CARD_STATUSES]);
   });
 
-  it("card schema matches the card example in SPEC §8", () => {
-    const spec = read(".groundwork/SPEC.md");
-    const section8 = spec.slice(spec.indexOf("## 8."), spec.indexOf("## 9."));
-    const example = section8.match(/```md\r?\n([\s\S]*?)```/)![1];
-    const fm = frontmatter(example);
-    expect(Object.keys(fm)).toEqual([...CARD_FIELDS]);
-    expect(statusesIn(fm.status)).toEqual([...CARD_STATUSES]);
-  });
-
   it("config.json has a schema covering approval mode, token budget and commands", () => {
     const schema = JSON.parse(template("config.schema.json"));
     const config = JSON.parse(template("config.json"));

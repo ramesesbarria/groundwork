@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/gw-quick.test.ts
-     × has a try branch that starts from a one-line question 4ms
-     × works on a throwaway branch or scratch folder, never the main branch 1ms
-     × reports an answer and a recommendation 0ms
-     × never merges the code; keeping it means a card 0ms
-     × the routing rule names all three paths: try, quick and card 1ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed | 14 passed (19)

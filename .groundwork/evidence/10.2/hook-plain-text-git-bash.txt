@@ -1,6 +1,0 @@
-$ cd <fresh temp dir> && groundwork init --adapter claude-code
-hook command: node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs" "$CLAUDE_PROJECT_DIR"
-$ cd sub && CLAUDE_PROJECT_DIR=<temp dir> sh -c "$CMD"      (Git Bash on Windows 11, run from a subfolder)
-Groundwork: no card in progress.
-Next: set up the project: type `/gw` (it runs `gw-setup`)
-Type /gw to continue.

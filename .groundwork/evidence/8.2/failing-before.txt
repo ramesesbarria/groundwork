@@ -1,3 +1,0 @@
-$ cd cli && npx vitest run test/session-start.test.ts
-      Tests  no tests
-Error: Cannot find module '../../core/hooks/session-start.mjs' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/session-start.test.ts

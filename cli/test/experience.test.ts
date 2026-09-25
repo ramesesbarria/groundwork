@@ -1,4 +1,4 @@
-// Card 10.1: one setup question sets experience to "new" or "experienced" (decision 0002).
+// One setup question sets experience to "new" or "experienced".
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { estimateTokens } from "../src/tokens.js";

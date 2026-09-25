@@ -1,4 +1,4 @@
-// Card 4.3: the OpenCode adapter. Formats checked against opencode.ai/docs (commands, agents, plugins,
+// The OpenCode adapter. Formats checked against opencode.ai/docs (commands, agents, plugins,
 // tools, rules) on 2026-09-24.
 import { afterEach, describe, expect, it } from "vitest";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";

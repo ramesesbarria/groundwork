@@ -1,14 +1,13 @@
 # Groundwork
 
 [![CI](https://github.com/ramesesbarria/groundwork/actions/workflows/ci.yml/badge.svg)](https://github.com/ramesesbarria/groundwork/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/groundwork-ai)](https://www.npmjs.com/package/groundwork-ai)
 
 **A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
 
-> **Early preview (v0.3).** Everything below works and is tested, but Groundwork hasn't been proven on a full real project yet. See [Honest limitations](#honest-limitations).
+Groundwork gives your AI coding agent a real development process. It interviews you for a spec, breaks the work into small cards, builds each card with separate tester, implementer and reviewer roles, and stops for your approval before anything is committed. When the agent makes the same mistake twice, the mistake becomes a rule. When a rule keeps being broken, it becomes a guard that blocks the action.
 
-Groundwork is a set of plain-markdown instructions plus a small CLI that you install into a project. It gives your AI coding agent a real development process: it interviews you for a spec, breaks the work into cards, builds each card with separate tester, implementer and reviewer roles, and stops for your approval before anything is committed. When the agent makes the same mistake twice, the mistake becomes a rule. When a rule keeps being broken, it becomes a guard that blocks the action.
-
-**Groundwork is the project layer.** It owns the spec, the cards, your approvals, where things stand between sessions, and the lessons learned, so it answers "where is my project, what's next, what did I approve?" How the agent works on a single task is left to your tool and any skill packs you use with it.
+**Groundwork is the project layer.** It owns the spec, the cards, your approvals, where things stand between sessions, and the lessons learned, so it always answers "where is my project, what's next, what did I approve?" How the agent handles a single task is left to your tool and any skill packs you use with it.
 
 ```mermaid
 flowchart LR
@@ -27,8 +26,6 @@ flowchart LR
 
 ## Install
 
-[![npm](https://img.shields.io/npm/v/groundwork-ai)](https://www.npmjs.com/package/groundwork-ai)
-
 Needs Node 22 or later.
 
 ```bash
@@ -36,13 +33,11 @@ cd your-project
 npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
 
-Then open your AI tool in the project and type `/gw`. It sets the project up the first time, and after that it always says where things stand and what's next. Without an adapter, ask the agent to read `.groundwork/commands/gw.md` and follow it.
-
-Later, `npx groundwork-ai status`, `doctor`, `retro` and `upgrade` work the same way.
+Then open your AI tool in the project and type `/gw`. It sets the project up the first time, and after that it always tells you where things stand and what's next. With plain markdown, ask the agent to read `.groundwork/commands/gw.md` and follow it.
 
 ## Your first 10 minutes
 
-After setup, a first session looks roughly like this (a shortened example, not a recorded session):
+Here's what a first session looks like:
 
 ```text
 You:   /gw I want a page where my book club votes on next month's book
@@ -78,13 +73,20 @@ Nothing is committed until you approve, and every approval tells you how to chec
 - **Handoff**: a note that says where things stand, so any session can pick up the work.
 - **Lesson**: a mistake written down so it doesn't happen again.
 
-## Why it exists
+## Why Groundwork
 
-I built a portfolio, a church website and an event platform with AI agents, and hand-copied a harness into each one, tweaking it every time. The same problems kept coming back: harnesses that grew too heavy to be useful, rules the agent forgot, progress lost at usage limits, UI work that went round in circles, and "done" claims with nothing behind them. Groundwork packages what worked and **enforces** what didn't, instead of hoping the agent remembers.
+AI agents write code fast, but on a real project the same problems keep coming back: rules they forget, progress lost when a session ends, "done" with nothing behind it, and scope that quietly grows. Groundwork keeps the project in files instead of in the chat, puts you in charge of every approval, and **enforces** what matters instead of hoping the agent remembers.
+
+- **Right-sized.** A typo goes through the quick path in one pass. A feature gets a spec, a plan and cards. The agent says which path it's taking, and you can override it.
+- **Always resumable.** Close the laptop partway through a card; the next session, in any tool or with any model, picks up from `HANDOFF.md`.
+- **Plain approvals.** Every approval stop says what changed, how to check it yourself, the caveats, and any judgment calls the agent made.
+- **Stack-neutral.** For every stack decision, Groundwork writes 2–4 options with trade-offs, may add a labeled recommendation, and waits for you. Nothing is picked until you answer; "go with your recommendation" counts, and is recorded as that.
+- **Works on existing code.** Setup never overwrites your instruction files, keeps your existing rules, maps the codebase, and records a test baseline so old failures don't block new work.
+- **Small footprint.** The always-loaded part is about 400 tokens. Everything else loads only when a step needs it.
 
 ## How it works
 
-`init` puts everything in one folder and keeps the always-loaded part small (the `AGENTS.md` template is about 400 tokens):
+`init` puts everything in one folder:
 
 ```
 AGENTS.md                 short, always loaded; points into .groundwork/
@@ -93,21 +95,20 @@ AGENTS.md                 short, always loaded; points into .groundwork/
   HANDOFF.md              where things stand; any session, tool or model can resume from it
   LESSONS.md              the lessons ledger
   JOURNAL.md              a short recap of each finished phase
-  config.json             approval mode, token budget, guards, commands
+  config.json             approval mode, experience, guards, commands, commit format
   cards/                  one file per unit of work, with acceptance criteria and evidence
   decisions/              stack choices, with the options you chose from
   evidence/               test output and screenshots, linked from cards
   roles/                  planner, tester, implementer, reviewer
-  commands/               the gw-* commands, tool-neutral
+  commands/               the gw commands, tool-neutral
   guards/                 scripts that block actions
-  hooks/                  session-start orientation, read by the Claude Code adapter
+  hooks/                  session-start orientation
 ```
 
 - **Four roles, each with a "must not".** The tester can't write the implementation. The implementer can't edit tests. The reviewer can't fix code; it sends the card back. The planner never picks your stack.
 - **No evidence, no approval.** A card can't be approved while its Evidence section is empty.
 - **You choose how often to approve:** every card (`per-card`, the default) or once per phase (`per-phase`).
-- **A light path for small changes.** `gw-quick` skips the card and the roles, but the tests still have to pass.
-- **Stack-neutral.** For every stack decision, Groundwork writes 2–4 options with trade-offs, may add a labeled recommendation, and waits for you. Nothing is picked until you answer; "go with your recommendation" counts, and is recorded as that.
+- **Explained at your level.** Setup asks whether you're new to building software or experienced, and the agent explains more or less to match.
 
 ## Commands
 
@@ -121,7 +122,7 @@ In your AI tool (as `/gw…` in Claude Code and OpenCode). If you remember one, 
 | `gw-plan` | Records stack decisions, then splits the spec into phases and cards |
 | `gw-next` | Runs the next ready card: tester → implementer → reviewer |
 | `gw-approve` / `gw-reject` | Your verdict on a card (or a whole phase). Only you run these |
-| `gw-quick` | One-pass path for small, low-risk changes |
+| `gw-quick` | One-pass path for small changes, bug fixes and quick experiments |
 
 Power commands, for when you need them:
 
@@ -132,7 +133,7 @@ Power commands, for when you need them:
 | `gw-handoff` | Saves where things stand, so another session or tool can continue |
 | `gw-retro` | Proposes moving lessons up the ladder |
 
-In the terminal:
+In the terminal (`npx groundwork-ai <command>`):
 
 | Command | What it does |
 |---|---|
@@ -140,8 +141,8 @@ In the terminal:
 | `groundwork upgrade` | Updates a project's Groundwork files (commands, roles, workflow, guards, hooks, templates and adapter files) to the CLI's version, after asking once. Your spec, handoff, lessons, cards, decisions and evidence stay exactly as they are. `--dry-run` shows the changes first. |
 | `groundwork adapter add <tool>` | Adds or refreshes an adapter |
 | `groundwork status` | Phase, cards by status, the next ready card, what's blocked |
-| `groundwork doctor` | Token budget, missing guards, drifted adapter files, cards whose status contradicts their history. Exits 1 on problems, so it can run in CI. |
-| `groundwork retro` | Collects reverts, quick fixes after a card, rejections and review send-backs for `/gw-retro` |
+| `groundwork doctor` | Token budget, missing guards and hooks, out-of-date files, cards whose status contradicts their history. Exits 1 on problems, so it can run in CI. |
+| `groundwork retro` | Collects reverts, quick fixes after a card, rejections, review send-backs and judgment calls that were later rejected, for `/gw-retro` |
 
 ## The lessons ledger
 
@@ -149,46 +150,23 @@ Every rule records the mistake that created it, and moves up a ladder when the m
 
 **NOTE** (in `LESSONS.md`) → **RULE** (in `AGENTS.md` or a role file, always in context) → **GUARD** (a script that blocks the action)
 
-Real examples from building Groundwork with Groundwork ([LESSONS.md](.groundwork/LESSONS.md)):
+`groundwork retro` collects the signals (reverts, rejections, fixes right after a card), and `/gw-retro` proposes which lessons to add or promote. Nothing changes without your OK.
 
-- **L-003, "Propose the lean version first"**, was imported as a note, then promoted to a rule when the dogfood run repeated it: a "tiny sample app" spec grew into a multi-user phone app with push notifications.
-- **L-015** went straight to a guard. A check once ran `groundwork init` in the wrong folder and installed Groundwork into its own repo. `init` now refuses to run there.
-- **L-016** was found by `groundwork status` on its first real run: a card still said `testing` after it had been approved. `doctor` now checks for that.
-- **L-017** was found by `groundwork retro`: 3 of the 5 times the reviewer sent work back, one core file contradicted another. Accepted as a note through `/gw-retro`.
-
-The built-in `no-ai-trailers` guard blocks commit messages that add AI attribution. Turn guards on in `.groundwork/config.json`: `"guards": ["no-ai-trailers"]`.
+Groundwork ships with a `no-ai-trailers` guard that blocks commit messages with AI attribution. Turn guards on in `.groundwork/config.json`: `"guards": ["no-ai-trailers"]`.
 
 ## Adapters
 
-The core is plain markdown, so any agent that can read files can follow it. Adapters add native commands, subagents and guard hooks:
+The core is plain markdown, so any agent that can read files can follow it. Adapters add native commands, subagents and hooks:
 
-| Tool | What you get | Verified |
-|---|---|---|
-| **Claude Code** | Skills, subagents with limited tools (the reviewer can't edit files), a `PreToolUse` guard hook, a session-start hook that says where things stand, `CLAUDE.md` → `AGENTS.md` | Skills appear in `/gw` autocomplete, and setup, spec and plan ran in a real session ([dogfood](.groundwork/evidence/3.1/dogfood-writeup.md)) |
-| **OpenCode** | Commands, subagents with permissions (reviewer `edit: deny`, planner `bash: deny`), a guard plugin | OpenCode 2.0.3 loads the agents with those permissions ([check](.groundwork/evidence/4.3/opencode-check.txt)) |
-| **Anything else** | `AGENTS.md` plus the markdown in `.groundwork/` | — |
+| Tool | What you get |
+|---|---|
+| **Claude Code** | Skills for every command (`/gw-approve` and `/gw-reject` only run when you type them), subagents with limited tools (the reviewer can't edit files), a guard hook, a session-start hook that says where things stand, and `CLAUDE.md` → `AGENTS.md` |
+| **OpenCode** | Commands, subagents with permissions (reviewer `edit: deny`, planner `bash: deny`), and a guard plugin |
+| **Anything else** | `AGENTS.md` plus the markdown in `.groundwork/` |
 
-**Works with skill packs.** Groundwork is the project layer, so it should work alongside skill packs such as [superpowers](https://github.com/obra/superpowers), which shape how the agent handles each task. Nobody has run the two together yet, so treat that as untested.
+You can pick a model per role in `.groundwork/config.json` (for example a cheaper model for the tester and a stronger one for the reviewer); the adapters write it into each subagent.
 
-## Built with itself
-
-Groundwork was built card by card using its own process. The whole trail is public:
-
-- [Cards](.groundwork/cards/): every unit of work, with its acceptance criteria, evidence, reviewer notes and history, including the times the reviewer sent work back.
-- [Lessons](.groundwork/LESSONS.md): every rule and where it came from.
-- [Dogfood write-up](.groundwork/evidence/3.1/dogfood-writeup.md): what happened when Groundwork was used on a sample app, including what went wrong.
-- [Spec](.groundwork/SPEC.md): the design.
-
-## Honest limitations
-
-- **Not yet used end to end on a real project.** Setup, spec and plan have run in a real Claude Code session, and the rest is tested in isolation. A full run on a real app is next ([card 6.1](.groundwork/cards/6.1-real-app-run.md)).
-- **Resuming in a different tool hasn't been tested yet**, and neither has whether Claude Code actually runs the role subagents.
-- **Guards inside the tools are unconfirmed.** The Claude Code hook relies on `$CLAUDE_PROJECT_DIR` being expanded (not verified on Windows), and the OpenCode plugin is tested in isolation, not inside OpenCode. Guards only see command text, so `git commit -F file` isn't checked.
-- **Only Claude Code blocks the agent from approving by itself.** There, `gw-approve` and `gw-reject` can't be invoked by the model. OpenCode has no such setting, so there, and in any tool without an adapter, the only safeguard is the commands' own text telling the agent that only you run them.
-- **Only Claude Code gets the session-start orientation.** OpenCode has no documented way for a plugin to add context when a session starts, so there (and without an adapter) the agent relies on AGENTS.md telling it to read HANDOFF first, or on you typing `/gw`.
-- **Token counts are estimates** (characters ÷ 4), not a real tokenizer.
-- **Setup for existing projects is untested** on a real codebase.
-- **No evals.** Benchmarks comparing tools and models come later; they're not a current goal.
+Groundwork is the project layer, so it's designed to work alongside task-level skill packs such as [superpowers](https://github.com/obra/superpowers).
 
 ## License
 

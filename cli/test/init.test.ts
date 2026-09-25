@@ -96,7 +96,7 @@ describe("groundwork init", () => {
     expect(output).toContain("vim");
   });
 
-  // CLAUDE.md and AGENTS.md are never overwritten at all (card 7.10, keep-instructions.test.ts).
+  // CLAUDE.md and AGENTS.md are never overwritten at all (see keep-instructions.test.ts).
   it("asks before overwriting an existing file, and keeps it when told no", async () => {
     const dir = tempProject();
     mkdirSync(join(dir, ".groundwork"));

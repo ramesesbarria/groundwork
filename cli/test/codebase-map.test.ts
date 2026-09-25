@@ -1,4 +1,4 @@
-// Card 9.10: setup leaves a short map of where things live, and the roles load it first.
+// Setup leaves a short map of where things live, and the roles load it first.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

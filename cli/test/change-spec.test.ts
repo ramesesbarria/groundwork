@@ -1,4 +1,4 @@
-// Card 9.9: on an existing project, you spec the change you want, not the whole app.
+// On an existing project, you spec the change you want, not the whole app.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

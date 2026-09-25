@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/cleanup.test.ts
-     × has no empty placeholder directories 27ms
-     × has no unreachable 'planned but not implemented' branch 1ms
-     × SPEC §12 matches the real repo layout 3ms
-     × SPEC no longer promises benchmark evals for v1.0 1ms
-     × README agrees: evals are later, not a current goal 1ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed (5)

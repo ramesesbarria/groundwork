@@ -1,10 +1,9 @@
-// Card 10.3: the README says Groundwork is the project layer, and works alongside skill packs.
+// The README says Groundwork is the project layer, and works alongside skill packs.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const readme = read("README.md");
-const spec = read(".groundwork/SPEC.md");
 
 function section(md: string, heading: string): string {
   const start = md.indexOf(`## ${heading}`);
@@ -23,15 +22,10 @@ describe("the project layer", () => {
     }
   });
 
-  it("the Adapters section says it works alongside skill packs such as superpowers, without claiming it was tried", () => {
+  it("the Adapters section places it alongside skill packs such as superpowers, without claiming a tested pairing", () => {
     const adapters = section(readme, "Adapters");
     expect(adapters).toMatch(/superpowers/i);
-    expect(adapters).toMatch(/should work alongside/i);
+    expect(adapters).toMatch(/designed to work alongside/i);
     expect(readme).not.toMatch(/(works|tested|verified) (with|alongside) superpowers/i);
-  });
-
-  it("SPEC §1's comparison includes the project layer", () => {
-    const table = spec.slice(spec.indexOf("### How it differs"), spec.indexOf("## 2."));
-    expect(table).toMatch(/project layer/i);
   });
 });

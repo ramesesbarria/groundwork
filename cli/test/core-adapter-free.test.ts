@@ -1,4 +1,4 @@
-// Card 10.2: core/ never depends on one tool. Everything tool-specific stays in cli/src/adapters/.
+// core/ never depends on one tool. Everything tool-specific stays in cli/src/adapters/.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

@@ -1,3 +1,0 @@
-$ cd cli && npx vitest run test/node-version.test.ts
-      Tests  no tests
-Error: Cannot find module '../src/node-version.js' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/node-version.test.ts
