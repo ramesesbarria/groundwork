@@ -1,5 +1,5 @@
-// The OpenCode adapter. Formats checked against opencode.ai/docs (commands, agents, plugins,
-// tools, rules) on 2026-09-24.
+// The OpenCode adapter. Formats checked against opencode.ai/docs (commands, agents, tools, rules)
+// on 2026-09-24; the plugin format against OpenCode 2.0.16 on 2026-09-25.
 import { afterEach, describe, expect, it } from "vitest";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -78,28 +78,38 @@ describe("OpenCode guard plugin", () => {
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
-    const module = await import(pathToFileURL(file).href);
-    const plugin = Object.values(module)[0] as (ctx: object) => Promise<Record<string, Function>>;
-    return (await plugin({ directory: project }))["tool.execute.before"];
+    const { default: plugin } = await import(pathToFileURL(file).href);
+    // OpenCode 2.x rejects a plugin unless the default export has a string id and a setup function.
+    expect(typeof plugin.id).toBe("string");
+    expect(typeof plugin.setup).toBe("function");
+    const hooks: Record<string, (call: object) => Promise<void>> = {};
+    await plugin.setup({
+      tool: {
+        hook: async (name: string, callback: (call: object) => Promise<void>) => {
+          hooks[name] = callback;
+          return { dispose: async () => {} };
+        },
+      },
+    });
+    return hooks["execute.before"];
   }
+
+  const trailerCommit = "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'";
 
   it("throws to block a commit with an AI trailer when the guard is on", async () => {
     const before = await installedPlugin(["no-ai-trailers"]);
-    await expect(
-      before({ tool: "bash" }, { args: { command: "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } }),
-    ).rejects.toThrow(/attribution/i);
-    await expect(before({ tool: "bash" }, { args: { command: "git commit -m 'Fix'" } })).resolves.toBeUndefined();
+    await expect(before({ tool: "shell", input: { command: trailerCommit } })).rejects.toThrow(/attribution/i);
+    await expect(before({ tool: "shell", input: { command: "git commit -m 'Fix'" } })).resolves.toBeUndefined();
   });
 
   it("does nothing when no guards are on", async () => {
     const before = await installedPlugin([]);
-    await expect(
-      before({ tool: "bash" }, { args: { command: "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } }),
-    ).resolves.toBeUndefined();
+    await expect(before({ tool: "shell", input: { command: trailerCommit } })).resolves.toBeUndefined();
   });
 
   it("the runner understands OpenCode's tool names and arguments", async () => {
     const { toAction } = await import(pathToFileURL(join(coreDir, "guards/run.mjs")).href);
+    expect(toAction("opencode", { tool: "shell", args: { command: "ls" } })).toEqual({ kind: "command", command: "ls" });
     expect(toAction("opencode", { tool: "bash", args: { command: "ls" } })).toEqual({ kind: "command", command: "ls" });
     expect(toAction("opencode", { tool: "write", args: { filePath: "a.ts", content: "x" } })).toEqual({
       kind: "write",

@@ -31,9 +31,11 @@ export function toAction(tool, input) {
     }
   }
   if (tool === "opencode") {
-    // OpenCode tool names and arguments: opencode.ai/docs/tools. apply_patch isn't covered yet.
+    // OpenCode tool names and arguments: opencode.ai/docs/tools. OpenCode 2.x renamed bash to shell.
+    // patch isn't covered yet.
     const args = input.args ?? {};
     switch (input.tool) {
+      case "shell":
       case "bash":
         return { kind: "command", command: String(args.command ?? "") };
       case "write":
