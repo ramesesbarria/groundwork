@@ -183,7 +183,7 @@ The core is plain markdown, so any agent that can read files can follow it. Adap
 | Tool | What you get |
 |---|---|
 | **Claude Code** | Skills for every command (`/gw-approve` and `/gw-reject` only run when you type them), subagents with limited tools (the reviewer can't edit files), a guard hook, a session-start hook that says where things stand, and `CLAUDE.md` → `AGENTS.md` |
-| **OpenCode** | Commands, subagents with permissions (reviewer `edit: deny`, planner `bash: deny`), and a guard plugin |
+| **OpenCode** | Commands, subagents with permissions (reviewer `edit: deny`, planner `bash: deny`), and a guard plugin. Needs OpenCode 2.x (tested with 2.0.16) |
 | **Anything else** | `AGENTS.md` plus the markdown in `.groundwork/` |
 
 You can pick a model per role in `.groundwork/config.json` (for example a cheaper model for the tester and a stronger one for the reviewer); the adapters write it into each subagent.
