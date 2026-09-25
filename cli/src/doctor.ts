@@ -1,4 +1,4 @@
-// `groundwork doctor`: harness health and the context budget (SPEC §10).
+// `groundwork doctor`: harness health and the context budget.
 // Problems make it exit 1 (so it can run in CI); suggestions don't.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

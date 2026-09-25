@@ -1,4 +1,4 @@
-// Card 7.2: when a request comes without a command, the agent says which path it's taking.
+// When a request comes without a command, the agent says which path it's taking.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { estimateTokens } from "../src/tokens.js";

@@ -1,4 +1,4 @@
-// Card 7.5: the README shows what using Groundwork feels like before explaining how it works.
+// The README shows what using Groundwork feels like before explaining how it works.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

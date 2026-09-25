@@ -41,7 +41,7 @@ describe("role files", () => {
     const load = section(role("implementer"), "Load");
     expect(load).toContain(".groundwork/cards/");
     expect(load).toMatch(/tests?/i);
-    // Only the Codebase map section of the spec (card 9.10), never the whole spec.
+    // Only the Codebase map section of the spec, never the whole spec.
     for (const line of load.split("\n").filter((l) => l.includes(".groundwork/SPEC.md"))) expect(line).toMatch(/Codebase map/);
   });
 

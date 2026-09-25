@@ -1,4 +1,4 @@
-// Card 3.2: fixes for what the dogfood run found (card 3.1, lessons L-003 and L-007 to L-012).
+// Guardrails in the commands and templates: scope checks, visible defaults, confirmations and a commit-ready install.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -26,7 +26,7 @@ function tempProject(): string {
 }
 const noQuestions = async () => "";
 
-describe("scope check (L-003)", () => {
+describe("scope check", () => {
   it("gw-spec asks for the smallest first version and moves the rest to later phases", () => {
     const steps = section(read("commands/gw-spec.md"), "Steps");
     expect(steps).toMatch(/smallest/i);
@@ -38,7 +38,7 @@ describe("scope check (L-003)", () => {
   });
 });
 
-describe("'you decide' (L-011)", () => {
+describe("'you decide'", () => {
   it("gw-spec uses its suggestions, marks them as defaults, and lists extra choices", () => {
     const steps = section(read("commands/gw-spec.md"), "Steps");
     expect(steps).toMatch(/you decide|your call/i);
@@ -47,7 +47,7 @@ describe("'you decide' (L-011)", () => {
   });
 });
 
-describe("gw-plan (L-007, L-008)", () => {
+describe("gw-plan", () => {
   const steps = () => section(read("commands/gw-plan.md"), "Steps");
 
   it("checks the spec was confirmed", () => {
@@ -59,14 +59,14 @@ describe("gw-plan (L-007, L-008)", () => {
   });
 });
 
-describe("tester (L-009)", () => {
+describe("tester", () => {
   it("adds manual checks only for criteria that can't be automated", () => {
     const text = read("roles/tester.md");
     expect(text).toMatch(/only for criteria that can't be (tested|automated)/i);
   });
 });
 
-describe("AGENTS.md template (L-010)", () => {
+describe("AGENTS.md template", () => {
   it("states the commit rule for both approval modes", () => {
     const agents = read("templates/AGENTS.md");
     expect(agents).not.toContain("Don't commit until the human approves");
@@ -75,7 +75,7 @@ describe("AGENTS.md template (L-010)", () => {
   });
 });
 
-describe("commit-ready install (L-012)", () => {
+describe("commit-ready install", () => {
   it("init writes a .gitattributes that keeps Groundwork's files LF", async () => {
     const dir = tempProject();
     await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });

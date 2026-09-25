@@ -1,4 +1,4 @@
-// Card 7.9: on an old Node, the CLI says what to do instead of printing a stack trace.
+// On an old Node, the CLI says what to do instead of printing a stack trace.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

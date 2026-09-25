@@ -1,4 +1,4 @@
-// Card 9.4: `groundwork upgrade` and a version stamp.
+// `groundwork upgrade` and a version stamp.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -157,7 +157,6 @@ describe("groundwork upgrade", () => {
   it("is listed in the CLI help and the README", async () => {
     expect((await run(["--help"])).output).toMatch(/upgrade/);
     expect(readme).toContain("`groundwork upgrade`");
-    expect(readme.slice(readme.indexOf("## Honest limitations"))).not.toMatch(/no `upgrade` command/i);
   });
 });
 

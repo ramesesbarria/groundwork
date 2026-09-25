@@ -1,4 +1,4 @@
-// Card 9.6: the agent keeps working on small questions, but every judgment call is logged and shown.
+// The agent keeps working on small questions, but every judgment call is logged and shown.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

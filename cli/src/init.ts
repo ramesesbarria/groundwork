@@ -15,7 +15,7 @@ export const ADAPTERS = ["claude-code", "opencode", "none"] as const;
 export type Adapter = (typeof ADAPTERS)[number];
 export const isAdapter = (value: string): value is Adapter => (ADAPTERS as readonly string[]).includes(value);
 
-// Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise (L-012).
+// Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise.
 const GITATTRIBUTES = [
   "# Groundwork: same line endings on every OS",
   ".groundwork/** text eol=lf",
@@ -96,7 +96,7 @@ export function locateCore(): string {
 }
 
 // Groundwork's own source repo has core/ and the CLI side by side. Installing into it would mix
-// install output with the source (it happened once: lesson L-015).
+// install output with the source.
 export const isGroundworkSource = (dir: string) =>
   existsSync(join(dir, "core", "workflow.md")) && existsSync(join(dir, "cli", "src", "init.ts"));
 

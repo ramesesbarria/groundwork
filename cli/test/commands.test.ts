@@ -195,7 +195,7 @@ describe("gw-handoff", () => {
   });
 });
 
-// Card 8.1: the old resume command was merged into /gw, which resumes a card in progress.
+// The old resume command was merged into /gw, which resumes a card in progress.
 describe("gw (resuming a card)", () => {
   const steps = () => section(command("gw"), "Steps") + section(command("gw"), "Resuming a card");
 

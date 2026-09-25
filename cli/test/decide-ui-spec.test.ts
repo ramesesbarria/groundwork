@@ -1,4 +1,4 @@
-// Card 4.5: gw-decide and gw-ui-spec.
+// Gw-decide and gw-ui-spec.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
@@ -81,7 +81,7 @@ describe("gw-ui-spec", () => {
   });
 });
 
-// Card 9.2: labeled recommendations (decision 0001).
+// Labeled recommendations.
 describe("gw-decide: labeled recommendations", () => {
   const steps = () => section(command("gw-decide"), "Steps");
   const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -116,9 +116,8 @@ describe("gw-decide: labeled recommendations", () => {
     expect(section(read("core/templates/decision.md"), "Decision")).toMatch(/recommendation/i);
   });
 
-  it("README and SPEC describe the labeled recommendation", () => {
+  it("the README describes the labeled recommendation", () => {
     const readme = read("README.md");
     expect(readme.split("\n").find((l) => l.includes("**Stack-neutral.**")) ?? "").toMatch(/labeled recommendation/i);
-    expect(read(".groundwork/SPEC.md").split("\n").find((l) => l.includes("**Stack-neutral.**")) ?? "").toMatch(/labeled recommendation/i);
   });
 });

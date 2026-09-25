@@ -1,8 +1,0 @@
-
-> build
-> npm run build -w groundwork-ai
-
-
-> groundwork-ai@0.0.0 build
-> tsc -p tsconfig.json
-

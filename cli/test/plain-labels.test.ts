@@ -1,4 +1,4 @@
-// Card 9.3: people see plain status labels; card files keep the internal statuses.
+// People see plain status labels; card files keep the internal statuses.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

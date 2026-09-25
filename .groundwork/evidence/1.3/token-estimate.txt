@@ -1,4 +1,0 @@
-core/commands/gw-plan.md: 1817 chars ≈ 455 tokens (limit 800)
-core/commands/gw-setup.md: 1923 chars ≈ 481 tokens (limit 800)
-core/commands/gw-spec.md: 1390 chars ≈ 348 tokens (limit 800)
-core/roles/planner.md: 1598 chars ≈ 400 tokens (limit 800)

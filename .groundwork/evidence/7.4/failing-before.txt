@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/plain-setup.test.ts
-     × asks about approval in plain words 4ms
-     × uses no config words in the questions 1ms
-     × still writes the config value 3ms
-     × the existing-project path asks the same plain question 0ms
-     × defines the five words, one line each 0ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed (5)

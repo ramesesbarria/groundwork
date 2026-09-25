@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/approval-stop.test.ts
-     × gw-next's stop step names all three parts 5ms
-     × gw-next uses it for both the per-card and the per-phase stop 1ms
-     × gw-approve shows the same summary before committing 1ms
-     × the card template has an optional How to check section 3ms
-     × the reviewer writes How to check for the human 1ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed (5)

@@ -1,4 +1,4 @@
-// Card 8.1: /gw is the one command to remember. It replaces gw-resume.
+// /gw is the one command to remember. It replaces gw-resume.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -71,9 +71,8 @@ describe("gw-resume is gone", () => {
     expect(existsSync(join(repo, "core/commands/gw-resume.md"))).toBe(false);
   });
 
-  it("no file refers to it, apart from old cards, evidence and the plan that cut it", () => {
-    // `groundwork upgrade` (card 9.4) names it on purpose, to remove it from older projects.
-    const allowed = [":!.groundwork/cards", ":!.groundwork/evidence", ":!PLAN.md", ":!cli/test/gw-entry.test.ts", ":!cli/src/upgrade.ts", ":!cli/test/upgrade.test.ts"];
+  it("no file refers to it, apart from upgrade, which removes it from older projects", () => {
+    const allowed = [":!cli/test/gw-entry.test.ts", ":!cli/src/upgrade.ts", ":!cli/test/upgrade.test.ts"];
     const args = ["grep", "--untracked", "-l", "gw-resume", "--", ".", ...allowed];
     let hits = "";
     try {

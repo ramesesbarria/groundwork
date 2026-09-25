@@ -1,4 +1,4 @@
-// Card 10.4: optional model hints per role. Adapters write them into agent files; the core ignores them.
+// Optional model hints per role. Adapters write them into agent files; the core ignores them.
 // Fields checked against code.claude.com/docs/en/sub-agents and opencode.ai/docs/agents on 2026-09-25.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";

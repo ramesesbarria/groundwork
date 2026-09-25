@@ -1,4 +1,4 @@
-// Card 7.8: the card template shows the History formats that `retro` and `doctor` parse.
+// The card template shows the History formats that `retro` and `doctor` parse.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

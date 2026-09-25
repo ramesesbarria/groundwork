@@ -1,4 +1,4 @@
-// Card 4.2: guards (the GUARD level of the lessons ladder) and their Claude Code wiring.
+// Guards (the GUARD level of the lessons ladder) and their Claude Code wiring.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";

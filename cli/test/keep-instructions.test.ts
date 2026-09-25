@@ -1,4 +1,4 @@
-// Card 7.10: init never overwrites a project's CLAUDE.md or AGENTS.md; it adds Groundwork's pointer lines.
+// Init never overwrites a project's CLAUDE.md or AGENTS.md; it adds Groundwork's pointer lines.
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

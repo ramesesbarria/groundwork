@@ -1,4 +1,4 @@
-// Card 7.7: evidence files keep the command, the summary and the failures, not the full log.
+// Evidence files keep the command, the summary and the failures, not the full log.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

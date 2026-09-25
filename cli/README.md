@@ -2,7 +2,7 @@
 
 **A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
 
-> Early preview. See the full README, the design and the public build trail on [GitHub](https://github.com/ramesesbarria/groundwork).
+Groundwork gives your AI coding agent a real development process: a spec, small cards, separate tester, implementer and reviewer roles, and your approval before anything is committed. Full documentation on [GitHub](https://github.com/ramesesbarria/groundwork).
 
 ```bash
 cd your-project

@@ -1,7 +1,0 @@
-$ cd cli && npx vitest run test/keep-instructions.test.ts
-     × keeps every line of an existing CLAUDE.md and AGENTS.md, plus the pointer lines 43ms
-     × never asks to overwrite them, even when the answer would be yes 36ms
-     × adds the pointer only once when init runs again 32ms
-     × adding an adapter later keeps an existing CLAUDE.md too 39ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  4 failed | 2 passed (6)

@@ -1,4 +1,4 @@
-// Card 9.8: existing projects get a test baseline, and the rule becomes "no new failures".
+// Existing projects get a test baseline, and the rule becomes "no new failures".
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

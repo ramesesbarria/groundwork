@@ -1,8 +1,0 @@
-$ cd cli && npx vitest run test/existing-projects.test.ts
-       × imports each rule into LESSONS with origin imported 4ms
-       × asks which rules must stay always-on 0ms
-       × keeps those as RULEs in AGENTS.md's Rules section, with their lesson ID 0ms
-       × shows what goes where before writing anything 0ms
-       × never drops a rule without showing the human 1ms
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
-      Tests  5 failed | 7 passed (12)

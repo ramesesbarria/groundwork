@@ -1,4 +1,0 @@
-core/roles/implementer.md: 1033 chars ≈ 259 tokens (limit 800)
-core/roles/planner.md: 1465 chars ≈ 367 tokens (limit 800)
-core/roles/reviewer.md: 1434 chars ≈ 359 tokens (limit 800)
-core/roles/tester.md: 1084 chars ≈ 271 tokens (limit 800)

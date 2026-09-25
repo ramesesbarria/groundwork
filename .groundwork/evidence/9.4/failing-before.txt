@@ -1,3 +1,0 @@
-$ cd cli && npx vitest run test/upgrade.test.ts
-      Tests  no tests
-Error: Cannot find module '../src/version.js' imported from C:/Users/rames/Documents/projects/groundwork/cli/test/upgrade.test.ts

@@ -1,4 +1,4 @@
-// Card 5.2: `groundwork retro` and /gw-retro (SPEC §9).
+// `groundwork retro` and /gw-retro.
 import { afterEach, describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

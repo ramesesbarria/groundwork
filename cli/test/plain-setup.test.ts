@@ -1,4 +1,4 @@
-// Card 7.4: setup asks without config words, and the README has a short glossary.
+// Setup asks without config words, and the README has a short glossary.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 

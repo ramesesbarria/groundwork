@@ -1,4 +1,4 @@
-// `groundwork retro`: collect signals of repeated mistakes for /gw-retro (SPEC §9).
+// `groundwork retro`: collect signals of repeated mistakes for /gw-retro.
 // Sources: git history and Groundwork's own files. It only reports; /gw-retro proposes changes.
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -82,7 +82,7 @@ function cardSignals(groundwork: string): Signal[] {
     const text = readFileSync(join(dir, name), "utf8");
     const card = parseCard(text);
     if (!card) continue;
-    const calls: string[] = []; // judgment calls made so far on this card (card 9.6)
+    const calls: string[] = []; // judgment calls made so far on this card
     for (const line of withoutComments(sectionBody(text, "History")).split("\n")) {
       const call = line.match(/\bcall:\s*(.+)$/i);
       if (call) calls.push(call[1].split(" — ")[0].trim());
