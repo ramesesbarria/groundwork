@@ -16,20 +16,26 @@ function section(heading: string): string {
 
 describe("README", () => {
   it("opens with the tagline, the loop and the install steps", () => {
-    const firstScreen = readme.slice(0, readme.indexOf("## Your first 10 minutes"));
+    const firstScreen = readme.slice(0, readme.indexOf("### 4."));
     expect(firstScreen).toMatch(/tool-agnostic workflow for building software with AI agents/i);
     expect(firstScreen).toContain("```mermaid");
     expect(firstScreen).toContain("npx groundwork-ai init");
   });
 
+  it("gives install steps for Windows, macOS and Linux", () => {
+    const start = section("Getting started with Groundwork");
+    for (const system of ["**Windows**", "**macOS**", "**Linux**"]) expect(start).toContain(system);
+    expect(start).toMatch(/Node\.js 22 or later/);
+  });
+
   it("has the product sections", () => {
-    for (const heading of ["Install", "Your first 10 minutes", "Glossary", "Why Groundwork", "How it works", "Commands", "The lessons ledger", "Adapters", "License"]) {
+    for (const heading of ["Getting started with Groundwork", "Glossary", "Why Groundwork", "How it works", "Commands", "The lessons ledger", "Adapters", "License"]) {
       expect(section(heading), `missing "## ${heading}"`).not.toBe("");
     }
   });
 
   it("leaves out how Groundwork itself was built", () => {
-    for (const pattern of [/dogfood/i, /honest limitations/i, /early preview/i, /built with itself/i, /\.groundwork\/(cards|evidence)\//, /\bL-0\d\d\b/, /PLAN\.md/]) {
+    for (const pattern of [/dogfood/i, /honest limitations/i, /early preview/i, /built with itself/i, /\]\(\.groundwork\//, /\bL-0\d\d\b/, /PLAN\.md/]) {
       expect(readme).not.toMatch(pattern);
     }
   });

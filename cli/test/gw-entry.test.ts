@@ -96,8 +96,8 @@ describe("pointing newcomers to /gw", () => {
     const main = commands.slice(0, commands.indexOf("Power commands"));
     const power = commands.slice(commands.indexOf("Power commands"));
     expect(commands).toContain("Power commands");
-    for (const c of ["`/gw`", "`gw-setup`", "`gw-spec`", "`gw-plan`", "`gw-next`", "`gw-approve`", "`gw-quick`"]) expect(main).toContain(c);
-    for (const c of ["`gw-decide`", "`gw-ui-spec`", "`gw-handoff`", "`gw-retro`"]) {
+    for (const c of ["`/gw`", "`/gw-setup`", "`/gw-spec`", "`/gw-plan`", "`/gw-next`", "`/gw-approve`", "`/gw-quick`"]) expect(main).toContain(c);
+    for (const c of ["`/gw-decide`", "`/gw-ui-spec`", "`/gw-handoff`", "`/gw-retro`"]) {
       expect(power).toContain(c);
       expect(main).not.toContain(c);
     }

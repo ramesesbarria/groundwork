@@ -16,13 +16,18 @@ function section(md: string, heading: string): string {
 const FIRST_TIMER = new Set(["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject"]);
 
 describe("Your first 10 minutes", () => {
-  const walk = () => section(readme, "Your first 10 minutes");
+  // The last step of "Getting started", after install.
+  const walk = () => {
+    const start = section(readme, "Getting started with Groundwork");
+    return start.slice(start.indexOf("### 4. Your first 10 minutes"));
+  };
   const transcript = () => walk().match(/```[a-z]*\n([\s\S]*?)```/)?.[1] ?? "";
 
-  it("comes right after Install and before How it works", () => {
-    const at = (h: string) => readme.indexOf(`## ${h}`);
-    expect(at("Your first 10 minutes")).toBeGreaterThan(at("Install"));
-    expect(at("Your first 10 minutes")).toBeLessThan(at("How it works"));
+  it("is the last getting-started step, after install and before How it works", () => {
+    expect(walk()).toMatch(/^### 4\. Your first 10 minutes/);
+    const at = (h: string) => readme.indexOf(h);
+    expect(at("### 4. Your first 10 minutes")).toBeGreaterThan(at("### 2. Add Groundwork to your project"));
+    expect(at("### 4. Your first 10 minutes")).toBeLessThan(at("## How it works"));
   });
 
   it("is a transcript under about 30 lines", () => {
