@@ -1,6 +1,6 @@
 {
   "name": "groundwork-ai",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A tool-agnostic workflow for building software with AI agents: spec, plan, test-first build loop, human-approved ship.",
   "keywords": [
     "ai-agents",
