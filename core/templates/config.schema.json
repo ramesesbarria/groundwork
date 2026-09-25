@@ -8,6 +8,14 @@
     "commands"
   ],
   "additionalProperties": false,
+  "$defs": {
+    "modelHint": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object", "additionalProperties": { "type": "string" } }
+      ]
+    }
+  },
   "properties": {
     "$schema": {
       "type": "string"
@@ -43,6 +51,17 @@
         "type": "string"
       },
       "uniqueItems": true
+    },
+    "models": {
+      "description": "Optional model per role, used only by adapters (the core ignores it). A value is one model name for every tool, or an object with one name per adapter (keyed by the adapter's name, as in `groundwork adapter add`), since each tool names models its own way. Leave a role out to use the tool's default.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "planner": { "$ref": "#/$defs/modelHint" },
+        "tester": { "$ref": "#/$defs/modelHint" },
+        "implementer": { "$ref": "#/$defs/modelHint" },
+        "reviewer": { "$ref": "#/$defs/modelHint" }
+      }
     },
     "commitFormat": {
       "description": "The first line of each card's commit. {id} is the card ID and {title} its title, e.g. \"feat: {title} ({id})\". Quick changes use \"quick\" as the ID. Default: \"[{id}] {title}\".",

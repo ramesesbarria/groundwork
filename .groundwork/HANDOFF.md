@@ -1,9 +1,9 @@
 # Handoff
 
-- **Phase:** 8 (activation, from PLAN.md). Phase 7 is done. Cards 6.1, 10.5 and 10.6 need the human and are skipped for now.
-- **Current card:** none (10.3 done and committed)
+- **Phase:** PLAN.md (v0.3 → v0.5) is built: Phases 7, 8 and 9 are done, and 10.1–10.4. What's left needs the human.
+- **Current card:** none (10.4 done and committed)
 - **Status:** —
-- **Last step:** 10.3 reviewed and committed (the human asked for every planned change without stopping per card)
-- **Next step:** `gw-next` for card 10.4
+- **Last step:** 10.4 reviewed and committed; all work pushed
+- **Next step:** the human: card 6.1 (real-app run, including the live Windows checks of the session hook and `/gw` resuming), then 10.5 (onboard an existing repo) and 10.6 (side-by-side trial). Before the next release, bump the CLI version past 0.3.0.
 - **Failing checks:** none
-- **Notes:** L-017 (from retro) accepted by the human on 2026-09-24. Each card's planned changes are in the matching PLAN.md section. Commit cd8c76f has an AI attribution trailer, against L-001; the human chose to leave it. 7.1 is committed (512079e) but not pushed.
+- **Notes:** L-017 (from retro) accepted by the human on 2026-09-24. Commit cd8c76f has an AI attribution trailer, against L-001; the human chose to leave it. workflow.md (≈1,495 of 1,500 tokens) and gw-quick.md (≈787 of 800) are near their size caps.
