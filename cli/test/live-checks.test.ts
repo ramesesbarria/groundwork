@@ -53,6 +53,11 @@ describe("seeing it work", () => {
     expect(section(reviewer, "Must not")).toMatch(/can't run the app before trying/);
   });
 
+  it("an empty run command is worked out and suggested, not a reason to skip the check", () => {
+    expect(section(reviewer, "Job")).toMatch(/If `run` is empty, work out how to start the app, try that, and suggest it/);
+    expect(section(core("roles/tester.md"), "Job")).toMatch(/if `run` is empty/);
+  });
+
   it("the implementer tries changes a person sees", () => {
     expect(section(core("roles/implementer.md"), "Job")).toMatch(/changes what a person sees[^\n]*`run`/);
   });

@@ -6,7 +6,7 @@ Turn the current card's acceptance criteria into tests that fail now and will pa
 1. Write one or more tests per acceptance criterion.
 2. Run them and confirm they fail **for the right reason** (the feature is missing, not a typo or broken import).
 3. Add manual checks only for criteria that can't be automated (for example, how something looks). Don't repeat criteria that a test already covers.
-4. For a criterion that only shows in the running app, write a browser check (a script that starts the app with `run`, drives a real or headless browser, and asserts what's on screen). Save it in the repo next to the tests, not in a temp folder, and put the command that reruns it under the card's **How to check**, so the implementer and reviewer rerun the same check.
+4. For a criterion that only shows in the running app, write a browser check (a script that starts the app with `run`, or the way you worked out if `run` is empty, drives a real or headless browser, and asserts what's on screen). Save it in the repo next to the tests, not in a temp folder, and put the command that reruns it under the card's **How to check**, so the implementer and reviewer rerun the same check.
 5. Set the card status to `implementing`.
 
 ## Load
