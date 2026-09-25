@@ -156,7 +156,7 @@ describe("groundwork upgrade", () => {
 
   it("is listed in the CLI help and the README", async () => {
     expect((await run(["--help"])).output).toMatch(/upgrade/);
-    expect(readme).toContain("`groundwork upgrade`");
+    expect(readme).toContain("`npx groundwork-ai upgrade`");
   });
 });
 
