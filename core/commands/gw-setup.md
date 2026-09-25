@@ -9,7 +9,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 
 ## Steps
 1. Check that `.groundwork/` exists. If it doesn't, tell the human to run `npx groundwork-ai init` and stop.
-2. Ask these questions together, in plain English:
+2. Ask these questions together, in plain English (with your tool's clickable choices, if it has them):
    - What's the project called, and what does it do, in one sentence?
    - Have you already chosen a stack (language, framework, database)? If yes, which?
    - Are you new to building software, or experienced?

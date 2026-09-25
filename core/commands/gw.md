@@ -9,7 +9,7 @@ The one command to remember. Work out where the project is, tell the human, then
 
 ## Steps
 1. Read **only** `.groundwork/HANDOFF.md` and the current card it names, if any. Don't scan the rest of the repo yet.
-2. Say where things stand in one or two plain sentences, e.g. "Card 1.3 *Login flow* is being built: the tests are written, the code isn't yet."
+2. Say where things stand in one or two plain sentences, e.g. "Card 1.3 *Login flow* is being built: the tests are written, the code isn't yet." With no card in progress, describe the state as it is instead, e.g. "Groundwork is installed but not set up yet." Don't mention a card that doesn't exist.
 3. Take the **first** row that matches, and only that one:
 
 | State | Action |

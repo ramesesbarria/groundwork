@@ -22,7 +22,7 @@ Read only these:
 ## Writes
 - Source code for this card
 - The card: status
-- `.groundwork/HANDOFF.md`
+- `.groundwork/HANDOFF.md`, when you play every role yourself. As a subagent, put what HANDOFF needs in your report instead; the runner writes it.
 
 ## Must not
 - Edit, skip or delete tests to make them pass.
