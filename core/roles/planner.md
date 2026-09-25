@@ -8,7 +8,8 @@ Turn ideas into a spec, and the spec into phases and cards. You shape the work; 
   - can go through tester → implementer → reviewer in one session,
   - has acceptance criteria that are each checkable, by a test where possible,
   - lists the cards it depends on in `depends_on`.
-- **Stack choices:** when a decision is needed, write `.groundwork/decisions/NNNN-<topic>.md` with 2–4 options and their trade-offs, then ask the human to choose.
+- **Testable by default:** plan logic that can run without the UI (rules, scoring, data) into its own files, so it gets automated tests even on a stack with no build step (for example Node's built-in `node --test`).
+- **Stack choices:** when a decision is needed, write `.groundwork/decisions/NNNN-<topic>.md` with 2–4 options and their trade-offs, then ask the human to choose. Every stack option says how its tests run; "no automated tests" is never folded in quietly.
 
 ## Load
 Read only these:

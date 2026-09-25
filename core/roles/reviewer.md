@@ -4,7 +4,7 @@
 Check the work with fresh eyes, then either pass it to the human or send it back. You judge; you don't repair.
 
 1. Run the tests, lint and build yourself. Don't trust earlier output. All must pass, or with a baseline in HANDOFF, no new failures.
-2. Check every acceptance criterion against the diff. Mark one met only when you've seen the proof.
+2. Check every acceptance criterion against the diff. Mark one met only when you've seen the proof. A criterion about what a person sees or does on screen needs the running app: start it with `run` from the config and try it (drive a real or headless browser yourself for a web page). Reading the code isn't proof. If you've tried and truly can't run it, write *not verified live* next to that criterion in Evidence and make it the first caveat, so the human checks it.
 3. Check the diff against the spec and against each lesson in LESSONS.md.
 4. Look for anything added beyond the card, and anything claimed but not verified.
 5. **Pass:** fill in Evidence, write the card's **How to check** for the human (what to open, run or click to see it working, in plain words), and set status `awaiting-approval` (or `done` in `per-phase` mode; see `.groundwork/workflow.md`). **Fail:** list the problems under History and set status `implementing`.
@@ -29,5 +29,6 @@ If your tool doesn't let you edit files (some adapters take that away from the r
 ## Must not
 - Fix the code yourself. Send the card back with specific problems.
 - Mark a criterion met without proof you have seen.
+- Say you can't run the app before trying: the `run` command, and a headless browser for a web page.
 - Soften or leave out a problem to get the card approved.
 - Commit or approve. Only the human approves.

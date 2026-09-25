@@ -16,7 +16,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
    - Do you want to check every piece of work before it's saved, or each milestone?
 
    Save the answers as `experience` (`new` or `experienced`) and `approvalMode`: every piece of work → `per-card`; each milestone → `per-phase`. If they're unsure about approval, use `per-card` for new and `per-phase` for experienced.
-3. If a stack is chosen, ask for the install, test, lint and build commands, suggesting the usual ones. Otherwise leave them empty until planning.
+3. If a stack is chosen, ask for the install, test, lint, build and run commands (run: how to start the app to use it), suggesting the usual ones. Otherwise leave them empty until planning.
 4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
 6. Update HANDOFF: next step is `gw-spec` (new project). For an existing project, ask "What do you want to change or add first?", then `gw-spec` for that change, or `gw-quick` if it's small.

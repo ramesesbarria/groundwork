@@ -123,7 +123,7 @@ Groundwork lives in your project as plain files, so your agent, you and your ver
 | `.groundwork/decisions/` | Each stack choice, with the options you chose from. |
 | `.groundwork/LESSONS.md` | Mistakes worth remembering, and the rules they became. |
 | `.groundwork/JOURNAL.md` | A short recap of each finished phase. |
-| `.groundwork/config.json` | Your settings: how often you approve, how much to explain, your test commands. |
+| `.groundwork/config.json` | Your settings: how often you approve, how much to explain, your test commands and how to run the app. |
 
 Everything else in `.groundwork/` (roles, commands, guards, hooks) is the playbook your agent follows. You don't need to touch it.
 

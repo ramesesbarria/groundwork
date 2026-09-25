@@ -9,6 +9,7 @@
     "install": "",
     "test": "",
     "lint": "",
-    "build": ""
+    "build": "",
+    "run": ""
   }
 }

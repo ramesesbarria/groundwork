@@ -61,7 +61,7 @@ Commits are made by the runner only, never by a role, and never before approval 
 |---|---|---|
 | Explanations | One sentence per step | Terse |
 | Approval stop | Always "How to check it yourself" | Short summary |
-| Stack decisions | A labeled recommendation | Options only, unless asked |
+| Stack decisions | A labeled recommendation | Options only, unless asked or a check is lost |
 
 ## Checks
 The project's test, lint and build commands are in `.groundwork/config.json`.

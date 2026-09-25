@@ -60,15 +60,23 @@ function gitSignals(commits: Commit[], format: string): Signal[] {
     if (/^revert\b/i.test(commit.subject)) {
       signals.push({ kind: "revert", text: `${commit.hash} ${commit.subject}` });
     }
-    const id = cardIdOf(commit.subject);
-    if (!id) return;
-    const cardFiles = new Set(commit.files.filter((f) => !f.startsWith(".groundwork/")));
-    for (const later of commits.slice(i + 1, i + 1 + SOON)) {
-      if (cardIdOf(later.subject) === id || !/\bfix(es|ed)?\b/i.test(later.subject)) continue;
-      const shared = later.files.filter((f) => cardFiles.has(f));
-      if (shared.length > 0) {
-        signals.push({ kind: "fix-after-card", text: `${later.hash} "${later.subject}" after card ${id}, touching ${shared.join(", ")}` });
-      }
+    if (!/\bfix(es|ed)?\b/i.test(commit.subject)) return;
+    // One signal per fix, naming every recent card whose files it touches: a fix to a
+    // file that several cards shared is one mistake, not one per card.
+    const ownId = cardIdOf(commit.subject);
+    const cards: string[] = [];
+    const shared = new Set<string>();
+    for (const earlier of commits.slice(Math.max(0, i - SOON), i)) {
+      const id = cardIdOf(earlier.subject);
+      if (!id || id === ownId) continue;
+      const overlap = earlier.files.filter((f) => !f.startsWith(".groundwork/") && commit.files.includes(f));
+      if (overlap.length === 0) continue;
+      if (!cards.includes(id)) cards.push(id);
+      overlap.forEach((f) => shared.add(f));
+    }
+    if (cards.length > 0) {
+      const after = cards.length === 1 ? `card ${cards[0]}` : `cards ${cards.join(", ")}`;
+      signals.push({ kind: "fix-after-card", text: `${commit.hash} "${commit.subject}" after ${after}, touching ${[...shared].join(", ")}` });
     }
   });
   return signals;

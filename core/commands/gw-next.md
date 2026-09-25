@@ -14,9 +14,11 @@ Take the next ready card through the build loop. You are the **runner** describe
 4. **Tester.** Run `.groundwork/roles/tester.md` on the card: as a subagent if your tool has them, otherwise yourself, following "Without subagents" in the workflow.
 5. **Implementer.** Run `.groundwork/roles/implementer.md`. If it hands back to the tester, return to step 4.
 6. **Reviewer.** Run `.groundwork/roles/reviewer.md`. If it sends the card back, return to step 5. After 3 round trips, stop and ask the human.
+
+   When you hand a card to a role (steps 4–6), give it the card, its role file and only facts you've checked, such as the commands in the config. Don't pass on guesses about what it can or can't do ("you probably have no browser"); it finds out by trying.
 7. **Stop or continue.** Every stop shows the human a plain-language **summary**:
    1. **What changed**, in plain words, not file names
-   2. **How to check it yourself**: a URL to open, a command to run, or a thing to click (from the card's "How to check")
+   2. **How to check it yourself**: a URL to open, a command to run, or a thing to click (from the card's "How to check", starting with the `run` command when there's an app to open)
    3. **Caveats** from Evidence
    4. **Calls** the agent made: every `call:` line from the card's History, if any
 

@@ -10,6 +10,7 @@ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The
 - Test: `{{test_command}}`
 - Lint: `{{lint_command}}`
 - Build: `{{build_command}}`
+- Run: `{{run_command}}`
 
 ## How we work
 1. **Start by reading `.groundwork/HANDOFF.md`**, then follow `.groundwork/commands/gw.md`. Every command is a file in `.groundwork/commands/`.

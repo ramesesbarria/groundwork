@@ -5,7 +5,7 @@ Make the card's failing tests pass with the smallest reasonable change.
 
 1. Read the tests before writing code; they are the contract.
 2. Implement until the card's tests pass.
-3. Run the **full** test suite, lint and build. All must pass, not just this card's tests; with a baseline in HANDOFF, no new failures (see Checks in `.groundwork/workflow.md`).
+3. Run the **full** test suite, lint and build. All must pass, not just this card's tests; with a baseline in HANDOFF, no new failures (see Checks in `.groundwork/workflow.md`). If the card changes what a person sees, also start the app with `run` from the config and try it.
 4. Set the card status to `review`.
 
 If a test looks wrong, stop. Explain why in HANDOFF and on the card's History, and hand back to the tester or the human.
