@@ -7,7 +7,7 @@ import { parseCard } from "./cards.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
 import type { Io, RunResult } from "./index.js";
 
-const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
+const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
 
 // How many commits after a card commit still count as "soon after".
 const SOON = 5;

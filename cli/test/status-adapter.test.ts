@@ -51,7 +51,7 @@ describe("groundwork status", () => {
   it("says to run init when Groundwork isn't installed", async () => {
     const { code, output } = await run(["status"], { cwd: tempDir() });
     expect(code).toBe(1);
-    expect(output).toMatch(/groundwork init/);
+    expect(output).toMatch(/npx groundwork-ai init/);
   });
 
   it("shows HANDOFF's phase and card, counts by status, the next ready card and what's blocked", async () => {
@@ -131,6 +131,6 @@ describe("groundwork adapter add", () => {
     expect((await run(["adapter", "add", "vim"], { cwd: dir, ask: answers().ask })).code).toBe(1);
     const bare = await run(["adapter", "add", "claude-code"], { cwd: tempDir(), ask: answers().ask });
     expect(bare.code).toBe(1);
-    expect(bare.output).toMatch(/groundwork init/);
+    expect(bare.output).toMatch(/npx groundwork-ai init/);
   });
 });

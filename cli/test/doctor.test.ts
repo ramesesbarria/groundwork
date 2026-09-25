@@ -35,7 +35,7 @@ describe("groundwork doctor", () => {
   it("says to run init when Groundwork isn't installed", async () => {
     const { code, output } = await doctor(tempDir());
     expect(code).toBe(1);
-    expect(output).toMatch(/groundwork init/);
+    expect(output).toMatch(/npx groundwork-ai init/);
   });
 
   it("passes on a fresh install and reports the always-loaded token estimate", async () => {
@@ -69,7 +69,7 @@ describe("groundwork doctor", () => {
     const { code, output } = await doctor(dir);
     expect(code).toBe(1);
     expect(output).toContain(".claude/skills/gw-next/SKILL.md");
-    expect(output).toMatch(/groundwork adapter add claude-code/);
+    expect(output).toMatch(/npx groundwork-ai adapter add claude-code/);
   });
 
   it("flags a Claude Code settings file that lost the guard hook", async () => {

@@ -43,7 +43,7 @@ function usage(): string {
   return [
     `groundwork ${VERSION}: a tool-agnostic workflow for building software with AI agents`,
     "",
-    "Usage: groundwork <command>",
+    "Usage: npx groundwork-ai <command>",
     "",
     "Commands:",
     ...lines,

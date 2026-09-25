@@ -8,7 +8,7 @@ import { ADAPTERS, isAdapter, NEXT_STEPS, planAdapter } from "./init.js";
 import type { Io, RunResult } from "./index.js";
 
 const TOOLS = ADAPTERS.filter((a) => a !== "none");
-const USAGE = `Usage: groundwork adapter add <${TOOLS.join("|")}>`;
+const USAGE = `Usage: npx groundwork-ai adapter add <${TOOLS.join("|")}>`;
 
 export async function adapter(args: string[], io: Io): Promise<RunResult> {
   const [action, tool] = args;
@@ -19,7 +19,7 @@ export async function adapter(args: string[], io: Io): Promise<RunResult> {
 
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) {
-    return { code: 1, output: "Groundwork isn't installed here. Run `groundwork init` in your project's folder first." };
+    return { code: 1, output: "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first." };
   }
 
   // Build from the project's own .groundwork/, so custom or older commands and roles are respected.
