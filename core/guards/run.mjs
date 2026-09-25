@@ -31,17 +31,18 @@ export function toAction(tool, input) {
     }
   }
   if (tool === "opencode") {
-    // OpenCode tool names and arguments: opencode.ai/docs/tools. OpenCode 2.x renamed bash to shell.
-    // patch isn't covered yet.
+    // OpenCode tool names and arguments: opencode.ai/docs/tools. OpenCode 2.x renamed bash to shell
+    // and filePath to path. patch isn't covered yet.
     const args = input.args ?? {};
+    const path = String(args.path ?? args.filePath ?? "");
     switch (input.tool) {
       case "shell":
       case "bash":
         return { kind: "command", command: String(args.command ?? "") };
       case "write":
-        return { kind: "write", path: String(args.filePath ?? ""), content: String(args.content ?? "") };
+        return { kind: "write", path, content: String(args.content ?? "") };
       case "edit":
-        return { kind: "write", path: String(args.filePath ?? ""), content: String(args.newString ?? "") };
+        return { kind: "write", path, content: String(args.newString ?? "") };
       default:
         return null;
     }

@@ -121,7 +121,18 @@ describe("OpenCode guard plugin", () => {
       path: "a.ts",
       content: "y",
     });
-    expect(toAction("opencode", { tool: "read", args: { filePath: "a.ts" } })).toBeNull();
+    // OpenCode 2.x names the file argument path.
+    expect(toAction("opencode", { tool: "write", args: { path: "a.ts", content: "x" } })).toEqual({
+      kind: "write",
+      path: "a.ts",
+      content: "x",
+    });
+    expect(toAction("opencode", { tool: "edit", args: { path: "a.ts", oldString: "x", newString: "y" } })).toEqual({
+      kind: "write",
+      path: "a.ts",
+      content: "y",
+    });
+    expect(toAction("opencode", { tool: "read", args: { path: "a.ts" } })).toBeNull();
   });
 });
 
