@@ -84,6 +84,10 @@
         },
         "build": {
           "type": "string"
+        },
+        "run": {
+          "description": "How to start the app so a person or an agent can use it, e.g. a local server. Roles use it to check a card in the running app; stop summaries use it for How to check.",
+          "type": "string"
         }
       }
     }

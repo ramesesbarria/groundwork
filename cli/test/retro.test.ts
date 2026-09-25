@@ -76,6 +76,21 @@ describe("groundwork retro", () => {
     expect(output).toMatch(/Fix login redirect[^\n]*1\.1[^\n]*src\/login\.ts|1\.1[^\n]*Fix login redirect/);
   });
 
+  it("counts a fix to a file several cards shared once, naming every card", async () => {
+    const dir = tempDir();
+    git(dir, "init", "-q");
+    mkdirSync(join(dir, ".groundwork/cards"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/config.json"), "{}");
+    commit(dir, "[1.1] Words", { "script.js": "v1" });
+    commit(dir, "[1.2] Typing", { "script.js": "v2" });
+    commit(dir, "[1.3] Timer", { "script.js": "v3", "style.css": "v1" });
+    commit(dir, "Fix wasted first keystroke", { "script.js": "v4" });
+    const { output } = await run(["retro"], { cwd: dir, ask: noQuestions });
+    expect(output).toMatch(/Fixes soon after a card \(1\)/);
+    expect(output).toMatch(/Fix wasted first keystroke[^\n]*cards 1\.1, 1\.2, 1\.3[^\n]*script\.js/);
+    expect(output).not.toMatch(/style\.css/);
+  });
+
   it("finds rejections and review send-backs, with their reasons and cards", async () => {
     const { output } = await run(["retro"], { cwd: fixture(), ask: noQuestions });
     expect(output).toMatch(/Rejections \(1\)/);
