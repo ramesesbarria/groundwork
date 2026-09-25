@@ -7,6 +7,7 @@ import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import { ADAPTERS, locateCore, planAdapter, planInit, stampVersion, TEMPLATE_TARGETS, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
+import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
@@ -40,8 +41,9 @@ function plan(cwd: string, core: CoreFiles): PlannedFile[] {
   const files = planInit(core, "none").filter(
     (f) => f.path.startsWith(".groundwork/") && !PROJECT_FILES.has(f.path) && !f.path.endsWith("/.gitkeep"),
   );
+  const models = readProjectConfig(join(cwd, ".groundwork")).models;
   for (const tool of installedAdapters(cwd, core)) {
-    for (const file of planAdapter(core, tool)) {
+    for (const file of planAdapter(core, tool, models)) {
       const claude = join(cwd, "CLAUDE.md");
       if (file.path === "CLAUDE.md" && existsSync(claude) && isGeneratedClaudeMd(readFileSync(claude, "utf8"))) {
         files.push({ path: file.path, content: file.content }); // Groundwork's own: refresh it

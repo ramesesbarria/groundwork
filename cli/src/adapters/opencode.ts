@@ -1,7 +1,7 @@
 // OpenCode adapter. Formats from opencode.ai/docs (commands, agents, plugins, tools, rules), checked 2026-09-24.
 // OpenCode reads AGENTS.md itself, so no extra rules file is needed.
 import type { CoreFiles } from "../core.js";
-import { commandsOf, rolesOf, sortedByPath, yamlValue } from "./shared.js";
+import { commandsOf, modelFor, rolesOf, sortedByPath, yamlValue, type ModelHints } from "./shared.js";
 
 // OpenCode permission keys each role's subagent is denied. "edit" covers edit, write and apply_patch.
 const ROLE_DENY: Record<string, string[]> = {
@@ -37,7 +37,7 @@ export const GroundworkGuards = async ({ directory }) => {
 `;
 
 // Pure: core files in, OpenCode files out. Generated files point to the core instead of copying it.
-export function generateOpenCode(core: CoreFiles): Record<string, string> {
+export function generateOpenCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {
   const out: Record<string, string> = {};
 
   for (const { name, description } of commandsOf(core)) {
@@ -55,10 +55,12 @@ export function generateOpenCode(core: CoreFiles): Record<string, string> {
   for (const { name: role, description } of rolesOf(core)) {
     const deny = ROLE_DENY[role];
     if (!deny) throw new Error(`No OpenCode permissions defined for role "${role}"`);
+    const model = modelFor(models, role, "opencode");
     out[`.opencode/agents/gw-${role}.md`] = [
       "---",
       `description: ${yamlValue(description)}`,
       "mode: subagent",
+      ...(model ? [`model: ${yamlValue(model)}`] : []),
       ...(deny.length > 0 ? ["permission:", ...deny.map((key) => `  ${key}: deny`)] : []),
       "---",
       `You are the Groundwork ${role}. Read \`.groundwork/roles/${role}.md\` now and follow it exactly.`,

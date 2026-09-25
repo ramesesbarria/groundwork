@@ -8,6 +8,8 @@ import { estimateTokens } from "./tokens.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
 import { parseCard } from "./cards.js";
 import { compareVersions, VERSION } from "./version.js";
+import { readProjectConfig } from "./config.js";
+import { rolesOf } from "./adapters/shared.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `groundwork init` in your project's folder first.";
@@ -48,10 +50,21 @@ function checkGuards(groundwork: string, guards: string[], f: Findings) {
   }
 }
 
+// Model hints for roles that don't exist are ignored by the adapters, which is probably a typo.
+function checkModels(groundwork: string, f: Findings) {
+  const roles = new Set(rolesOf(readCore(groundwork)).map((r) => r.name));
+  for (const name of Object.keys(readProjectConfig(groundwork).models ?? {})) {
+    if (!roles.has(name)) {
+      f.suggestions.push(`"models" in config.json has "${name}", which isn't a role (${[...roles].join(", ")}). It's ignored.`);
+    }
+  }
+}
+
 function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Findings) {
   const core = readCore(groundwork);
+  const models = readProjectConfig(groundwork).models;
   for (const tool of ["claude-code", "opencode"] as const) {
-    const planned = planAdapter(core, tool).filter((file) => file.mode !== "append-lines");
+    const planned = planAdapter(core, tool, models).filter((file) => file.mode !== "append-lines");
     const installed = planned.some((file) => file.mode === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
     if (!installed) continue;
 
@@ -138,6 +151,7 @@ export function doctor(io: Pick<Io, "cwd">): RunResult {
   const budgetLine = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
   checkGuards(groundwork, config.guards ?? [], f);
   checkAdapters(io.cwd, groundwork, behind, f);
+  checkModels(groundwork, f);
   const cardText = checkCards(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 

@@ -38,5 +38,14 @@ export const rolesOf = (core: CoreFiles): CoreRole[] =>
     return { name, description: `Groundwork ${name}. ${firstSentence}` };
   });
 
+// Optional model per role, from `models` in .groundwork/config.json: one name for every tool, or one per
+// adapter ({ "claude-code": "opus", "opencode": "anthropic/…" }), since each tool names models its own way.
+export type ModelHints = Record<string, string | Record<string, string>>;
+
+export function modelFor(hints: ModelHints | undefined, role: string, tool: string): string | undefined {
+  const hint = hints?.[role];
+  return typeof hint === "string" ? hint : hint?.[tool];
+}
+
 export const sortedByPath = (files: Record<string, string>) =>
   Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));

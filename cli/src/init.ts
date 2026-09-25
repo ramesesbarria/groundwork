@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { readCore, type CoreFiles } from "./core.js";
 import { generateClaudeCode } from "./adapters/claude-code.js";
 import { generateOpenCode } from "./adapters/opencode.js";
+import type { ModelHints } from "./adapters/shared.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
 import { VERSION } from "./version.js";
@@ -51,16 +52,16 @@ const withPointer = (file: PlannedFile): PlannedFile =>
 const EMPTY_DIRS = [".groundwork/cards", ".groundwork/decisions", ".groundwork/evidence"];
 
 // Pure: the files one adapter adds. `core` only needs commands/ and roles/, so it can be the
-// package's core or a project's own .groundwork/.
-export function planAdapter(core: CoreFiles, adapter: Adapter): PlannedFile[] {
+// package's core or a project's own .groundwork/. `models` comes from the project's config.
+export function planAdapter(core: CoreFiles, adapter: Adapter, models: ModelHints = {}): PlannedFile[] {
   const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
   if (adapter === "claude-code") {
-    for (const [path, content] of Object.entries(generateClaudeCode(core))) {
+    for (const [path, content] of Object.entries(generateClaudeCode(core, models))) {
       files.push(withPointer({ path, content, mode: path === ".claude/settings.json" ? "merge-settings" : "replace" }));
     }
   }
   if (adapter === "opencode") {
-    for (const [path, content] of Object.entries(generateOpenCode(core))) files.push({ path, content });
+    for (const [path, content] of Object.entries(generateOpenCode(core, models))) files.push({ path, content });
   }
   return files;
 }

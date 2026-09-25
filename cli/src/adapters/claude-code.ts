@@ -1,5 +1,5 @@
 import type { CoreFiles } from "../core.js";
-import { commandsOf, rolesOf, sortedByPath, yamlValue } from "./shared.js";
+import { commandsOf, modelFor, rolesOf, sortedByPath, yamlValue, type ModelHints } from "./shared.js";
 
 // Claude Code tools each role's subagent may use. The reviewer judges and doesn't repair,
 // so it can't edit files; the planner writes docs and never runs code.
@@ -16,7 +16,7 @@ const HUMAN_ONLY = new Set(["gw-approve", "gw-reject"]);
 
 // Pure: core files in, Claude Code files out. Generated files point to the core instead of
 // copying it, so .groundwork/ stays the single source of truth.
-export function generateClaudeCode(core: CoreFiles): Record<string, string> {
+export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {
   const out: Record<string, string> = {};
 
   const commands = commandsOf(core);
@@ -36,11 +36,13 @@ export function generateClaudeCode(core: CoreFiles): Record<string, string> {
   for (const { name: role, description } of roles) {
     const tools = ROLE_TOOLS[role];
     if (!tools) throw new Error(`No Claude Code tools defined for role "${role}"`);
+    const model = modelFor(models, role, "claude-code");
     out[`.claude/agents/gw-${role}.md`] = [
       "---",
       `name: gw-${role}`,
       `description: ${yamlValue(description)}`,
       `tools: ${tools.join(", ")}`,
+      ...(model ? [`model: ${yamlValue(model)}`] : []),
       "---",
       `You are the Groundwork ${role}. Read \`.groundwork/roles/${role}.md\` now and follow it exactly.`,
       "Load only the files it lists under Load.",
