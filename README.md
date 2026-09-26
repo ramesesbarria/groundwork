@@ -112,6 +112,8 @@ yours alone; the rest of the commands are in the
 - New to this? [Your first 10 minutes](https://ramesesbarria.github.io/groundwork/getting-started/first-10-minutes)
   walks through a full session.
 - Updating an older install: `npx groundwork-ai upgrade` keeps your spec, cards and lessons.
+- Want to see a whole build? [The calculator walkthrough](https://ramesesbarria.github.io/groundwork/guides/walkthrough)
+  has the recorded sessions and the numbers.
 
 [**Full documentation →**](https://ramesesbarria.github.io/groundwork/)
 

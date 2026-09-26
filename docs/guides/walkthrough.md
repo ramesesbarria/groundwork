@@ -75,9 +75,41 @@ and asks about the next card.
 
 *"Approved and committed [1.1] Number entry (3e7c4c8). Card 1.2 is next."*
 
-## Coming next
+## 5. The finished calculator
 
-- Card 1.2 and the rest of the build
-- The finished calculator
+Six cards across two phases — arithmetic, clear and error states, 10-digit formatting, a responsive
+keypad. The app is live, and the whole project (spec, cards, decisions, evidence) is public.
 
-Recorded as the build moves along.
+![The calculator at desktop width](https://ramesesbarria.github.io/groundwork/calculator-desktop.png)
+
+![The calculator at phone width](https://ramesesbarria.github.io/groundwork/calculator-phone.png)
+
+[Try it live →](https://ramesesbarria.github.io/calculator-groundwork/) · [Source and cards →](https://github.com/ramesesbarria/calculator-groundwork)
+
+## By the numbers
+
+Model: **DeepSeek V4.1 Flash** (`deepseek/deepseek-flash#max`) in OpenCode. Costs and tokens come
+from OpenCode's session accounting, added up across both build chats; commits and tests come from
+the app's git history and test suite.
+
+| | |
+|---|---|
+| Total cost | **$0.63** |
+| Fresh tokens | 665,241 in · 170,526 out · 567,239 reasoning — **1.40M** |
+| Cache reads | 30,030,208 |
+| Sessions | 20 — 2 main chats, 18 subagent chats |
+| Work | 6 cards in 2 phases · 14 commits · 58 tests passing |
+
+Per card (subagents only): 1.1 $0.059 · 1.2 $0.045 · 1.3 $0.039 · 1.4 $0.060 · 2.1 $0.128 · 2.2 $0.084.
+
+## The receipts
+
+Every session is in the repo: the
+[transcripts index](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/README.md),
+both [main](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/phase-1/main/transcript.md)
+[chats](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/phase-2/main/transcript.md),
+and the tester, implementer and reviewer chats for every card. The
+[cost reports](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/phase-1/tokenandcost.md)
+are exports from OpenCode's session API — snapshots taken at export time.
+
+*A finished app for 1.40M fresh tokens and $0.63.*
