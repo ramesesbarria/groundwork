@@ -52,12 +52,12 @@ describe("docs site", () => {
     }
   });
 
-  it("references only GIFs that exist in docs/public", () => {
+  it("references only media that exists in docs/public", () => {
     const text = markdownPages(docs).map((page) => readFileSync(join(docs, page), "utf8")).join("\n");
-    const gifs = [...text.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/(demo-[\w-]+\.gif)/g)].map((match) => match[1]);
-    expect(gifs.length).toBeGreaterThan(0);
-    for (const gif of new Set(gifs)) {
-      expect(existsSync(join(docs, "public", gif)), `docs/ public is missing ${gif}`).toBe(true);
+    const files = [...text.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/((?:demo-[\w-]+\.gif|clips\/[\w-]+\.mp4))/g)].map((match) => match[1]);
+    expect(files.length).toBeGreaterThan(1);
+    for (const file of new Set(files)) {
+      expect(existsSync(join(docs, "public", file)), `docs/public is missing ${file}`).toBe(true);
     }
   });
 });

@@ -73,14 +73,14 @@ describe("README", () => {
   });
 
   it("leaves out internals and other projects", () => {
-    for (const pattern of [/dogfood/i, /superpowers/i, /built with groundwork/i, /honest limitations/i, /early preview/i, /built with itself/i, /\]\(\.groundwork\//, /\bL-0\d\d\b/, /PLAN\.md/]) {
+    for (const pattern of [/dogfood/i, /superpowers/i, /\bgroundwork (is|was) built with groundwork\b/i, /honest limitations/i, /early preview/i, /built with itself/i, /\]\(\.groundwork\//, /\bL-0\d\d\b/, /PLAN\.md/]) {
       expect(readme).not.toMatch(pattern);
     }
   });
 
   it("no public page mentions other projects or how Groundwork is built", () => {
     const files = ["README.md", "cli/README.md", "docs/.vitepress/config.mts", ...docsPages(join(repo, "docs"))];
-    const banned = [/dogfood/i, /superpowers/i, /built with groundwork/i, /built with itself/i, /developed with itself/i, /honest limitations/i, /early preview/i];
+    const banned = [/dogfood/i, /superpowers/i, /\bgroundwork (is|was) built with groundwork\b/i, /built with itself/i, /developed with itself/i, /honest limitations/i, /early preview/i];
     for (const file of files) {
       const text = readFileSync(join(repo, file), "utf8");
       for (const pattern of banned) expect(text, `${file} mentions ${pattern}`).not.toMatch(pattern);

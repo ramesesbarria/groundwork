@@ -49,6 +49,7 @@ export default withMermaid({
           text: "Guides",
           items: [
             { text: "Existing projects", link: "/guides/existing-projects" },
+            { text: "Walkthrough: a calculator app", link: "/guides/walkthrough" },
             { text: "UI and animation", link: "/guides/ui-and-animation" },
             { text: "Stack decisions", link: "/guides/decisions" },
           ],
