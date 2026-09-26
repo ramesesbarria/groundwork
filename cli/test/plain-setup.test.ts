@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const setup = read("core/commands/gw-setup.md");
-const readme = read("README.md");
 
 function section(md: string, heading: string): string {
   const start = md.indexOf(`## ${heading}`);
@@ -45,9 +44,9 @@ describe("setup without jargon", () => {
   });
 });
 
-describe("README glossary", () => {
+describe("docs glossary", () => {
   it("defines the five words, one line each", () => {
-    const glossary = section(readme, "Glossary");
+    const glossary = read("docs/glossary.md");
     for (const word of ["Card", "Phase", "Evidence", "Handoff", "Lesson"]) {
       expect(glossary).toMatch(new RegExp(`^- \\*\\*${word}\\*\\*`, "m"));
     }

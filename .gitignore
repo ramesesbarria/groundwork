@@ -6,3 +6,6 @@ cli/core/
 # Local development notes for Groundwork itself (not part of the product)
 .groundwork/
 PLAN.md
+
+# Docs site build output
+docs/.vitepress/cache/

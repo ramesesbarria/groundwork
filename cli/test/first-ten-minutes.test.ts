@@ -1,59 +1,40 @@
-// The README shows what using Groundwork feels like before explaining how it works.
+// The first-session walkthrough lives in the docs site now; the README keeps a compact version.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
-const readme = read("README.md");
+const page = read("docs/getting-started/first-10-minutes.md");
 const cliReadme = read("cli/README.md");
 
-function section(md: string, heading: string): string {
-  const start = md.indexOf(`## ${heading}`);
-  if (start === -1) return "";
-  const next = md.indexOf("\n## ", start + 1);
-  return md.slice(start, next === -1 ? undefined : next);
-}
+// The transcript blocks from the page, in order.
+const transcript = [...page.matchAll(/```[a-z]*\n([\s\S]*?)```/g)].map((m) => m[1]).join("\n");
 
 const FIRST_TIMER = new Set(["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject"]);
 
 describe("Your first 10 minutes", () => {
-  // The last step of "Getting started", after install.
-  const walk = () => {
-    const start = section(readme, "Getting started with Groundwork");
-    return start.slice(start.indexOf("### 4. Your first 10 minutes"));
-  };
-  const transcript = () => walk().match(/```[a-z]*\n([\s\S]*?)```/)?.[1] ?? "";
-
-  it("is the last getting-started step, after install and before How it works", () => {
-    expect(walk()).toMatch(/^### 4\. Your first 10 minutes/);
-    const at = (h: string) => readme.indexOf(h);
-    expect(at("### 4. Your first 10 minutes")).toBeGreaterThan(at("### 2. Add Groundwork to your project"));
-    expect(at("### 4. Your first 10 minutes")).toBeLessThan(at("## How it works"));
-  });
-
-  it("is a transcript under about 30 lines", () => {
-    const lines = transcript().split("\n").filter(Boolean);
-    expect(lines.length).toBeGreaterThan(10);
-    expect(lines.length).toBeLessThanOrEqual(30);
+  it("walks through the five steps in order", () => {
+    for (const step of [1, 2, 3, 4, 5]) expect(page).toContain(`## ${step}. `);
   });
 
   it("goes idea → questions → plan → card → approval stop → commit", () => {
-    const text = transcript();
-    const order = [/idea|want/i, /\?/, /plan/i, /card/i, /what changed/i, /commit/i].map((re) => text.search(re));
+    const order = [/idea|want/i, /\?/, /plan/i, /card/i, /what changed/i, /commit/i].map((re) => transcript.search(re));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
 
   it("shows the approval stop in the 3-part format", () => {
-    for (const part of [/what changed/i, /how to check/i, /caveats/i]) expect(transcript()).toMatch(part);
+    for (const part of [/what changed/i, /how to check/i, /caveats/i]) expect(transcript).toMatch(part);
   });
 
   it("uses only the commands a first-timer needs", () => {
-    const used = [...transcript().matchAll(/\/(gw[\w-]*)/g)].map((m) => m[1]);
+    const used = [...transcript.matchAll(/\/(gw[\w-]*)/g)].map((m) => m[1]);
     expect(used.length).toBeGreaterThan(0);
     for (const name of used) expect(FIRST_TIMER.has(name), `${name} isn't a first-timer command`).toBe(true);
   });
 
-  it("cli/README.md has a two-line version", () => {
+  it("cli/README.md keeps a short version with the install and a docs link", () => {
+    expect(cliReadme).toContain("npx groundwork-ai init");
+    expect(cliReadme).toContain("ramesesbarria.github.io/groundwork");
     expect(cliReadme).toMatch(/first 10 minutes/i);
   });
 });

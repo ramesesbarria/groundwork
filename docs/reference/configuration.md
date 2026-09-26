@@ -1,0 +1,80 @@
+# Configuration
+
+One file holds your settings: `.groundwork/config.json`. It's read fresh at each step, so changes
+take effect immediately. Editors validate it against `config.schema.json` next to it.
+
+```json
+{
+  "$schema": "./config.schema.json",
+  "approvalMode": "per-card",
+  "experience": "new",
+  "tokenBudget": 2000,
+  "guards": [],
+  "commitFormat": "[{id}] {title}",
+  "commands": {
+    "install": "npm install",
+    "test": "npm test",
+    "lint": "npm run lint",
+    "build": "npm run build",
+    "run": "npm run dev"
+  }
+}
+```
+
+## Fields
+
+| Field | Type | Default | What it does |
+|---|---|---|---|
+| `version` | string | written by `init`/`upgrade` | The Groundwork version that last wrote your files; `doctor` compares it with the CLI |
+| `approvalMode` | `per-card` \| `per-phase` | `per-card` | Who approves when: every card, or each phase |
+| `experience` | `new` \| `experienced` | `new` | How much the agent explains: one sentence per step and "How to check" every time, or terse summaries |
+| `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for the always-loaded files (`AGENTS.md` + `CLAUDE.md`), checked by `doctor` |
+| `guards` | string[] | `[]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/` |
+| `models` | object | — | Optional model per role, used only by adapters — see below |
+| `commitFormat` | string | `[{id}] {title}` | First line of each card's commit; quick changes use `quick` as the ID |
+| `commands` | object | empty | The shell commands agents run: `install`, `test`, `lint`, `build`, `run` |
+
+## commands
+
+The `commands` block is how the agent knows your project:
+
+- **`test`, `lint`, `build`** are the checks a card must pass.
+- **`run`** is how to start the app so a person *or* the agent can use it. Roles use it to check a
+  card in the running app, and approval stops show it as "how to check it yourself."
+- **`install`** is used when setting up.
+
+Leave a command empty if the project doesn't have it. `gw-plan` fills these in when a stack is
+chosen, and checks they actually run on your machine before writing them down.
+
+## Models per role
+
+Optional, and only used by adapters — the markdown core ignores it. A value is either one model
+name for every tool, or an object keyed by adapter name, since each tool names models its own way:
+
+```json
+{
+  "models": {
+    "tester": "<a cheaper model>",
+    "implementer": "<a mid-tier model>",
+    "reviewer": {
+      "claude-code": "<the strongest model>",
+      "opencode": "<provider>/<model>"
+    }
+  }
+}
+```
+
+The idea: cheaper models for the mechanical roles, the strongest for the reviewer's judgment. Leave
+a role out to use the tool's default. `doctor` warns about role names that don't exist.
+
+## Changing settings mid-project
+
+Just edit the file — nothing else needs updating:
+
+- Switching `approvalMode` changes the next stop, not past ones.
+- Switching `experience` changes tone immediately (from the next step, since it's read each time).
+- Raising `tokenBudget` after a deliberate decision is fine; `doctor` shows the real number.
+
+## Next
+
+[Project files →](/reference/project-files)

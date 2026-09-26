@@ -11,7 +11,8 @@ import { estimateTokens } from "../src/tokens.js";
 import { orientation } from "../../core/hooks/session-start.mjs";
 
 const hookScript = fileURLToPath(new URL("../../core/hooks/session-start.mjs", import.meta.url));
-const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
+const claudeDocs = readFileSync(new URL("../../docs/adapters/claude-code.md", import.meta.url), "utf8");
+const opencodeDocs = readFileSync(new URL("../../docs/adapters/opencode.md", import.meta.url), "utf8");
 const agentsTemplate = readFileSync(new URL("../../core/templates/AGENTS.md", import.meta.url), "utf8");
 
 const temps: string[] = [];
@@ -133,9 +134,9 @@ describe("wiring", () => {
     expect(agentsTemplate).toMatch(/Start by reading `\.groundwork\/HANDOFF\.md`/);
   });
 
-  it("the README lists the session-start hook under Claude Code only", () => {
-    const rows = readme.split("\n").filter((l) => l.startsWith("| **"));
-    expect(rows.find((l) => l.startsWith("| **Claude Code**"))).toMatch(/session-start hook/);
-    expect(rows.find((l) => l.startsWith("| **OpenCode**"))).not.toMatch(/session-start/);
+  it("the Claude Code docs describe the session-start hook, and OpenCode's don't claim one", () => {
+    expect(claudeDocs).toMatch(/session-start/i);
+    expect(claudeDocs).toMatch(/startup\|clear\|compact/);
+    expect(opencodeDocs).not.toMatch(/session-start/i);
   });
 });

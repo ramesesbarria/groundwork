@@ -1,0 +1,17 @@
+# Glossary
+
+The words Groundwork uses, each in one line.
+
+- **Card** — one small piece of work, with a checklist of what "done" means.
+- **Phase** — a group of cards that together leave something working, like a milestone.
+- **Evidence** — the proof a card is done, such as test output or screenshots, saved next to the card.
+- **Handoff** — the note in `HANDOFF.md` that says where things stand, so any session can pick up the work.
+- **Lesson** — a mistake written down so it doesn't happen twice, kept in `LESSONS.md`.
+- **Decision** — a stack or design choice, recorded with the options you chose from, in `.groundwork/decisions/`.
+- **Guard** — a small script that blocks an action outright, once a rule keeps being broken.
+- **Runner** — the main session that hands a card to each role; you start it with `/gw`.
+- **Quick path** — one-pass mode for small, low-risk changes; no card, but the checks still run.
+- **Baseline** — the recorded state of the checks on an existing project, so only *new* failures block work.
+
+If a word in the docs uses a config value, like `per-card` or `per-phase`, it's explained where it
+appears. [Approval modes →](/getting-started/approval-modes)

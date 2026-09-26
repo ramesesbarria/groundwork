@@ -4,6 +4,9 @@
   "workspaces": ["cli"],
   "scripts": {
     "build": "npm run build -w groundwork-ai",
-    "test": "npm test -w groundwork-ai"
+    "test": "npm test -w groundwork-ai",
+    "docs:dev": "npm --prefix docs run dev",
+    "docs:build": "npm --prefix docs run build",
+    "docs:preview": "npm --prefix docs run preview"
   }
 }

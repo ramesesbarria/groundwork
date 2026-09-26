@@ -1,0 +1,66 @@
+# Handoff and resuming
+
+**`.groundwork/HANDOFF.md` is where the project stands right now.** It's overwritten at each update,
+not appended to — the history lives on the cards and in git.
+
+It exists so that a session can die at any moment — a closed laptop, a usage limit, a crash — and
+the next session continues instead of starting over. The rule: a fresh session, in any tool and
+with any model, must be able to continue from `HANDOFF.md` plus the current card alone.
+
+## What it holds
+
+```md
+# Handoff
+
+- **Phase:** 1 — Voting (per-card)
+- **Current card:** 1.2 Voting
+- **Status:** implementing
+- **Last step:** tests for criteria 1–3 written and failing
+- **Next step:** make `npm test voting` pass; then run the full suite
+- **Failing checks:** none
+- **Notes:** results must stay hidden until close (decision 0002)
+```
+
+| Field | What belongs there |
+|---|---|
+| Phase | The phase, and the approval mode if it isn't the default |
+| Current card | ID and title, or none |
+| Status | Which role is working on it |
+| Last step | The last thing *finished*, specifically |
+| Next step | The very next action, specific enough to start without reading anything else |
+| Failing checks | Each failing test, lint or build command, or none |
+| Notes | Anything the next session would otherwise have to rediscover |
+
+It stays under about 300 words and links to files instead of copying them.
+
+## When it's updated
+
+- At **every role change** in the loop (tester → implementer → reviewer).
+- After every **approval or rejection**.
+- **Before any stop** — including when the agent is running out of context or usage.
+
+## Resuming
+
+`/gw` reads the handoff first and takes the next step from it. If a card is mid-flight, it:
+
+1. Trusts the **card's status** if the card and handoff disagree, and says so.
+2. Checks the last step really finished — rerunning the tests it claims to have run.
+3. Continues with the role that matches the status, loading only that role's files.
+4. Doesn't redo steps the card's History shows as finished.
+
+You can also see the same summary from a terminal:
+
+```bash
+npx groundwork-ai status
+```
+
+## Switching tools mid-card
+
+Because the state is files, not chat memory, switching from one tool or model to another mid-card
+is just… continuing. The next session reads the same `HANDOFF.md`, the same card, and the same
+role file. In Claude Code, a session-start hook prints a few lines from the handoff automatically at
+the start of every session, `/clear` or compaction.
+
+## Next
+
+[Right-sizing →](/concepts/right-sizing)

@@ -116,8 +116,9 @@ describe("gw-decide: labeled recommendations", () => {
     expect(section(read("core/templates/decision.md"), "Decision")).toMatch(/recommendation/i);
   });
 
-  it("the README describes the labeled recommendation", () => {
-    const readme = read("README.md");
-    expect(readme.split("\n").find((l) => l.includes("**Stack-neutral.**")) ?? "").toMatch(/labeled recommendation/i);
+  it("the docs describe the labeled recommendation", () => {
+    const docs = read("docs/guides/decisions.md");
+    expect(docs).toMatch(/labeled/i);
+    expect(docs).toMatch(/accepted the recommendation/);
   });
 });

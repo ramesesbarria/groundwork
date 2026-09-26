@@ -1,0 +1,84 @@
+# FAQ
+
+## Is this another framework I have to learn?
+
+No. The one command to remember is `/gw`; the rest are for when you want them. Groundwork is a set
+of markdown files and a small CLI — there's no runtime, no server, and no lock-in. If you stop
+using it, delete the files.
+
+## Do I need to know how to code?
+
+No, but you should be able to read a plain-language summary and click through a feature to check
+it. That's what approval stops are designed around: what changed, how to check it yourself, the
+caveats. Setup asks whether you're new to building software and explains more or less to match.
+
+## Which AI tools work?
+
+Any tool that can read files, plus first-class adapters for **Claude Code** and **OpenCode**. The
+markdown core is the product; adapters just add shortcuts. See
+[Other tools](/adapters/other-tools).
+
+## Do I have to use the CLI?
+
+`npx groundwork-ai init` installs it, and `init`/`upgrade`/`status`/`doctor`/`retro` are convenient
+— but the workflow itself is markdown and works without Node. The CLI only does deterministic work:
+copying, counting, parsing.
+
+## Does it work on an existing project?
+
+Yes — that's a first-class path. Setup maps the codebase, records what's already in use as decisions,
+imports your existing rules without weakening them, saves a test baseline so old failures don't
+block new work, and then asks what you want to change.
+[Existing projects →](/guides/existing-projects)
+
+## Will it commit or push without asking?
+
+Commits happen only after your approval of a card (or of a phase, in `per-phase` mode). Pushing
+never happens unless you ask. `per-phase` is the most autonomous mode there is, and it still stops
+at the end of every phase.
+
+## Can I change my approval mode later?
+
+Yes — edit `approvalMode` in `.groundwork/config.json`. It's read fresh at each stop, so the next
+step uses the new mode. The same is true of `experience`.
+
+## What if the agent gets something wrong?
+
+Reject it. `/gw-reject` needs a reason in your words; the reason goes on the card and sends it back
+to the implementer. If the same mistake happens twice, `/gw-retro` proposes turning it into a rule —
+and if that still gets broken, into a guard that blocks it. Nothing changes without your OK.
+
+## How much does it cost in context?
+
+About **400 tokens always loaded** for a fresh install (`AGENTS.md`; `doctor` shows the real
+number). Everything else — roles, commands, workflow — loads only when a step needs it, and cards
+carry their own proof so nothing is re-explained. You can also
+[assign cheaper models](/reference/configuration#models-per-role) to the mechanical roles.
+
+## Do I need git?
+
+The loop commits cards, so a git repo is expected. Without one, the markdown workflow still works
+and `groundwork retro` simply reports fewer signals (it reads git history for reverts and
+fix-soon-after-card patterns).
+
+## Can a team use it?
+
+Groundwork v1 is built for one developer with one approval gate. Team flows — pull requests per
+card or phase, multi-user approval — aren't part of it yet. The files are in your repo, so a team
+can read them, but that's not the same as being built for teams.
+
+## Where do I see what was decided, and why?
+
+`.groundwork/decisions/` — one record per choice, with the options you chose from, your decision in
+your words, and the consequences. `/gw` and approvals point back to them.
+
+## How do I uninstall it?
+
+Delete `.groundwork/`, the adapter folders (`.claude/` or `.opencode/`), and Groundwork's pointer
+lines in `AGENTS.md` / `CLAUDE.md`. Nothing else is installed and nothing runs in the background.
+
+## Is it ready for real projects?
+
+It's in active use and developed with itself. The honest state of features, limitations and what's
+next lives in the [GitHub repo](https://github.com/ramesesbarria/groundwork). If something's
+unverified, the docs and the product try to say so rather than round up.
