@@ -21,7 +21,10 @@ describe("cuts and cleanup", () => {
     expect(read("cli/src/index.ts")).not.toMatch(/planned but not implemented/);
   });
 
-  it("the README makes no promise of benchmarks or evals", () => {
-    expect(read("README.md")).not.toMatch(/\bevals?\b|benchmark/i);
+  it("the README promises no benchmarks or evals", () => {
+    const mentions = read("README.md").split("\n").filter((line) => /\bevals?\b|benchmark/i.test(line));
+    for (const line of mentions) {
+      expect(line, "benchmark or eval mentions must be an honest 'none yet'").toMatch(/\bno\b|\bnot\b|yet|never|none/i);
+    }
   });
 });

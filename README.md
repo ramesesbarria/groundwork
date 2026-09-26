@@ -3,18 +3,64 @@
 [![CI](https://github.com/ramesesbarria/groundwork/actions/workflows/ci.yml/badge.svg)](https://github.com/ramesesbarria/groundwork/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/groundwork-ai)](https://www.npmjs.com/package/groundwork-ai)
 [![Docs](https://img.shields.io/badge/docs-read-4f46e5)](https://ramesesbarria.github.io/groundwork/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**A tool-agnostic workflow for building software with AI agents: spec → plan → test-first build loop → human-approved ship.**
+**Spec, proof, approval — a workflow your AI agent can't skip.**
 
-Groundwork gives your AI coding agent a real development process. It interviews you for a spec,
-builds the work one small card at a time through separate tester, implementer and reviewer roles,
-and stops for your approval before anything is committed. When the agent repeats a mistake, the
-mistake becomes a rule — and if the rule keeps being broken, a guard that blocks it.
+Your agent writes the code. Groundwork is the project layer: it owns the spec, the cards, the
+evidence and the approvals — and any session can pick up where the last one stopped.
 
-Groundwork is the **project layer**: it owns the spec, the cards, your approvals, where the project
-stands between sessions, and the lessons learned. Task handling stays with your tool and any skill packs.
+<!-- Demo GIF: 25–35 seconds of one real card, from questions and plan to approval and commit.
+     Insert the recording here once the first real-app run exists; the docs walkthrough stands in until then. -->
 
-[**Full documentation →**](https://ramesesbarria.github.io/groundwork/)
+```bash
+cd your-project
+npx groundwork-ai init      # Claude Code, OpenCode, or plain markdown
+```
+
+Then open your AI tool and type `/gw`.
+
+## The problem
+
+AI agents are fast and confident. Real projects need more: the chat fills up and the plan goes with
+it; "done" is whatever the model says; the rules you agreed yesterday are gone by tomorrow. A week
+in, nobody can say what shipped, what's next, or why a choice was made.
+
+## Before and after
+
+```text
+Without Groundwork
+You:   Add voting to my book club app.
+Agent: Done! A clean voting page with results and a summary.
+You:   ... (Is it tested? What was I doing yesterday? Which parts moved?)
+```
+
+```text
+With Groundwork
+You:   /gw I want a page where my book club votes on next month's book
+Agent: A few specific questions: who can vote, one vote or rank several, hide results?
+You:   Anyone with the link. One vote. Hide results until it closes.
+Agent: Spec saved. Card 1.1: tests written, code passing, review passed.
+       What changed: the home page lists this month's books.
+       How to check: run npm run dev. Caveats: no styling yet.
+You:   /gw-approve
+Agent: Committed [1.1] Book list page. Next up: card 1.2 Voting.
+```
+
+The difference isn't answer quality. It's that the project survives the session.
+
+## How it works
+
+Three steps, one card at a time. Your main session — the runner — hands each card to three roles
+and stops at your door:
+
+1. **Spec and plan.** Specific questions, the smallest useful version first, then phases and small
+   cards. Stack choices are yours: options with trade-offs, and your pick is recorded.
+2. **Build one card.** The tester writes failing tests, the implementer makes them pass, and a
+   reviewer with fresh context re-runs everything and checks every criterion. The proof is saved
+   next to the card, with steps you can follow to check it yourself.
+3. **You approve.** Nothing is committed until you do — every card, or once a phase. When the same
+   mistake happens twice, it becomes a rule; if it still happens, a guard blocks it.
 
 ```mermaid
 flowchart TD
@@ -42,72 +88,78 @@ flowchart TD
   style card fill:none,stroke:#94a3b8,stroke-dasharray:4 3
 ```
 
-## Why Groundwork
+Read the deep version: [the build loop](https://ramesesbarria.github.io/groundwork/concepts/the-build-loop) ·
+[evidence and approval](https://ramesesbarria.github.io/groundwork/concepts/evidence-and-approval).
 
-- **Evidence, not claims.** Test-first cards, a fresh reviewer, and approval that refuses without proof.
-- **You approve.** Every card by default, or each phase — with how to check it yourself.
-- **Mistakes become guards.** Note → rule → guard; a lesson climbs only when it repeats.
-- **Right-sized.** A typo takes the quick path; a feature gets a spec, a plan and cards.
-- **Any tool, any model.** Markdown core, adapters for Claude Code and OpenCode, model per role.
-- **Always resumable.** Close the laptop mid-card; the next session picks up from the handoff file.
+## Quickstart
 
-## Install
+Needs Node.js 22+ and a git repo (for the commit loop), nothing else —
+[installation](https://ramesesbarria.github.io/groundwork/getting-started/installation).
 
 ```bash
 cd your-project
 npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
 
-Open your AI tool in the project and type `/gw`. It sets things up the first time; after that it
-says where things stand and runs the next step. Nothing is committed until you approve. Update an
-existing install with `npx groundwork-ai upgrade` — your spec, cards and lessons are kept.
+Open your AI tool in the project and type `/gw`. The first run asks a few setup questions; after
+that it always says where things stand and runs the next step. `/gw-approve` and `/gw-reject` are
+yours alone; the rest of the commands are in the
+[command reference](https://ramesesbarria.github.io/groundwork/reference/agent-commands).
 
-## Your first session
+- Existing repo? [Existing projects](https://ramesesbarria.github.io/groundwork/guides/existing-projects) —
+  nothing is overwritten, and old test failures don't block new work.
+- New to this? [Your first 10 minutes](https://ramesesbarria.github.io/groundwork/getting-started/first-10-minutes)
+  walks through a full session.
+- Updating an older install: `npx groundwork-ai upgrade` keeps your spec, cards and lessons.
 
-```text
-You:   /gw I want a page where my book club votes on next month's book
-Agent: A few specific questions first: who can vote, one vote or rank several, hide results?
-You:   Anyone with the link. One vote. Hide results until it closes.
-Agent: Spec saved, starting with the smallest useful version. Does it look right? — Yes.
-       Plan: 2 phases, 5 cards. OK to write them? — Go.
-You:   /gw
-Agent: Card 1.1 Book list page: tests written, code passing, review passed.
-       What changed: the home page lists this month's books.
-       How to check: run npm run dev and open http://localhost:3000
-       Caveats: no styling yet. Approve or reject?
-You:   /gw-approve
-Agent: Committed [1.1] Book list page. Next up: card 1.2 Voting.
-```
+[**Full documentation →**](https://ramesesbarria.github.io/groundwork/)
 
-## Commands
+## Who it's for
 
-| When you want to… | Type |
-|---|---|
-| Start, or carry on where you left off | `/gw` |
-| Set up Groundwork in this project | `/gw-setup` |
-| Turn an idea into a spec | `/gw-spec` |
-| Turn the spec into a plan of cards | `/gw-plan` |
-| Build the next card | `/gw-next` |
-| Accept or send back finished work — only you can | `/gw-approve` · `/gw-reject` |
-| Make a small change, fix a bug, or try something out | `/gw-quick` |
+- **Experienced developers.** A real review step before anything merges: a reviewer that can't
+  edit, evidence in the repo, guards for rules you're done repeating. Approve once per phase when
+  you're in flow.
+- **Early career, no senior around.** Work one small card at a time, with a reviewer that catches
+  what you'd miss and proof you can point to. Every approval shows how to verify the work — the
+  habit builds itself.
+- **Vibecoders.** Answer a few questions, approve in plain English, ship. Small changes take the
+  quick path with no ceremony; features get structure automatically.
 
-Power commands: `/gw-decide`, `/gw-ui-spec`, `/gw-handoff`, `/gw-retro`. In the terminal: `status`, `doctor`, `retro`, `upgrade` (all `npx groundwork-ai`).
+## Honest comparison
 
-## Documentation
+| | Groundwork | A raw agent session |
+|---|---|---|
+| Project state | Files: spec, cards, handoff, decisions | The chat scrollback |
+| "Done" | Evidence attached; approval refuses without it | Whatever the model summarizes |
+| Review | A separate reviewer with fresh context, can't edit code | The context that wrote it |
+| Learning | Repeated mistakes become rules, then guards | Starts fresh every session |
+| Resume | Any session, tool or model continues from the handoff | Re-explain everything |
 
-- [Installation](https://ramesesbarria.github.io/groundwork/getting-started/installation) · [Your first 10 minutes](https://ramesesbarria.github.io/groundwork/getting-started/first-10-minutes) · [Approval modes](https://ramesesbarria.github.io/groundwork/getting-started/approval-modes)
-- [Cards and phases](https://ramesesbarria.github.io/groundwork/concepts/cards-and-phases) · [The build loop](https://ramesesbarria.github.io/groundwork/concepts/the-build-loop) · [Evidence](https://ramesesbarria.github.io/groundwork/concepts/evidence-and-approval) · [Handoff](https://ramesesbarria.github.io/groundwork/concepts/handoff) · [Lessons ledger](https://ramesesbarria.github.io/groundwork/concepts/lessons-ledger)
-- [Existing projects](https://ramesesbarria.github.io/groundwork/guides/existing-projects) · [UI and animation](https://ramesesbarria.github.io/groundwork/guides/ui-and-animation) · [Stack decisions](https://ramesesbarria.github.io/groundwork/guides/decisions)
-- [Agent commands](https://ramesesbarria.github.io/groundwork/reference/agent-commands) · [CLI](https://ramesesbarria.github.io/groundwork/reference/cli) · [Configuration](https://ramesesbarria.github.io/groundwork/reference/configuration) · [Project files](https://ramesesbarria.github.io/groundwork/reference/project-files) · [Glossary](https://ramesesbarria.github.io/groundwork/glossary) · [Why Groundwork](https://ramesesbarria.github.io/groundwork/why) · [FAQ](https://ramesesbarria.github.io/groundwork/faq)
+**When not to use it:** one-off scripts and throwaway experiments (just ask your agent); fully
+autonomous overnight runs (Groundwork stops for you, by design); teams and pull-request flows (not
+built yet). There are no benchmarks or evals — the claim is the mechanism, not a score.
 
-## Adapters
+## FAQ
 
-**Claude Code** gets skills for every command, subagents with limited tools, a guard hook and a
-session-start hook that says where things stand. **OpenCode** gets commands, subagents with
-permissions and a guard plugin. **Any other tool** reads the plain markdown in `.groundwork/`.
+**Does it work with an existing project?** Yes. Setup maps the codebase, records what's in use, and
+saves a test baseline so old failures don't block new work.
+[Existing projects →](https://ramesesbarria.github.io/groundwork/guides/existing-projects)
 
-Groundwork is the project layer, so it's designed to work alongside task-level skill packs such as
-[superpowers](https://github.com/obra/superpowers).
+**Do I have to use the CLI?** Only to install. The workflow is markdown; `status`, `doctor`, `retro`
+and `upgrade` are conveniences.
+
+**Can I use any AI tool?** Any tool that reads files. Claude Code and OpenCode get native commands,
+subagents and guards; others follow the markdown.
+
+**What does it cost in context?** About 400 tokens always loaded; everything else loads when a step
+needs it, and `npx groundwork-ai doctor` measures it.
+
+[More questions →](https://ramesesbarria.github.io/groundwork/faq)
+
+## Contributing
+
+Issues and pull requests are welcome. The docs live in `docs/`; run `npm test` before opening a PR
+(CI runs Windows and Linux on Node 22 and 24).
 
 ## License
 

@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Groundwork
-  text: A real development process for AI agents
-  tagline: Spec → plan → test-first build loop → human-approved ship. Your project lives in files, not in the chat.
+  text: Spec, proof, approval
+  tagline: A workflow your AI agent can't skip — the project layer for any AI coding tool. Your project lives in files, not in the chat.
   actions:
     - theme: brand
       text: Get started

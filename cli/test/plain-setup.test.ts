@@ -1,4 +1,4 @@
-// Setup asks without config words, and the README has a short glossary.
+// Setup asks without config words, and the docs have a short glossary.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
