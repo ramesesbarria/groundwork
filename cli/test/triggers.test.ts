@@ -11,7 +11,7 @@ import { parseFrontmatter } from "../src/frontmatter.js";
 const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 const claude = generateClaudeCode(core);
 const opencode = generateOpenCode(core);
-const claudeDocs = readFileSync(new URL("../../docs/adapters/claude-code.md", import.meta.url), "utf8");
+const claudeDocs = readFileSync(new URL("../../docs/content/docs/adapters/claude-code.mdx", import.meta.url), "utf8");
 
 const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 const HUMAN_ONLY = ["gw-approve", "gw-reject"];

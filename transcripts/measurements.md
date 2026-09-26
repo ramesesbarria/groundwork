@@ -67,12 +67,16 @@ A fresh session in the finished calculator, asked where the project stands and w
 | | With Groundwork (`/gw`) | Groundwork removed |
 |---|---:|---:|
 | Model calls | 9 | 27 |
+| Tool calls (file reads, searches, commands) | 11 | 50 |
+| Tokens processed, all calls (input + cache read) | 140,682 | 956,066 |
 | Context at the last call | 24,881 | 61,785 |
 | Fresh output + reasoning | 8,358 | 22,712 |
 | Cost | $0.0086 | $0.0229 |
 | Right answer | Yes: phase 2 built, waiting for the phase review | Rebuilt it from git history; also read folders outside the project |
 
-One run each.
+One run each. With Groundwork the prompt was `/gw`; without, it was "Where does this project stand
+and what should we do next? Look around and tell me." Sessions `ses_f22ba1989…` and `ses_f22b97006…`,
+summed per call from OpenCode's session store.
 
 ## Every session
 

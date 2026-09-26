@@ -42,7 +42,7 @@ jobs:
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: docs/.vitepress/dist
+          path: docs/out
 
   deploy:
     if: github.ref == 'refs/heads/main'

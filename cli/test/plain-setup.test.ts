@@ -46,7 +46,7 @@ describe("setup without jargon", () => {
 
 describe("docs glossary", () => {
   it("defines the five words, one line each", () => {
-    const glossary = read("docs/glossary.md");
+    const glossary = read("docs/content/docs/glossary.mdx");
     for (const word of ["Card", "Phase", "Evidence", "Handoff", "Lesson"]) {
       expect(glossary).toMatch(new RegExp(`^- \\*\\*${word}\\*\\*`, "m"));
     }

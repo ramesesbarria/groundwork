@@ -1,0 +1,56 @@
+---
+title: "Right-sizing"
+---
+
+**Process cost should match the size of the change.** A typo shouldn't need a plan; a feature
+shouldn't be built without one. Groundwork has three paths, and the agent says out loud which one
+it's taking — you can override it any time.
+
+| Path | Use for | What you get |
+|---|---|---|
+| **Try** | "Can X do Y?", "Is this even possible?" | An answer, and no code merged |
+| **Quick** | Typo, copy tweak, config value, small fix, bug | One pass, no card, checks still run |
+| **Card** | A feature, or anything user-visible | Spec/plan as needed, tester → implementer → reviewer, evidence, your approval |
+
+## Try
+
+For a question, not a change:
+
+1. The agent states the question in one line.
+2. It tries it on a throwaway branch (`try/<topic>`) or in a scratch folder — never on the main
+   branch.
+3. It reports the answer, the evidence behind it, and a recommendation.
+4. The code is never merged. If you want to keep it, that's a new card.
+
+## Quick
+
+One pass, no card file, no separate roles — but the project's rules and checks still apply:
+
+1. The agent says in one line what it will change and why it fits the light path.
+2. If behavior changes, a test is added or updated first and seen to fail.
+3. The change is made.
+4. Test, lint and build must pass (or, with a baseline, no new failures).
+5. You see a short summary of the diff, and it commits as `[quick] <what changed>`, with your OK
+   in `per-card` mode.
+
+**Bugs go cause-first.** The bug is reproduced with a failing test, the cause is stated in one
+sentence with the evidence that shows it, and only then is it fixed. If there's still no cause after
+two honest attempts, the agent stops and suggests a card — no guessing.
+
+**When it stops being quick:** if the change grows past ~3 files, or starts to affect behavior
+people notice, the data model, a public API, security or money, the agent stops and suggests a card
+instead of quietly expanding.
+
+## Card
+
+Everything else: features, behavior changes, anything touching security or money, UI animation and
+layout work (those get a [UI spec](/docs/guides/ui-and-animation) first), and anything needing a stack
+decision. Cards go through the [build loop](/docs/concepts/the-build-loop) with evidence and your
+approval.
+
+## The rule underneath
+
+The agent says which path it's taking in one line before it starts — *"this looks small, so I'll use
+the quick path"* — and the paths have hard exits: try never merges, quick stops when it grows, card
+is the default for anything that changes what users see. Nothing gets skipped silently; nothing gets
+ceremonial treatment it doesn't need.

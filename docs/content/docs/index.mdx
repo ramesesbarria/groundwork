@@ -1,0 +1,43 @@
+---
+title: "Overview"
+description: "Groundwork is the project layer for building software with AI agents: it owns the spec, the cards, the evidence and the approvals, so any session can pick up where the last one stopped."
+---
+
+Your AI tool writes the code. Groundwork gives it a process it can't skip, and keeps the state of
+the project in files instead of the chat:
+
+<BuildLoopDiagram />
+
+```bash
+cd your-project
+npx groundwork-ai init      # Claude Code, OpenCode, or plain markdown
+```
+
+Then open your AI tool in the project and type `/gw`.
+
+## Where to start
+
+<Cards>
+  <Card title="Installation" href="/docs/getting-started/installation" description="Node 22+, one command, three tool choices." />
+  <Card title="Your first 10 minutes" href="/docs/getting-started/first-10-minutes" description="From /gw to your first approved card." />
+  <Card title="Walkthrough" href="/docs/guides/walkthrough" description="A real calculator build, clip by clip." />
+  <Card title="What it costs" href="/docs/concepts/cost" description="Where the tokens go, and when it pays off." />
+</Cards>
+
+## New in 0.7.0
+
+Most of these came straight out of measuring the [calculator run](/proof):
+
+- **A lighter runner.** Short hand-offs, no rerunning checks between roles, and a fresh session
+  suggested when each phase closes. [The build loop →](/docs/concepts/the-build-loop#the-runner-stays-light)
+- **Roles record their own calls.** The tester and implementer write their own History and `call:`
+  lines, and every role treats anything missing from its files as not agreed.
+  [Cards and phases →](/docs/concepts/cards-and-phases)
+- **`doctor` shows what a session costs before it starts**, flags cards long enough to be worth
+  trimming, and finds evidence files saved as UTF-16. [CLI →](/docs/reference/cli#doctor)
+- **OpenCode sessions know where things stand.** On OpenCode 2.x, every new session gets the
+  handoff lines at start, like Claude Code. [OpenCode →](/docs/adapters/opencode#session-start)
+- **`no-ai-trailers` is on by default** for new projects. [Configuration →](/docs/reference/configuration)
+- **Measure your own run** with `checks/session-costs.mjs`. [What it costs →](/docs/concepts/cost#measure-your-own-run)
+- **`gw-ui-spec` names what tests look for** (an id, label or role), so testers don't guess
+  selectors. [UI and animation →](/docs/guides/ui-and-animation)

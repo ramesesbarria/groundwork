@@ -1,0 +1,191 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/*
+ * Design tokens, shared with the portfolio (MyPortfolio/src/app/globals.css): Geist, a
+ * monochrome base, one blue accent and a dot grid. The only other colors are the card statuses,
+ * so every color on the site means something in Groundwork.
+ * Fumadocs toggles dark mode with a .dark class on <html>, so dark values live there.
+ */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --muted: #6b7280;
+  --surface: #f8f8f8;
+  --border: #e5e5e5;
+  --accent: #2563eb;
+  --grid-dot: rgba(0, 0, 0, 0.14);
+  --grid-size: 40px;
+
+  /* Card statuses, in lifecycle order. Used for pills and diagram accents,
+     never for large fills. */
+  --status-todo: #6b7280;
+  --status-testing: #d97706;
+  --status-implementing: #2563eb;
+  --status-review: #7c3aed;
+  --status-waiting: #ea580c;
+  --status-done: #16a34a;
+  --status-rejected: #dc2626;
+
+  /* Chart series (validated for both modes, dataviz validate_palette): Groundwork's fresh
+     sessions, and one long chat. Charts only. */
+  --series-gw: #2563eb;
+  --series-chat: #eb6834;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #9ca3af;
+  --surface: #141414;
+  --border: #262626;
+  --accent: #3b82f6;
+  --grid-dot: rgba(255, 255, 255, 0.16);
+
+  --status-todo: #9ca3af;
+  --status-testing: #f59e0b;
+  --status-implementing: #3b82f6;
+  --status-review: #a78bfa;
+  --status-waiting: #f97316;
+  --status-done: #22c55e;
+  --status-rejected: #ef4444;
+
+  --series-gw: #3b82f6;
+  --series-chat: #d95926;
+}
+
+/* Fumadocs' own color slots, pointed at the tokens above. */
+:root,
+.dark {
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-muted: var(--surface);
+  --color-fd-muted-foreground: var(--muted);
+  --color-fd-popover: var(--background);
+  --color-fd-popover-foreground: var(--foreground);
+  --color-fd-card: var(--surface);
+  --color-fd-card-foreground: var(--foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--foreground);
+  --color-fd-primary-foreground: var(--background);
+  --color-fd-secondary: var(--surface);
+  --color-fd-secondary-foreground: var(--foreground);
+  --color-fd-accent: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --color-fd-accent-foreground: var(--foreground);
+  --color-fd-ring: var(--accent);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-status-todo: var(--status-todo);
+  --color-status-testing: var(--status-testing);
+  --color-status-implementing: var(--status-implementing);
+  --color-status-review: var(--status-review);
+  --color-status-waiting: var(--status-waiting);
+  --color-status-done: var(--status-done);
+  --color-status-rejected: var(--status-rejected);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* One content column for the marketing pages. */
+@utility page-container {
+  @apply mx-auto w-full max-w-5xl px-6;
+}
+
+/* Type scale: mono for display, headings and labels; body copy stays sans. Mono glyphs are wide,
+   so big sizes pull tracking in and small caps labels open it up. */
+@utility type-display {
+  font-family: var(--font-mono);
+  font-size: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+@utility type-heading {
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+@utility type-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+html {
+  scrollbar-gutter: stable;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/* The dot grid sits behind the marketing pages only; docs pages stay plain for reading. */
+.dot-grid {
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: -1px -1px;
+}
+
+/* Docs headings in mono, like the portfolio. */
+#nd-page h1,
+#nd-page h2,
+#nd-page h3 {
+  font-family: var(--font-mono);
+  letter-spacing: -0.03em;
+}
+
+/* Press feedback for pill buttons. */
+.press {
+  transition-property: color, background-color, border-color, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.press:active:not(:disabled) {
+  scale: 0.97;
+}
+
+/* Block cursor for drawn terminals, blinking hard on/off. Steady with reduced motion. */
+.terminal-cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  background: var(--foreground);
+  animation: terminal-blink 1s step-end infinite;
+}
+
+@keyframes terminal-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-cursor {
+    animation: none;
+  }
+}

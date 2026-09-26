@@ -17,18 +17,22 @@ function section(heading: string): string {
   return readme.slice(start, next === -1 ? undefined : next);
 }
 
-// Every markdown page under docs/, for the public-surface checks below.
+// Every public page of the docs site (docs pages and the site's own pages), for the checks below.
 function docsPages(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const path = join(dir, entry);
-    if (statSync(path).isDirectory()) {
-      if (entry.startsWith(".") || entry === "public" || entry === "node_modules") continue;
-      docsPages(path, found);
-    } else if (entry.endsWith(".md")) {
-      found.push(relative(repo, path).replaceAll("\\", "/"));
-    }
+    if (statSync(path).isDirectory()) docsPages(path, found);
+    else if (entry.endsWith(".mdx") || entry === "page.tsx") found.push(relative(repo, path).replaceAll("\\", "/"));
   }
   return found;
+}
+
+// A site URL path ("docs/concepts/cost", "walkthrough", "") to the file that renders it.
+function pageFile(path: string): string {
+  if (path === "") return "docs/app/(home)/page.tsx";
+  if (path === "docs") return "docs/content/docs/index.mdx";
+  if (path.startsWith("docs/")) return `docs/content/docs/${path.slice(5)}.mdx`;
+  return `docs/app/(home)/${path}/page.tsx`;
 }
 
 describe("README", () => {
@@ -65,8 +69,7 @@ describe("README", () => {
       .filter((path) => !/\.[a-z0-9]+$/i.test(path)); // assets (GIFs) are checked separately
     expect(links.length).toBeGreaterThan(5);
     for (const path of links) {
-      const clean = path.replace(/\/$/, "");
-      const file = clean === "" ? "docs/index.md" : join("docs", `${clean}.md`);
+      const file = pageFile(path.replace(/\/$/, ""));
       expect(existsSync(join(repo, file)), `missing docs page for "${path}"`).toBe(true);
     }
     expect(readme).toContain(DOCS);
@@ -79,7 +82,7 @@ describe("README", () => {
   });
 
   it("no public page mentions other projects or how Groundwork is built", () => {
-    const files = ["README.md", "cli/README.md", "docs/.vitepress/config.mts", ...docsPages(join(repo, "docs"))];
+    const files = ["README.md", "cli/README.md", ...docsPages(join(repo, "docs", "content")), ...docsPages(join(repo, "docs", "app"))];
     const banned = [/dogfood/i, /superpowers/i, /\bgroundwork (is|was) built with groundwork\b/i, /built with itself/i, /developed with itself/i, /honest limitations/i, /early preview/i];
     for (const file of files) {
       const text = readFileSync(join(repo, file), "utf8");
