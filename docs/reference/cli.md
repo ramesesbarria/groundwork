@@ -91,6 +91,12 @@ in CI). It reports:
 
 - **Always loaded** — the real token estimate for `AGENTS.md` and `CLAUDE.md` against `tokenBudget`,
   with advice when it's over.
+- **Startup cost** — what a `/gw` session and each role read before touching any code: the
+  always-loaded files, the command or role file, HANDOFF and the current card. Your AI tool's own
+  instructions come on top (about 8.5k tokens in OpenCode with DeepSeek, measured).
+- **Card size** — cards over ≈1,500 tokens, since every role rereads the card.
+- **Evidence encoding** — evidence saved as UTF-16 (what Windows PowerShell 5.1's `>` writes),
+  which git and GitHub treat as binary.
 - **Missing wires** — a guard listed in config without a file, a hook missing from settings, an
   adapter file that drifted from what Groundwork would generate, `CLAUDE.md` that doesn't load
   `AGENTS.md`.

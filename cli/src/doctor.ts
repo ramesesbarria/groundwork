@@ -1,12 +1,12 @@
 // `groundwork doctor`: harness health and the context budget.
 // Problems make it exit 1 (so it can run in CI); suggestions don't.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { readCore } from "./core.js";
 import { planAdapter } from "./init.js";
 import { estimateTokens } from "./tokens.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
-import { parseCard } from "./cards.js";
+import { nextReady, parseCard } from "./cards.js";
 import { compareVersions, VERSION } from "./version.js";
 import { readProjectConfig } from "./config.js";
 import { rolesOf } from "./adapters/shared.js";
@@ -27,7 +27,7 @@ interface Findings {
   suggestions: string[];
 }
 
-function checkBudget(cwd: string, budget: number, f: Findings): string {
+function checkBudget(cwd: string, budget: number, f: Findings): { line: string; tokens: number } {
   const files = ["AGENTS.md", "CLAUDE.md"].filter((name) => existsSync(join(cwd, name)));
   const tokens = files.reduce((sum, name) => sum + estimateTokens(read(join(cwd, name))), 0);
   if (tokens > budget) {
@@ -36,7 +36,84 @@ function checkBudget(cwd: string, budget: number, f: Findings): string {
         "back to .groundwork/LESSONS.md as notes, or raise tokenBudget in .groundwork/config.json.",
     );
   }
-  return `Always loaded: ≈${tokens} tokens (budget ${budget})`;
+  return { line: `Always loaded:  ≈${tokens} tokens (budget ${budget})`, tokens };
+}
+
+// Every role rereads the card, so a long History or Evidence section is paid for again and again.
+const CARD_TOKEN_LIMIT = 1500;
+
+interface CardFile {
+  name: string;
+  text: string;
+  card: ReturnType<typeof parseCard>;
+}
+
+function readCardFiles(groundwork: string): CardFile[] {
+  const dir = join(groundwork, "cards");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((n) => n.endsWith(".md"))
+    .map((name) => {
+      const text = read(join(dir, name));
+      return { name, text, card: parseCard(text) };
+    });
+}
+
+// What a session pays before it does anything: Groundwork's files, not the AI tool's own prompt.
+function startupCost(groundwork: string, always: number, cards: CardFile[]): string[] {
+  const tokensOf = (path: string) => estimateTokens(read(join(groundwork, path)));
+  const parsed = cards.flatMap((c) => (c.card ? [c.card] : []));
+  const current =
+    parsed.find((c) => ["testing", "implementing", "review", "awaiting-approval"].includes(c.status)) ?? nextReady(parsed);
+  const cardFile = current && cards.find((c) => c.card?.id === current.id);
+  const card = cardFile ? estimateTokens(cardFile.text) : 0;
+  const handoff = tokensOf("HANDOFF.md");
+
+  const loads = ["AGENTS.md", "gw.md", "HANDOFF.md", ...(current ? [`card ${current.id}`] : [])].join(", ");
+  const roles = ["tester", "implementer", "reviewer"]
+    .map((role) => `${role} ≈${always + tokensOf(`roles/${role}.md`) + handoff + card}`)
+    .join(" · ");
+  return [
+    `Session start:  ≈${always + tokensOf("commands/gw.md") + handoff + card} tokens for gw (${loads})`,
+    `Role start:     ${roles}, before reading code and tests`,
+    "Your AI tool's own instructions come on top of these.",
+  ];
+}
+
+// A text file starting with a UTF-16 byte order mark: Windows PowerShell 5.1's `>` writes these.
+function isUtf16(path: string): boolean {
+  const head = readFileSync(path).subarray(0, 2);
+  return head.length === 2 && ((head[0] === 0xff && head[1] === 0xfe) || (head[0] === 0xfe && head[1] === 0xff));
+}
+
+function textFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return textFiles(path);
+    return /\.(txt|md|log|json)$/i.test(entry.name) ? [path] : [];
+  });
+}
+
+function checkEvidenceEncoding(groundwork: string, f: Findings) {
+  const utf16 = textFiles(join(groundwork, "evidence")).filter(isUtf16);
+  if (utf16.length === 0) return;
+  const first = relative(groundwork, utf16[0]).replace(/\\/g, "/");
+  f.suggestions.push(
+    `${utf16.length} evidence file${utf16.length === 1 ? " is" : "s are"} UTF-16 (e.g. .groundwork/${first}), so git and GitHub treat ` +
+      "them as binary. Save them as UTF-8; in Windows PowerShell 5.1 use `Out-File -Encoding utf8` instead of `>`.",
+  );
+}
+
+function checkCardSize(cards: CardFile[], f: Findings) {
+  for (const { name, text, card } of cards) {
+    const tokens = estimateTokens(text);
+    if (tokens <= CARD_TOKEN_LIMIT) continue;
+    f.suggestions.push(
+      `Card ${card?.id ?? name} is ≈${tokens} tokens, and every role rereads it. Keep its History and Evidence lines ` +
+        "to a sentence or two; the details belong in the evidence files.",
+    );
+  }
 }
 
 // A `.groundwork/** text` rule with no binary override makes git rewrite evidence images.
@@ -105,14 +182,10 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
   }
 }
 
-function checkCards(groundwork: string, f: Findings): string {
-  const dir = join(groundwork, "cards");
-  if (!existsSync(dir)) return "";
+function checkCards(cards: CardFile[], f: Findings): string {
   let allText = "";
-  for (const name of readdirSync(dir).filter((n) => n.endsWith(".md"))) {
-    const text = read(join(dir, name));
+  for (const { text, card } of cards) {
     allText += text;
-    const card = parseCard(text);
     if (!card) continue;
     const decisions = withoutComments(sectionBody(text, "History"))
       .split("\n")
@@ -161,15 +234,18 @@ export function doctor(io: Pick<Io, "cwd">): RunResult {
   const f: Findings = { problems: [], suggestions: [] };
 
   const behind = configText !== "" && checkVersion(config.version, f);
-  const budgetLine = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
+  const budget = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
+  const cards = readCardFiles(groundwork);
   checkGitAttributes(io.cwd, f);
   checkGuards(groundwork, config.guards ?? [], f);
   checkAdapters(io.cwd, groundwork, behind, f);
   checkModels(groundwork, f);
-  const cardText = checkCards(groundwork, f);
+  const cardText = checkCards(cards, f);
+  checkCardSize(cards, f);
+  checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 
-  const lines = ["Groundwork doctor", "", budgetLine, ""];
+  const lines = ["Groundwork doctor", "", budget.line, ...startupCost(groundwork, budget.tokens, cards), ""];
   if (f.problems.length === 0) lines.push("No problems found.");
   else lines.push(`Problems (${f.problems.length}):`, ...f.problems.map((p) => `  ✗ ${p}`));
   if (f.suggestions.length > 0) lines.push("", `Suggestions (${f.suggestions.length}):`, ...f.suggestions.map((s) => `  • ${s}`));
