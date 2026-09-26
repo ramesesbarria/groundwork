@@ -19,9 +19,12 @@ Read only these:
 - The source files those tests and the card point to
 - Rules in `AGENTS.md` (already loaded)
 
+What isn't in these files wasn't agreed. Don't search chat logs or other folders for it; make a call and log it.
+
 ## Writes
 - Source code for this card
 - The card: status
+- The card's History: one short line for your step, plus a `call:` line for each judgment call you made (`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`). You write these yourself; a report to the runner isn't enough.
 - `.groundwork/HANDOFF.md`, when you play every role yourself. As a subagent, put what HANDOFF needs in your report instead; the runner writes it.
 
 ## Must not

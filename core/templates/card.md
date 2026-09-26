@@ -18,10 +18,12 @@ depends_on: []
 
 ## Evidence
 <!-- Links to proof in ../evidence/{{id}}/ (test output, screenshots) and the reviewer's verdict.
+     One short line per link: the file, the command and its summary line. Details belong in the file.
      Approval is refused while this section is empty. -->
 
 ## History
-<!-- One line per event: date, what happened, and why. `groundwork retro` and `doctor` read these formats exactly:
+<!-- One short line per event: date, what happened, and why. Every role rereads this card, so keep
+     lines to a sentence or two; details go in the evidence files. `groundwork retro` and `doctor` read these formats exactly:
      - YYYY-MM-DD rejected: <reason>
      - YYYY-MM-DD review → implementing: <problems>
      - YYYY-MM-DD approved by human

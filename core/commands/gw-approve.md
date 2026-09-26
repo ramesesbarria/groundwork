@@ -24,6 +24,8 @@ If the human didn't ask for this in their own words, stop and ask them to approv
 
 **Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. Show one summary for the phase (step 3), including every `call:` line from the phase's cards. If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
 
+**Fresh session per phase.** When a phase closes, tell the human in one line that the next phase is cheaper in a new session: everything it needs is in HANDOFF, and `gw` picks it up. A long chat re-reads its whole history on every step, so its cost keeps rising.
+
 **Phase recap.** When a phase closes, append exactly one recap to `.groundwork/JOURNAL.md` (create it if missing), in the format its comment shows: what shipped, how to try it, decisions, calls, and lessons added. Under about 150 words; link to cards instead of copying them.
 
 ## Writes
