@@ -16,13 +16,21 @@ export type Adapter = (typeof ADAPTERS)[number];
 export const isAdapter = (value: string): value is Adapter => (ADAPTERS as readonly string[]).includes(value);
 
 // Keeps Groundwork's files identical on every OS, so Windows users don't get line-ending noise.
-const GITATTRIBUTES = [
+// The binary rules come last, and later rules win, so evidence images are never normalized as text.
+export const GITATTRIBUTES = [
   "# Groundwork: same line endings on every OS",
   ".groundwork/** text eol=lf",
   "AGENTS.md text eol=lf",
   "CLAUDE.md text eol=lf",
   ".claude/** text eol=lf",
   ".opencode/** text eol=lf",
+  "",
+  "# Evidence images are binary: git must never rewrite their bytes",
+  "*.png binary",
+  "*.jpg binary",
+  "*.jpeg binary",
+  "*.webp binary",
+  "*.gif binary",
   "",
 ].join("\n");
 

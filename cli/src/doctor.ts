@@ -39,6 +39,19 @@ function checkBudget(cwd: string, budget: number, f: Findings): string {
   return `Always loaded: ≈${tokens} tokens (budget ${budget})`;
 }
 
+// A `.groundwork/** text` rule with no binary override makes git rewrite evidence images.
+function checkGitAttributes(cwd: string, f: Findings) {
+  const path = join(cwd, ".gitattributes");
+  if (!existsSync(path)) return;
+  const text = read(path);
+  if (!text.includes(".groundwork/** text")) return;
+  if (/^\*\.png binary$/m.test(text)) return;
+  f.suggestions.push(
+    "`.gitattributes` marks .groundwork/** as text, so git rewrites evidence images (screenshots) and breaks them. " +
+      "Add `*.png binary` (and jpg/jpeg/webp/gif), or run `npx groundwork-ai upgrade`.",
+  );
+}
+
 function checkGuards(groundwork: string, guards: string[], f: Findings) {
   for (const name of guards) {
     if (!existsSync(join(groundwork, "guards", `${name}.mjs`))) {
@@ -149,6 +162,7 @@ export function doctor(io: Pick<Io, "cwd">): RunResult {
 
   const behind = configText !== "" && checkVersion(config.version, f);
   const budgetLine = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
+  checkGitAttributes(io.cwd, f);
   checkGuards(groundwork, config.guards ?? [], f);
   checkAdapters(io.cwd, groundwork, behind, f);
   checkModels(groundwork, f);

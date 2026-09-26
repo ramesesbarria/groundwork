@@ -45,6 +45,20 @@ describe("groundwork doctor", () => {
     expect(output).toMatch(/no problems/i);
   });
 
+  it("suggests the binary image rules when .gitattributes marks .groundwork/** as text", async () => {
+    const dir = await installed();
+    writeFileSync(join(dir, ".gitattributes"), ".groundwork/** text eol=lf\n");
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(0); // a suggestion, not a problem
+    expect(output).toMatch(/evidence images/i);
+    expect(output).toMatch(/\*\.png binary/);
+  });
+
+  it("stays quiet about .gitattributes when the binary rules are there", async () => {
+    const { output } = await doctor(await installed());
+    expect(output).not.toMatch(/evidence images/i);
+  });
+
   it("fails when the always-loaded files are over the token budget, and says what to do", async () => {
     const dir = await installed();
     appendFileSync(join(dir, "AGENTS.md"), "\n" + "- An extra rule that keeps going and going.\n".repeat(250));

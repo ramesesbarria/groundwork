@@ -173,6 +173,42 @@ describe("groundwork upgrade", () => {
     expect(io.asked).toEqual([]);
   });
 
+  it("adds the binary image rules to an old .gitattributes, keeping its own lines", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    write(dir, ".gitattributes", "*.log binary\n.groundwork/** text eol=lf\n");
+    const io = answers();
+    const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
+    const attributes = read(dir, ".gitattributes");
+    expect(output).toMatch(/add lines\s+\.gitattributes/);
+    expect(attributes).toContain("*.log binary");
+    expect(attributes).toContain("*.png binary");
+    expect(attributes).toContain("*.webp binary");
+    expect(attributes.split("*.png binary").length).toBe(2); // exactly one copy
+    expect(io.asked).toHaveLength(1);
+  });
+
+  it("does not duplicate the binary image rules when they are already there", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    const io = answers();
+    const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
+    expect(output).toMatch(/already up to date/i);
+    expect(io.asked).toEqual([]);
+  });
+
+  it("creates .gitattributes with the full rules when the project has none", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    rmSync(join(dir, ".gitattributes"), { force: true });
+    const io = answers();
+    const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
+    expect(output).toMatch(/create\s+\.gitattributes/);
+    const attributes = read(dir, ".gitattributes");
+    expect(attributes).toContain(".groundwork/** text eol=lf");
+    expect(attributes).toContain("*.png binary");
+  });
+
   it("says to run init when Groundwork isn't installed", async () => {
     const { code, output } = await run(["upgrade"], { cwd: tempDir(), ask: answers().ask });
     expect(code).toBe(1);

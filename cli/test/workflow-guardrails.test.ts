@@ -82,6 +82,15 @@ describe("commit-ready install", () => {
     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8");
     expect(attributes).toContain(".groundwork/** text eol=lf");
     expect(attributes).toContain("AGENTS.md text eol=lf");
+    expect(attributes).toContain("*.png binary");
+    expect(attributes).toContain("*.webp binary");
+  });
+
+  it("marks evidence images as binary after the text rules, so later rules win", async () => {
+    const dir = tempProject();
+    await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+    const attributes = readFileSync(join(dir, ".gitattributes"), "utf8");
+    expect(attributes.indexOf("*.png binary")).toBeGreaterThan(attributes.indexOf(".groundwork/** text eol=lf"));
   });
 
   it("init adds its lines to an existing .gitattributes without asking or removing anything", async () => {

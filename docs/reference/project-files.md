@@ -67,6 +67,12 @@ Depending on the tool you chose, `init` also adds:
 Generated files point back into `.groundwork/` rather than copying it, so there's one source of
 truth. `groundwork doctor` tells you when they've drifted.
 
+::: tip Evidence images are binary
+`.gitattributes` marks `*.png`, `*.jpg`, `*.webp` and `*.gif` as binary, so git never rewrites
+screenshots under `.groundwork/evidence/` — on any OS. Installs from before this rule get the lines
+added by `groundwork upgrade`.
+:::
+
 ## Next
 
 [Adapters: Claude Code →](/adapters/claude-code)
