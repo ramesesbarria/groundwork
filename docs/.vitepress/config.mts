@@ -41,6 +41,7 @@ export default withMermaid({
             { text: "Handoff and resuming", link: "/concepts/handoff" },
             { text: "Right-sizing", link: "/concepts/right-sizing" },
             { text: "The lessons ledger", link: "/concepts/lessons-ledger" },
+            { text: "What it costs", link: "/concepts/cost" },
           ],
         },
       ],

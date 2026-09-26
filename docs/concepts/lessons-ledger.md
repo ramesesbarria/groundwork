@@ -83,4 +83,4 @@ without showing you first.
 
 ## Next
 
-[Existing projects →](/guides/existing-projects)
+[What it costs →](/concepts/cost)
