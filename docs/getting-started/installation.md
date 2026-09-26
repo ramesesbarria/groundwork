@@ -35,6 +35,8 @@ npx groundwork-ai init --adapter opencode
 npx groundwork-ai init --dry-run        # show what would change, write nothing
 ```
 
+![Running npx groundwork-ai init: choosing a tool, then the files it creates and the next step.](https://ramesesbarria.github.io/groundwork/demo-install.gif)
+
 ## Start working
 
 Open your AI tool in the project and type `/gw`.

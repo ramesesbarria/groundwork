@@ -1,7 +1,7 @@
 // The docs site (docs/, deployed to GitHub Pages) must stay in step with the product:
 // every agent command and CLI command documented, and every page reachable from the sidebar.
 import { describe, expect, it } from "vitest";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join, relative } from "node:path";
 import { run } from "../src/index.js";
@@ -49,6 +49,15 @@ describe("docs site", () => {
       if (page === "index.md") continue;
       const link = `"/${page.replace(/\.md$/, "")}"`;
       expect(sidebar, `${page} isn't linked from the sidebar`).toContain(link);
+    }
+  });
+
+  it("references only GIFs that exist in docs/public", () => {
+    const text = markdownPages(docs).map((page) => readFileSync(join(docs, page), "utf8")).join("\n");
+    const gifs = [...text.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/(demo-[\w-]+\.gif)/g)].map((match) => match[1]);
+    expect(gifs.length).toBeGreaterThan(0);
+    for (const gif of new Set(gifs)) {
+      expect(existsSync(join(docs, "public", gif)), `docs/ public is missing ${gif}`).toBe(true);
     }
   });
 });
