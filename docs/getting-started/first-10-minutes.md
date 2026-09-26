@@ -3,6 +3,8 @@
 Here's what a first session looks like, from an idea to a committed first card. The example: a page
 where a book club votes on next month's book.
 
+![An OpenCode session: /gw sets the project up, interviews for the spec, and writes the plan of cards.](https://ramesesbarria.github.io/groundwork/demo-first-session.gif)
+
 ## 1. Describe the idea
 
 ```text
