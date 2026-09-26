@@ -108,8 +108,8 @@ describe("config", () => {
   const template = (name: string) =>
     JSON.parse(readFileSync(new URL(`../../core/templates/${name}`, import.meta.url), "utf8"));
 
-  it("lists guards, empty by default", () => {
-    expect(template("config.json").guards).toEqual([]);
+  it("lists guards, with no-ai-trailers on by default", () => {
+    expect(template("config.json").guards).toEqual(["no-ai-trailers"]);
     expect(template("config.schema.json").properties.guards.type).toBe("array");
   });
 });

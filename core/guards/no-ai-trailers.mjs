@@ -1,5 +1,5 @@
 // Guard: block commits whose message adds AI attribution.
-// Enable it by adding "no-ai-trailers" to "guards" in .groundwork/config.json.
+// On in new installs. Remove "no-ai-trailers" from "guards" in .groundwork/config.json to switch it off.
 //
 // Limitation: it sees the command text only. A message passed with `git commit -F file.txt`
 // (a file on disk) isn't read.
