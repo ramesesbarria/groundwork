@@ -10,8 +10,7 @@
 Your agent writes the code. Groundwork is the project layer: it owns the spec, the cards, the
 evidence and the approvals — and any session can pick up where the last one stopped.
 
-<!-- Demo GIF: 25–35 seconds of one real card, from questions and plan to approval and commit.
-     Insert the recording here once the first real-app run exists; the docs walkthrough stands in until then. -->
+![An OpenCode session: /gw sets the project up, interviews for the spec, and writes the plan of cards.](https://ramesesbarria.github.io/groundwork/demo-first-session.gif)
 
 ```bash
 cd your-project
@@ -100,6 +99,8 @@ Needs Node.js 22+ and a git repo (for the commit loop), nothing else —
 cd your-project
 npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
+
+![Running npx groundwork-ai init: choosing a tool, then the files it creates and the next step.](https://ramesesbarria.github.io/groundwork/demo-install.gif)
 
 Open your AI tool in the project and type `/gw`. The first run asks a few setup questions; after
 that it always says where things stand and runs the next step. `/gw-approve` and `/gw-reject` are

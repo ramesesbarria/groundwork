@@ -32,12 +32,12 @@ function docsPages(dir: string, found: string[] = []): string[] {
 }
 
 describe("README", () => {
-  it("opens with the tagline, the install and the demo slot", () => {
+  it("opens with the tagline, the install and the first-session GIF", () => {
     const firstScreen = readme.slice(0, readme.indexOf("## The problem"));
     expect(firstScreen).toMatch(/spec, proof, approval/i);
     expect(firstScreen).toContain("/gw");
     expect(firstScreen).toContain("npx groundwork-ai init");
-    expect(firstScreen).toMatch(/<!--\s*Demo GIF/i);
+    expect(firstScreen).toContain("demo-first-session.gif");
   });
 
   it("sells the why before the how", () => {
@@ -60,7 +60,9 @@ describe("README", () => {
   });
 
   it("links to documentation pages that exist", () => {
-    const links = [...readme.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/([^)\s#]*)/g)].map((m) => m[1]);
+    const links = [...readme.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/([^)\s#]*)/g)]
+      .map((m) => m[1])
+      .filter((path) => !/\.[a-z0-9]+$/i.test(path)); // assets (GIFs) are checked separately
     expect(links.length).toBeGreaterThan(5);
     for (const path of links) {
       const clean = path.replace(/\/$/, "");
@@ -82,6 +84,14 @@ describe("README", () => {
     for (const file of files) {
       const text = readFileSync(join(repo, file), "utf8");
       for (const pattern of banned) expect(text, `${file} mentions ${pattern}`).not.toMatch(pattern);
+    }
+  });
+
+  it("every demo GIF it shows exists in docs/public", () => {
+    const gifs = [...readme.matchAll(/groundwork\/(demo-[\w-]+\.gif)/g)].map((match) => match[1]);
+    expect(gifs.length).toBeGreaterThan(1);
+    for (const gif of new Set(gifs)) {
+      expect(existsSync(join(repo, "docs", "public", gif)), `docs/public is missing ${gif}`).toBe(true);
     }
   });
 
