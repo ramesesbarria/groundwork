@@ -5,6 +5,9 @@ where a book club votes on next month's book.
 
 ![An OpenCode session: /gw sets the project up, interviews for the spec, and writes the plan of cards.](https://ramesesbarria.github.io/groundwork/demo-first-session.gif)
 
+Want the longer version? The [recorded walkthrough](/guides/walkthrough) follows a real build
+chapter by chapter.
+
 ## 1. Describe the idea
 
 ```text
