@@ -17,9 +17,12 @@ Read only these:
 - Existing tests near the code this card touches, to match their style
 - The project's test and run commands in `.groundwork/config.json`
 
+What isn't in these files wasn't agreed. Don't search chat logs or other folders for it; make a call and log it.
+
 ## Writes
 - Test files
 - The card: status, plus any manual checks
+- The card's History: one short line for your step, plus a `call:` line for each judgment call you made (`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`). You write these yourself; a report to the runner isn't enough.
 - The failing test output, saved to `.groundwork/evidence/<card-id>/`: the command, the summary line and the failures, about 30 lines at most, not the full output
 - `.groundwork/HANDOFF.md`, when you play every role yourself. As a subagent, put what HANDOFF needs in your report instead; the runner writes it.
 
