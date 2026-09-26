@@ -3,7 +3,7 @@
   "approvalMode": "per-card",
   "experience": "new",
   "tokenBudget": 2000,
-  "guards": [],
+  "guards": ["no-ai-trailers"],
   "commitFormat": "[{id}] {title}",
   "commands": {
     "install": "",

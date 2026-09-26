@@ -48,8 +48,8 @@ permissions and hooks survive.
   guards listed in your config before every shell command and file write. Exit code 2 blocks the
   action and shows the reason.
 
-With no guards configured (the default), the hook exits immediately — it's always on, but nothing
-is blocked until you add a guard.
+New installs start with `no-ai-trailers` on. With `"guards": []`, the hook exits immediately — it's
+always on, but nothing is blocked.
 
 ## Checking the wiring
 

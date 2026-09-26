@@ -9,7 +9,7 @@ take effect immediately. Editors validate it against `config.schema.json` next t
   "approvalMode": "per-card",
   "experience": "new",
   "tokenBudget": 2000,
-  "guards": [],
+  "guards": ["no-ai-trailers"],
   "commitFormat": "[{id}] {title}",
   "commands": {
     "install": "npm install",
@@ -29,7 +29,7 @@ take effect immediately. Editors validate it against `config.schema.json` next t
 | `approvalMode` | `per-card` \| `per-phase` | `per-card` | Who approves when: every card, or each phase |
 | `experience` | `new` \| `experienced` | `new` | How much the agent explains: one sentence per step and "How to check" every time, or terse summaries |
 | `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for the always-loaded files (`AGENTS.md` + `CLAUDE.md`), checked by `doctor` |
-| `guards` | string[] | `[]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/` |
+| `guards` | string[] | `["no-ai-trailers"]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/`. The default blocks commits that credit an AI tool; remove it to allow them |
 | `models` | object | — | Optional model per role, used only by adapters — see below |
 | `commitFormat` | string | `[{id}] {title}` | First line of each card's commit; quick changes use `quick` as the ID |
 | `commands` | object | empty | The shell commands agents run: `install`, `test`, `lint`, `build`, `run` |

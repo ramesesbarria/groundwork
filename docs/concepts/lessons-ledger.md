@@ -34,7 +34,7 @@ export function check(action) {
 }
 ```
 
-Guards are listed in `.groundwork/config.json` (`"guards": []` means none run). Adapters wire them
+Guards are listed in `.groundwork/config.json`. New installs start with `no-ai-trailers` on; `"guards": []` means none run. Adapters wire them
 into the tool's hooks: in Claude Code a `PreToolUse` hook runs them before every shell command and
 file write, and a guard that blocks exits with code 2. `groundwork doctor` flags a guard listed in
 config without a matching file, or a hook missing from the adapter's settings.
