@@ -1,8 +1,8 @@
 # OpenCode
 
-Groundwork's OpenCode adapter adds commands, subagents with permissions, and a guard plugin.
-**It needs OpenCode 2.x** (tested with 2.0.16 — the plugin format changed in 2.x, and 1.x-style
-plugins fail to load).
+Groundwork's OpenCode adapter adds commands, subagents with permissions, and a plugin for guards
+and session-start orientation. **It needs OpenCode 2.x** (tested with 2.0.16 and 2.0.18 — the
+plugin format changed in 2.x, and 1.x-style plugins fail to load).
 
 ## What `init` adds
 
@@ -10,7 +10,7 @@ plugins fail to load).
 |---|---|
 | `.opencode/commands/gw-*.md` | One command per command file; each reads its core file and follows it |
 | `.opencode/agents/gw-*.md` | One subagent per role, with permissions |
-| `.opencode/plugins/groundwork-guards.js` | Runs your guards before each tool call |
+| `.opencode/plugins/groundwork-guards.js` | Runs your guards before each tool call, and tells each session where things stand |
 
 OpenCode reads `AGENTS.md` itself, so no extra rules file is generated.
 
@@ -29,8 +29,8 @@ is written into each subagent.
 ## Guards
 
 The plugin hooks `execute.before` for every tool call. When a guard listed in
-`.groundwork/config.json` blocks an action, the plugin throws, and OpenCode stops the call. With no
-guards configured (the default), nothing is blocked.
+`.groundwork/config.json` blocks an action, the plugin throws, and OpenCode stops the call. New
+installs start with `no-ai-trailers` on; with `"guards": []`, nothing is blocked.
 
 ```json
 { "guards": ["no-ai-trailers"] }
@@ -38,6 +38,13 @@ guards configured (the default), nothing is blocked.
 
 Add a guard's name to the list and put its `.mjs` file in `.groundwork/guards/` — the same guard
 files work in every adapter, because they're plain Node.
+
+## Session start
+
+The plugin also hooks the session's `context`: it adds the same few lines Claude Code's
+session-start hook prints (from `.groundwork/hooks/session-start.mjs` reading `HANDOFF.md`) to the
+system prompt, so a new session already knows which card is in progress and what's next. It's read
+fresh each time, and skipped for Groundwork's own subagents, which get their card from the runner.
 
 ## Human-only commands
 

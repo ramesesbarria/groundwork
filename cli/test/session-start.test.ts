@@ -134,9 +134,9 @@ describe("wiring", () => {
     expect(agentsTemplate).toMatch(/Start by reading `\.groundwork\/HANDOFF\.md`/);
   });
 
-  it("the Claude Code docs describe the session-start hook, and OpenCode's don't claim one", () => {
+  it("both adapters' docs describe how a session is told where things stand", () => {
     expect(claudeDocs).toMatch(/session-start/i);
     expect(claudeDocs).toMatch(/startup\|clear\|compact/);
-    expect(opencodeDocs).not.toMatch(/session-start/i);
+    expect(opencodeDocs).toMatch(/## Session start[\s\S]*session-start\.mjs/);
   });
 });

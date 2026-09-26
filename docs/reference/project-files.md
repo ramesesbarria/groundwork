@@ -15,7 +15,7 @@ AGENTS.md                     # what every session starts with (short, always lo
   guides/                     # longer steps a command links to
   templates/                  # starting points for cards, specs, decisions…
   guards/                     # guard scripts + the runner adapters hook up
-  hooks/                      # session-start orientation (Claude Code)
+  hooks/                      # session-start orientation (Claude Code, OpenCode)
   SPEC.md                     # what you're building, in your words
   cards/                      # one file per piece of work
   decisions/                  # each stack choice, with the options you chose from
