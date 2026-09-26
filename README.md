@@ -91,29 +91,17 @@ flowchart TD
 
 Read the deep version: [the build loop](https://ramesesbarria.github.io/groundwork/docs/concepts/the-build-loop) and [evidence and approval](https://ramesesbarria.github.io/groundwork/docs/concepts/evidence-and-approval).
 
-## What's new in 0.7.0
+## Staying light
 
-- **A lighter runner.** Each role gets a short hand-off, checks run once instead of between roles, and `/gw-approve` suggests a fresh session when a phase closes.
-- **Roles keep their own records.** The tester and implementer write their own History and `call:` lines on the card, and anything missing from the files counts as not agreed.
-- **`doctor` reports startup cost.** It shows what `/gw` and each role read before any code, flags long cards, and finds evidence saved as UTF-16.
-- **OpenCode sessions start briefed.** On OpenCode 2.x, every new session gets the handoff lines Claude Code shows at start.
-- **Safer defaults.** New projects start with the `no-ai-trailers` guard on, and evidence images are marked binary so git can't corrupt screenshots.
-- **`gw-ui-spec` names what tests look for** (an id, label or role), so testers don't guess selectors.
-
-Full notes: [the v0.7.0 release](https://github.com/ramesesbarria/groundwork/releases/tag/v0.7.0).
-
-## What it costs
-
-Every session loads about 480 tokens of Groundwork files, and `npx groundwork-ai doctor` shows
-your project's number. A card runs three fresh role sessions of about 9k tokens each, at $0.04 to
-$0.13 per card on the calculator build. On a small app in one sitting, a plain chat is probably
-cheaper; once a project outlives one context window the flat cost per card wins, and resuming the
-finished calculator took 6.8x fewer tokens at $0.009, against $0.023 without Groundwork.
+Groundwork adds one small set of files to every session; `npx groundwork-ai doctor` shows the
+numbers for your project. Each card starts fresh, so sessions stay small as the project grows, and
+coming back later means reading a short handoff instead of the whole history. The longer a project
+lives, the more this matters.
 [What it costs, and when it pays off](https://ramesesbarria.github.io/groundwork/docs/concepts/cost).
 
 ## Proof
 
-Every number here comes from one recorded build. [The calculator walkthrough](https://ramesesbarria.github.io/groundwork/docs/guides/walkthrough) has the sessions, transcripts and metrics, and [the proof page](https://ramesesbarria.github.io/groundwork/proof) has the charts.
+The measurements come from one recorded build. [The calculator walkthrough](https://ramesesbarria.github.io/groundwork/docs/guides/walkthrough) has the sessions, transcripts and metrics, and [the proof page](https://ramesesbarria.github.io/groundwork/proof) has the charts.
 
 ## Who it's for
 
@@ -146,14 +134,14 @@ The [5-minute quickstart](https://ramesesbarria.github.io/groundwork/quickstart)
 - [Command reference](https://ramesesbarria.github.io/groundwork/docs/reference/agent-commands) lists every `/gw-*` command; [the CLI reference](https://ramesesbarria.github.io/groundwork/docs/reference/cli) covers `groundwork-ai`.
 - [The build loop](https://ramesesbarria.github.io/groundwork/docs/concepts/the-build-loop) and [evidence and approval](https://ramesesbarria.github.io/groundwork/docs/concepts/evidence-and-approval) explain the mechanics.
 - Adapters for [Claude Code](https://ramesesbarria.github.io/groundwork/docs/adapters/claude-code), [OpenCode](https://ramesesbarria.github.io/groundwork/docs/adapters/opencode) and [other tools](https://ramesesbarria.github.io/groundwork/docs/adapters/other-tools).
-- [What it costs](https://ramesesbarria.github.io/groundwork/docs/concepts/cost) explains where the tokens go; [the FAQ](https://ramesesbarria.github.io/groundwork/docs/faq) answers the rest.
+- [What it costs](https://ramesesbarria.github.io/groundwork/docs/concepts/cost) has the full breakdown; [the FAQ](https://ramesesbarria.github.io/groundwork/docs/faq) answers the rest.
 - **Upgrading.** `npx groundwork-ai upgrade` refreshes Groundwork's files and keeps your spec, cards and lessons. [How updating works](https://ramesesbarria.github.io/groundwork/docs/getting-started/installation#updating).
 
 ## FAQ
 
 - **Does it work with an existing project?** Yes. Setup maps the codebase, records what is already in use, and saves a test baseline so old failures don't block new work. [Existing projects](https://ramesesbarria.github.io/groundwork/docs/guides/existing-projects).
-- **Can I use any AI tool?** Any tool that reads files. Claude Code and OpenCode get native commands, subagents and guards; others follow the markdown.
-- **What does it cost in context?** About 480 tokens are always loaded; everything else loads when a step needs it, and `npx groundwork-ai doctor` shows your project's number.
+- **Can I use any AI tool?** Any tool that reads files. Claude Code and OpenCode get first-class adapters; the workflow itself is plain markdown.
+- **What does it cost in context?** Groundwork adds a small, fixed set of files to every session; everything else loads only when a step needs it. `npx groundwork-ai doctor` shows the numbers for your project.
 
 More questions: [the FAQ](https://ramesesbarria.github.io/groundwork/docs/faq).
 
