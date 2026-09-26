@@ -87,18 +87,25 @@ keypad. The app is live, and the whole project (spec, cards, decisions, evidence
 ## By the numbers
 
 Model: **DeepSeek V4.1 Flash** (`deepseek/deepseek-flash#max`) in OpenCode. Costs and tokens come
-from OpenCode's session accounting, added up across both build chats; commits and tests come from
-the app's git history and test suite.
+from OpenCode's per-call accounting across all 20 sessions; commits and tests come from the app's
+git history and test suite. The main chats also did two things that weren't building the app, so
+they're counted separately.
 
 | | |
 |---|---|
-| Total cost | **$0.63** |
-| Fresh tokens | 665,241 in · 170,526 out · 567,239 reasoning — **1.40M** |
-| Cache reads | 30,030,208 |
-| Sessions | 20 — 2 main chats, 18 subagent chats |
+| Building it | **$0.586** · 1.33M fresh tokens (41% of them reasoning) |
+| Also in the chats | deploying to GitHub Pages $0.020 · exporting these transcripts $0.061 |
+| Sessions | 20: 2 main chats, 18 role chats |
 | Work | 6 cards in 2 phases · 14 commits · 58 tests passing |
 
-Per card (subagents only): 1.1 $0.059 · 1.2 $0.045 · 1.3 $0.039 · 1.4 $0.060 · 2.1 $0.128 · 2.2 $0.084.
+Per card (tester, implementer and reviewer together): 1.1 $0.059 · 1.2 $0.045 · 1.3 $0.040 ·
+1.4 $0.060 · 2.1 $0.128 · 2.2 $0.084. Every role session started with 8.8k–9.7k tokens of context,
+whatever the card, so the cost followed the work in the card, not the size of the project. The UI
+cards cost more because the tester built a browser check from scratch.
+
+1.3M tokens is a lot for a calculator, and on an app this small most of it is Groundwork's fixed
+cost per card. [What it costs](/concepts/cost) explains where the tokens went, why the cost per
+card stays flat as a project grows, and the one part that didn't: the main chat.
 
 ## The receipts
 
@@ -108,6 +115,8 @@ both [main](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/ph
 [chats](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/phase-2/main/transcript.md),
 and the tester, implementer and reviewer chats for every card. The
 [cost reports](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/phase-1/tokenandcost.md)
-are exports from OpenCode's session API — snapshots taken at export time.
+are exports from OpenCode's session API, snapshots taken at export time; the figures above were
+re-measured afterwards with [`checks/session-costs.mjs`](https://github.com/ramesesbarria/groundwork/blob/main/checks/session-costs.mjs),
+which is why they differ slightly.
 
-*A finished app for 1.40M fresh tokens and $0.63.*
+*A finished, tested, deployed app for $0.59 of building.*
