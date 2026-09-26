@@ -11,7 +11,7 @@ import { parseFrontmatter } from "../src/frontmatter.js";
 const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 const claude = generateClaudeCode(core);
 const opencode = generateOpenCode(core);
-const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
+const claudeDocs = readFileSync(new URL("../../docs/adapters/claude-code.md", import.meta.url), "utf8");
 
 const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 const HUMAN_ONLY = ["gw-approve", "gw-reject"];
@@ -60,8 +60,8 @@ describe("only the human approves or rejects", () => {
     expect(section(text, "Must not")).toMatch(/on your own/i);
   });
 
-  it("the README's Claude Code row says approve and reject only run when you type them", () => {
-    const row = section(readme, "Adapters").split("\n").find((l) => l.startsWith("| **Claude Code**")) ?? "";
-    expect(row).toMatch(/`\/gw-approve` and `\/gw-reject` only run when you type them/);
+  it("the Claude Code docs say approve and reject are human-only", () => {
+    expect(claudeDocs).toMatch(/human-only/i);
+    expect(claudeDocs).toMatch(/disable-model-invocation/);
   });
 });
