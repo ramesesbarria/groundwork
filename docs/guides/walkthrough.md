@@ -80,9 +80,7 @@ and asks about the next card.
 Six cards across two phases — arithmetic, clear and error states, 10-digit formatting, a responsive
 keypad. The app is live, and the whole project (spec, cards, decisions, evidence) is public.
 
-![The calculator at desktop width](https://ramesesbarria.github.io/groundwork/calculator-desktop.png)
-
-![The calculator at phone width](https://ramesesbarria.github.io/groundwork/calculator-phone.png)
+![The finished calculator](https://ramesesbarria.github.io/groundwork/calculator.png)
 
 [Try it live →](https://ramesesbarria.github.io/calculator-groundwork/) · [Source and cards →](https://github.com/ramesesbarria/calculator-groundwork)
 
