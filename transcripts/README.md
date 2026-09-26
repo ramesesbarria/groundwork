@@ -20,6 +20,11 @@ is edited except for the export itself — these are the sessions as they ran.
 | Subagents | [tester](phase-2/subagents/2.1-tester/transcript.md), [implementer](phase-2/subagents/2.1-implementer/transcript.md), [reviewer](phase-2/subagents/2.1-reviewer/transcript.md) — card 2.2 has the same three folders under `subagents/` |
 | Cost and tokens | [tokenandcost.md](phase-2/tokenandcost.md) |
 
+## Measurements
+
+[measurements.md](measurements.md) has the raw numbers: cost and tokens per session, card and role,
+what a session loads before doing anything, and resuming with and without Groundwork.
+
 ## Why read them
 
 - **The roles are real.** The reviewer transcripts never write code; the tester transcripts write

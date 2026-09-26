@@ -19,7 +19,8 @@ project grows, and where it didn't stay flat.
 ## Where the calculator's tokens went
 
 Model: DeepSeek V4.1 Flash on max thinking, in OpenCode. The numbers come from OpenCode's own
-per-call accounting ([how to measure your own run](#measure-your-own-run)).
+per-call accounting. Every raw number is in
+[measurements.md](https://github.com/ramesesbarria/groundwork/blob/main/transcripts/measurements.md).
 
 | Work | Cost | Fresh tokens |
 |---|---:|---:|
