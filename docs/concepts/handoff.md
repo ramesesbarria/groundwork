@@ -58,8 +58,8 @@ npx groundwork-ai status
 
 Because the state is files, not chat memory, switching from one tool or model to another mid-card
 is just… continuing. The next session reads the same `HANDOFF.md`, the same card, and the same
-role file. In Claude Code, a session-start hook prints a few lines from the handoff automatically at
-the start of every session, `/clear` or compaction.
+role file. In Claude Code and OpenCode, a few lines from the handoff reach every new session
+automatically (Claude Code also repeats them after `/clear` or compaction).
 
 ## Next
 

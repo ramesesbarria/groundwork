@@ -28,7 +28,7 @@ request.
 | Commands | Native `/gw-*` | Read the command file and follow it |
 | Roles | Separate subagents, fresh context | One session plays each role in turn |
 | Guards | Wired into tool hooks | Instructions only — nothing blocks automatically |
-| Session start | Hook prints where things stand | The agent reads `HANDOFF.md` as rule 1 |
+| Session start | Where things stand is added automatically | The agent reads `HANDOFF.md` as rule 1 |
 
 The [workflow](/concepts/the-build-loop#without-subagents) covers the single-session mode: the agent
 reads each role file before playing that role, finishes it completely before switching, and as

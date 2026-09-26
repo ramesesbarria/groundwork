@@ -71,10 +71,14 @@ describe("OpenCode adapter", () => {
 });
 
 describe("OpenCode guard plugin", () => {
-  async function installedPlugin(guards: string[]) {
+  type Hook = (input: any) => Promise<void>;
+
+  async function loadPlugin(guards: string[], handoff?: string) {
     const project = tempDir();
     cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
+    cpSync(join(coreDir, "hooks"), join(project, ".groundwork/hooks"), { recursive: true });
     writeFileSync(join(project, ".groundwork/config.json"), JSON.stringify({ guards }));
+    if (handoff !== undefined) writeFileSync(join(project, ".groundwork/HANDOFF.md"), handoff);
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
@@ -82,17 +86,16 @@ describe("OpenCode guard plugin", () => {
     // OpenCode 2.x rejects a plugin unless the default export has a string id and a setup function.
     expect(typeof plugin.id).toBe("string");
     expect(typeof plugin.setup).toBe("function");
-    const hooks: Record<string, (call: object) => Promise<void>> = {};
-    await plugin.setup({
-      tool: {
-        hook: async (name: string, callback: (call: object) => Promise<void>) => {
-          hooks[name] = callback;
-          return { dispose: async () => {} };
-        },
-      },
-    });
-    return hooks["execute.before"];
+    const hooks: Record<string, Hook> = {};
+    const register = (prefix: string) => async (name: string, callback: Hook) => {
+      hooks[`${prefix}.${name}`] = callback;
+      return { dispose: async () => {} };
+    };
+    await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
+    return hooks;
   }
+
+  const installedPlugin = async (guards: string[]) => (await loadPlugin(guards))["tool.execute.before"];
 
   const trailerCommit = "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'";
 
@@ -105,6 +108,21 @@ describe("OpenCode guard plugin", () => {
   it("does nothing when no guards are on", async () => {
     const before = await installedPlugin([]);
     await expect(before({ tool: "shell", input: { command: trailerCommit } })).resolves.toBeUndefined();
+  });
+
+  it("adds where things stand to the system prompt, as a text part", async () => {
+    const hooks = await loadPlugin([], "- **Current card:** 1.2 Login\n- **Status:** implementing\n- **Next step:** make the tests pass\n");
+    const input = { agent: "build", system: [{ type: "text", text: "tool prompt" }] };
+    await hooks["session.context"](input);
+    expect(input.system).toHaveLength(2);
+    expect(input.system[1]).toEqual({ type: "text", text: expect.stringMatching(/^Groundwork: card 1\.2 Login is being built\./) });
+  });
+
+  it("leaves Groundwork's own subagents alone, since the runner hands them their card", async () => {
+    const hooks = await loadPlugin([], "- **Current card:** 1.2 Login\n");
+    const input = { agent: "gw-tester", system: [] as object[] };
+    await hooks["session.context"](input);
+    expect(input.system).toEqual([]);
   });
 
   it("the runner understands OpenCode's tool names and arguments", async () => {
