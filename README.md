@@ -87,13 +87,13 @@ flowchart TD
   style card fill:none,stroke:#94a3b8,stroke-dasharray:4 3
 ```
 
-Read the deep version: [the build loop](https://ramesesbarria.github.io/groundwork/concepts/the-build-loop) ·
-[evidence and approval](https://ramesesbarria.github.io/groundwork/concepts/evidence-and-approval).
+Read the deep version: [the build loop](https://ramesesbarria.github.io/groundwork/docs/concepts/the-build-loop) ·
+[evidence and approval](https://ramesesbarria.github.io/groundwork/docs/concepts/evidence-and-approval).
 
 ## Quickstart
 
 Needs Node.js 22+ and a git repo (for the commit loop), nothing else —
-[installation](https://ramesesbarria.github.io/groundwork/getting-started/installation).
+[installation](https://ramesesbarria.github.io/groundwork/docs/getting-started/installation).
 
 ```bash
 cd your-project
@@ -105,14 +105,14 @@ npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 Open your AI tool in the project and type `/gw`. The first run asks a few setup questions; after
 that it always says where things stand and runs the next step. `/gw-approve` and `/gw-reject` are
 yours alone; the rest of the commands are in the
-[command reference](https://ramesesbarria.github.io/groundwork/reference/agent-commands).
+[command reference](https://ramesesbarria.github.io/groundwork/docs/reference/agent-commands).
 
-- Existing repo? [Existing projects](https://ramesesbarria.github.io/groundwork/guides/existing-projects) —
+- Existing repo? [Existing projects](https://ramesesbarria.github.io/groundwork/docs/guides/existing-projects) —
   nothing is overwritten, and old test failures don't block new work.
-- New to this? [Your first 10 minutes](https://ramesesbarria.github.io/groundwork/getting-started/first-10-minutes)
+- New to this? [Your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes)
   walks through a full session.
 - Updating an older install: `npx groundwork-ai upgrade` keeps your spec, cards and lessons.
-- Want to see a whole build? [The calculator walkthrough](https://ramesesbarria.github.io/groundwork/guides/walkthrough)
+- Want to see a whole build? [The calculator walkthrough](https://ramesesbarria.github.io/groundwork/docs/guides/walkthrough)
   has the recorded sessions and the numbers.
 
 [**Full documentation →**](https://ramesesbarria.github.io/groundwork/)
@@ -146,7 +146,7 @@ built yet). There are no benchmarks or evals — the claim is the mechanism, not
 
 **Does it work with an existing project?** Yes. Setup maps the codebase, records what's in use, and
 saves a test baseline so old failures don't block new work.
-[Existing projects →](https://ramesesbarria.github.io/groundwork/guides/existing-projects)
+[Existing projects →](https://ramesesbarria.github.io/groundwork/docs/guides/existing-projects)
 
 **Do I have to use the CLI?** Only to install. The workflow is markdown; `status`, `doctor`, `retro`
 and `upgrade` are conveniences.
@@ -157,7 +157,7 @@ subagents and guards; others follow the markdown.
 **What does it cost in context?** About 400 tokens always loaded; everything else loads when a step
 needs it, and `npx groundwork-ai doctor` measures it.
 
-[More questions →](https://ramesesbarria.github.io/groundwork/faq)
+[More questions →](https://ramesesbarria.github.io/groundwork/docs/faq)
 
 ## Contributing
 

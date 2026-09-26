@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
-const page = read("docs/getting-started/first-10-minutes.md");
+const page = read("docs/content/docs/getting-started/first-10-minutes.mdx");
 const cliReadme = read("cli/README.md");
 
 // The transcript blocks from the page, in order.

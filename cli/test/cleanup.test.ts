@@ -14,7 +14,7 @@ describe("cuts and cleanup", () => {
     expect(tracked).not.toMatch(/\.gitkeep/);
     for (const dir of ["adapters", "examples", "guards"]) expect(existsSync(join(repo, dir)), dir).toBe(false);
     // docs/ is a real directory now: it holds the documentation site deployed to GitHub Pages.
-    expect(readdirSync(join(repo, "docs")).some((name) => name.endsWith(".md"))).toBe(true);
+    expect(readdirSync(join(repo, "docs", "content", "docs")).some((name) => name.endsWith(".mdx"))).toBe(true);
   });
 
   it("has no unreachable 'planned but not implemented' branch", () => {

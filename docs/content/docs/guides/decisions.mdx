@@ -1,0 +1,68 @@
+---
+title: "Stack decisions"
+---
+
+**Groundwork never picks your stack.** For every choice the build needs — framework, database,
+hosting, auth, a new dependency — you get options with trade-offs, and the choice is recorded with
+the reason. Nothing is chosen silently.
+
+## How a decision happens
+
+`/gw-decide <topic>` (also run automatically by `gw-plan` before cards depend on a choice):
+
+1. It checks whether an accepted decision already covers the topic.
+2. It writes `.groundwork/decisions/NNNN-<topic>.md` with status `proposed`, containing:
+   - **Context** — what needs deciding, why now, the constraints that matter;
+   - **Options** — 2–4 choices, each with pros, cons, and what switching away later would cost.
+3. It summarises the options in a few lines and updates `HANDOFF.md`, then **waits** for your
+   choice.
+4. It records your answer **in your words** as the decision, sets it `accepted`, and fills in the
+   consequences.
+5. If the stack changed, the project's commands in `config.json` and `AGENTS.md` are updated.
+
+## Recommendations are labeled, choices are yours
+
+The agent may add one line starting **Recommendation:** naming the option it would pick and why.
+It's always labeled, never mixed in with the options — and it's never a decision.
+
+- With `experience: new`, a recommendation is included by default.
+- With `experience: experienced`, only if you ask.
+- At any experience level, if an option would **switch off part of the workflow** (no automated
+  tests for the tester to write, no way to run the app), that's spelled out in the option's cons
+  and a recommendation is included.
+
+Saying *"you decide"* doesn't hand over the choice: the agent asks once —
+*"Shall I go with my recommendation, B?"* — and only a clear yes counts, recorded as
+"accepted the recommendation".
+
+Every option says how its tests run. "No automated tests" is never folded in quietly.
+
+## A decision record looks like this
+
+```md
+---
+id: 0002
+title: Where the data lives
+status: accepted
+date: 2026-09-24
+---
+## Context
+The book club app needs to store votes somewhere...
+
+## Options
+- **(a) SQLite file** — ... Pros: ... Cons: ... Switching later: ...
+- **(b) Hosted Postgres** — ... Pros: ... Cons: ... Switching later: ...
+
+## Decision
+(a), in the human's words: "keep it simple, one file I can back up".
+
+## Consequences
+- No server to run; backups are a file copy.
+- Multi-user hosting would need a migration card later.
+```
+
+Records live in `.groundwork/decisions/`, numbered, and an old decision that's replaced by a new one
+is marked `superseded` with a link — so "what did we decide, and why?" always has an answer.
+
+A new dependency or a stack change is also one of the few things the agent stops for on its own,
+even in `per-phase` mode.

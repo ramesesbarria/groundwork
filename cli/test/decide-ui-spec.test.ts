@@ -117,7 +117,7 @@ describe("gw-decide: labeled recommendations", () => {
   });
 
   it("the docs describe the labeled recommendation", () => {
-    const docs = read("docs/guides/decisions.md");
+    const docs = read("docs/content/docs/guides/decisions.mdx");
     expect(docs).toMatch(/labeled/i);
     expect(docs).toMatch(/accepted the recommendation/);
   });

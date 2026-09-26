@@ -1,0 +1,93 @@
+---
+title: "Walkthrough: a calculator app"
+description: "A real build in OpenCode, recorded as it happened. Each chapter is a short clip of the actual session, and each caption quotes the transcript and links to the line."
+---
+
+Model: DeepSeek V4.1 Flash (max thinking) in OpenCode 2.0.18. Nothing is staged.
+
+## 1. Writing the spec
+
+<StatusPill status="todo">no cards yet</StatusPill>
+
+`/gw` starts with the smallest useful version, not a blank prompt. It asks a few specific
+questions in small batches and offers choices; you pick one or type your own.
+
+<WalkClip file="spec-questions.mp4" quote="First question, the scope one:" after="the answer is “Four basic operations”, the recommended option." line={1371} />
+
+When the answers are in, the agent writes `.groundwork/SPEC.md` and reads it back in plain words,
+including the calls it made where you didn't specify anything.
+
+<WalkClip file="spec-written.mp4" quote="Pressing = when there’s no pending calculation — say, just the number 5 on screen — should do what?" after="one of the last details, before the spec is written." line={2636} />
+
+## 2. Planning the cards
+
+<StatusPill status="todo">six cards, all to do</StatusPill>
+
+`gw-plan` turns the spec into phases of small cards, each small enough for one session, with
+acceptance criteria you can check. Nothing is written until you say the plan looks right.
+
+<WalkClip file="plan-confirm.mp4" quote="Does this plan look right?" after="answered “Plan looks good”." line={4705} />
+
+Then the card files land in `.groundwork/cards/`, and the next step is handed back to you.
+
+<WalkClip file="plan-cards-written.mp4" quote="Planning is done:" after="two phases, six cards, and card 1.1 next." line={5447} />
+
+One more step before the loop: the planning files are committed on their own, so card 1.1's
+commit holds only card 1.1's work.
+
+<WalkClip file="plan-committed.mp4" quote="Committed planning: 693fff8." after="then the runner lines up card 1.1." line={5614} />
+
+## 3. Building the first card
+
+<StatusPill status="testing" />
+
+`/gw` starts card 1.1 and hands it to the **tester**: a subagent with fresh context whose only job
+is tests that fail for the right reason. The runner doesn't write them, and the implementer won't
+be allowed to change them.
+
+<WalkClip file="tester-launched.mp4" quote="Card started. Handing it to the tester now (a subagent, so its work stays separate from mine):" line={5828} />
+
+When the tests come back failing for the right reason, the runner checks them itself, the card
+moves to <StatusPill status="implementing" />, and the implementer gets it with the tester's
+evidence attached.
+
+<WalkClip file="implementer-launched.mp4" quote="Failing state confirmed exactly as reported (MODULE_NOT_FOUND for ../src/calc.js, exit 1). Handing card 1.1 to the implementer:" line={6102} />
+
+## 4. Approval and commit
+
+<StatusPill status="waiting" />
+
+The reviewer reran everything and passed the card, so the runner stops and shows you the same
+three-part summary every time: what changed, how to check it yourself, and the caveats.
+
+<WalkClip file="approval-stop.mp4" quote="Card 1.1 — Number entry is built and waiting for your approval." after="with the reviewer’s caveats listed." line={6505} />
+
+Only you can approve. `/gw-approve` checks the evidence first, marks the card
+<StatusPill status="done" />, commits it, and names the next card.
+
+<WalkClip file="approved-commit.mp4" quote="Approved and committed:" after="78565bd, [1.1] Number entry. Next up is card 1.2, Operations and equals." line={6925} />
+
+## 5. The finished calculator
+
+<StatusPill status="done">six cards done</StatusPill>
+
+Six cards across two phases: arithmetic, clear and error states, 10-digit formatting, and a
+responsive keypad. The second phase ran in a new chat, which picked up from the handoff file. The
+app is live, and the whole project (spec, cards, decisions, evidence) is public.
+
+<Shot src="/calculator.png" alt="The finished calculator" title="calculator-groundwork" />
+
+[Try it live →](https://ramesesbarria.github.io/calculator-groundwork/) ·
+[Source and cards →](https://github.com/ramesesbarria/calculator-groundwork)
+
+## By the numbers
+
+| What | Measured |
+|---|---|
+| Building it | **$0.586** · 1.33M fresh tokens (41% of them reasoning) |
+| Also in the chats | deploying to GitHub Pages $0.020 · exporting the transcripts $0.061 |
+| Sessions | 20: 2 main chats, 18 role sessions |
+| Work | 6 cards in 2 phases · 14 commits · 58 tests passing |
+
+Where the tokens went, why the cost per card stayed flat, and the one part that didn't:
+[the proof](/proof). Every session, as it ran: [the receipts](/receipts).

@@ -11,8 +11,8 @@ import { estimateTokens } from "../src/tokens.js";
 import { orientation } from "../../core/hooks/session-start.mjs";
 
 const hookScript = fileURLToPath(new URL("../../core/hooks/session-start.mjs", import.meta.url));
-const claudeDocs = readFileSync(new URL("../../docs/adapters/claude-code.md", import.meta.url), "utf8");
-const opencodeDocs = readFileSync(new URL("../../docs/adapters/opencode.md", import.meta.url), "utf8");
+const claudeDocs = readFileSync(new URL("../../docs/content/docs/adapters/claude-code.mdx", import.meta.url), "utf8");
+const opencodeDocs = readFileSync(new URL("../../docs/content/docs/adapters/opencode.mdx", import.meta.url), "utf8");
 const agentsTemplate = readFileSync(new URL("../../core/templates/AGENTS.md", import.meta.url), "utf8");
 
 const temps: string[] = [];
