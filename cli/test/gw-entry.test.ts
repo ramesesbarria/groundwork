@@ -91,16 +91,10 @@ describe("pointing newcomers to /gw", () => {
     expect(NEXT_STEPS.none).toContain(".groundwork/commands/gw.md");
   });
 
-  it("the README has a main command table and a separate power commands table", () => {
-    const commands = section(read("README.md"), "Commands");
-    const main = commands.slice(0, commands.indexOf("Power commands"));
-    const power = commands.slice(commands.indexOf("Power commands"));
-    expect(commands).toContain("Power commands");
-    for (const c of ["`/gw`", "`/gw-setup`", "`/gw-spec`", "`/gw-plan`", "`/gw-next`", "`/gw-approve`", "`/gw-quick`"]) expect(main).toContain(c);
-    for (const c of ["`/gw-decide`", "`/gw-ui-spec`", "`/gw-handoff`", "`/gw-retro`"]) {
-      expect(power).toContain(c);
-      expect(main).not.toContain(c);
-    }
+  it("the README points newcomers to /gw and the command reference", () => {
+    const readme = read("README.md");
+    expect(readme).toMatch(/type `\/gw`/);
+    expect(readme).toContain("/reference/agent-commands");
   });
 
   it("a fresh install tells you to type /gw", async () => {

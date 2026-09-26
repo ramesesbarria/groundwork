@@ -93,7 +93,7 @@ export default withMermaid({
       text: "Edit this page on GitHub",
     },
     footer: {
-      message: "MIT licensed · Groundwork is built with Groundwork",
+      message: "MIT licensed",
       copyright: "Copyright © Rameses Barria",
     },
     outline: { level: [2, 3] },

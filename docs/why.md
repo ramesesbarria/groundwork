@@ -54,8 +54,7 @@ tokens; `groundwork doctor` measures it and flags bloat.
 - **Not a stack picker.** Choices are laid out as options with trade-offs; you decide, and the
   decision is recorded.
 - **Not a task-level skill pack.** It's the project layer — spec, cards, approvals, handoff and
-  lessons. Task-level packs like
-  [superpowers](https://github.com/obra/superpowers) sit alongside it.
+  lessons. How the agent handles a single task stays with your tool.
 
 ## One-shot prompting vs a process
 

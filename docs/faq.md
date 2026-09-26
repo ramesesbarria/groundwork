@@ -79,6 +79,6 @@ lines in `AGENTS.md` / `CLAUDE.md`. Nothing else is installed and nothing runs i
 
 ## Is it ready for real projects?
 
-It's in active use and developed with itself. The honest state of features, limitations and what's
+It's in active use. The honest state of features, limitations and what's
 next lives in the [GitHub repo](https://github.com/ramesesbarria/groundwork). If something's
 unverified, the docs and the product try to say so rather than round up.
