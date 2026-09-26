@@ -1,6 +1,6 @@
 // `groundwork doctor`.
 import { afterEach, describe, expect, it } from "vitest";
-import { appendFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
@@ -41,7 +41,7 @@ describe("groundwork doctor", () => {
   it("passes on a fresh install and reports the always-loaded token estimate", async () => {
     const { code, output } = await doctor(await installed());
     expect(code).toBe(0);
-    expect(output).toMatch(/Always loaded: ≈\d+ tokens \(budget 2000\)/);
+    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\)/);
     expect(output).toMatch(/no problems/i);
   });
 
@@ -127,5 +127,40 @@ describe("groundwork doctor", () => {
     expect(code).toBe(0);
     expect(output).toMatch(/L-002[^\n]*never cited/i);
     expect(output).not.toMatch(/L-001[^\n]*never cited/i);
+  });
+
+  it("reports what a session and each role load before any code", async () => {
+    const dir = await installed();
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.1-thing.md"),
+      "---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: implementing\ndepends_on: []\n---\n## Goal\nA thing.\n",
+    );
+    const { output } = await doctor(dir);
+    expect(output).toMatch(/Session start: +≈\d+ tokens for gw \(AGENTS\.md, gw\.md, HANDOFF\.md, card 1\.1\)/);
+    expect(output).toMatch(/Role start: +tester ≈\d+ · implementer ≈\d+ · reviewer ≈\d+/);
+    expect(output).toMatch(/AI tool's own instructions come on top/);
+  });
+
+  it("suggests shortening a card every role would reread at length, without failing", async () => {
+    const dir = await installed();
+    const history = Array.from({ length: 80 }, (_, i) => `2026-09-26 step ${i}: ${"a long line of detail ".repeat(4)}`).join("\n");
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.1-thing.md"),
+      `---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: todo\ndepends_on: []\n---\n## History\n${history}\n`,
+    );
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(0);
+    expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, and every role rereads it/);
+  });
+
+  it("suggests re-saving UTF-16 evidence as UTF-8", async () => {
+    const dir = await installed();
+    mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), Buffer.from("﻿5 passed", "utf16le"));
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/fine.txt"), "5 passed");
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(0);
+    expect(output).toMatch(/1 evidence file is UTF-16 \(e\.g\. \.groundwork\/evidence\/1\.1\/tests\.txt\)/);
+    expect(output).toMatch(/Out-File -Encoding utf8/);
   });
 });
