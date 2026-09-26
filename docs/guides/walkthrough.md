@@ -52,9 +52,15 @@ implementer won't be allowed to touch them later.
 
 *"Card started. Handing it to the tester now (a subagent, so its work stays separate from mine)."*
 
+When the tests come back failing for the right reason, the runner confirms them, moves the card to
+**implementing**, and hands it to the implementer — with the tester's evidence attached.
+
+<video autoplay muted loop playsinline controls src="https://ramesesbarria.github.io/groundwork/clips/implementer-launched.mp4"></video>
+
+*"Failing state confirmed exactly as reported. Wiring card 1.1 to the implementer."*
+
 ## Coming next
 
-- The tester's failing tests
 - The implementer makes them pass
 - The reviewer checks the evidence
 - Approval and commit

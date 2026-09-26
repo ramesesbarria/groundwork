@@ -7,5 +7,8 @@ cli/core/
 .groundwork/
 PLAN.md
 
+# Source recordings dropped at the repo root; the cut clips live in docs/public/clips/
+/*.mp4
+
 # Docs site build output
 docs/.vitepress/cache/
