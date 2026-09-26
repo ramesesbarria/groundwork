@@ -59,10 +59,25 @@ When the tests come back failing for the right reason, the runner confirms them,
 
 *"Failing state confirmed exactly as reported. Wiring card 1.1 to the implementer."*
 
+## 4. Approval and commit
+
+When the card has passed review, the runner stops and shows you the same three-part summary, in
+plain words: what changed, how to check it yourself, and the caveats.
+
+<video autoplay muted loop playsinline controls src="https://ramesesbarria.github.io/groundwork/clips/approval-stop.mp4"></video>
+
+*The approval stop for card 1.1, with the reviewer's caveats listed.*
+
+Only you can approve. `/gw-approve` checks the evidence first, marks the card done, commits it —
+and asks about the next card.
+
+<video autoplay muted loop playsinline controls src="https://ramesesbarria.github.io/groundwork/clips/approved-commit.mp4"></video>
+
+*"Approved and committed [1.1] Number entry (3e7c4c8). Card 1.2 is next."*
+
 ## Coming next
 
-- The implementer makes them pass
-- The reviewer checks the evidence
-- Approval and commit
+- Card 1.2 and the rest of the build
+- The finished calculator
 
 Recorded as the build moves along.
