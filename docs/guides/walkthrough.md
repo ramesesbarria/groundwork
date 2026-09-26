@@ -35,9 +35,28 @@ Then the card files land in `.groundwork/cards/`, and the next step is handed ba
 
 *"Planning is done" — six cards written, next step card 1.1.*
 
+One more step before the card loop: the planning files get committed on their own, so card 1.1's
+commit holds only card 1.1's work.
+
+<video autoplay muted loop playsinline controls src="https://ramesesbarria.github.io/groundwork/clips/plan-committed.mp4"></video>
+
+*The plan commit, then the runner lines up card 1.1.*
+
+## 3. Building the first card
+
+`/gw` starts card 1.1 and hands it to the **tester** — a subagent with fresh context whose only job
+is writing tests that fail for the right reason. The runner doesn't write them itself, and the
+implementer won't be allowed to touch them later.
+
+<video autoplay muted loop playsinline controls src="https://ramesesbarria.github.io/groundwork/clips/tester-launched.mp4"></video>
+
+*"Card started. Handing it to the tester now (a subagent, so its work stays separate from mine)."*
+
 ## Coming next
 
-- The first card: tester → implementer → reviewer
+- The tester's failing tests
+- The implementer makes them pass
+- The reviewer checks the evidence
 - Approval and commit
 
 Recorded as the build moves along.
