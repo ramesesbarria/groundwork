@@ -6,7 +6,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
-import { ADAPTERS, locateCore, planAdapter, planInit, stampVersion, TEMPLATE_TARGETS, type Adapter } from "./init.js";
+import { ADAPTERS, GITATTRIBUTES, locateCore, planAdapter, planInit, stampVersion, TEMPLATE_TARGETS, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
 import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
@@ -55,8 +55,12 @@ function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
 
 // Groundwork's own files for this project: the managed part of the core, plus each installed adapter.
 function plan(cwd: string, core: CoreFiles): PlannedFile[] {
-  const files = planInit(core, "none").filter(
-    (f) => f.path.startsWith(".groundwork/") && !PROJECT_FILES.has(f.path) && !f.path.endsWith("/.gitkeep"),
+  // Old installs may predate the binary image rules; append-lines only adds what's missing.
+  const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
+  files.push(
+    ...planInit(core, "none").filter(
+      (f) => f.path.startsWith(".groundwork/") && !PROJECT_FILES.has(f.path) && !f.path.endsWith("/.gitkeep"),
+    ),
   );
   const models = readProjectConfig(join(cwd, ".groundwork")).models;
   for (const tool of installedAdapters(cwd, core)) {
@@ -69,7 +73,9 @@ function plan(cwd: string, core: CoreFiles): PlannedFile[] {
       }
     }
   }
-  return files;
+  // Adapters plan the same .gitattributes; keep the first entry per path.
+  const seen = new Set<string>();
+  return files.filter((file) => (seen.has(file.path) ? false : (seen.add(file.path), true)));
 }
 
 export async function upgrade(args: string[], io: Io): Promise<RunResult> {
