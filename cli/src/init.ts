@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -164,6 +165,16 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   return answer;
 }
 
+// Whether the repo already had uncommitted changes. False when git can't tell (no git, no repo).
+function uncommittedChanges(cwd: string): boolean {
+  if (!existsSync(join(cwd, ".git"))) return false;
+  try {
+    return execFileSync("git", ["status", "--porcelain"], { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() !== "";
+  } catch {
+    return false;
+  }
+}
+
 export async function init(args: string[], io: Io): Promise<RunResult> {
   if (isGroundworkSource(io.cwd)) {
     return {
@@ -177,6 +188,7 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
   }
 
+  const hadChanges = uncommittedChanges(io.cwd);
   const core = readCore(locateCore());
   let lines: string[];
   let warnings: string[];
@@ -200,6 +212,11 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
   // The build loop commits each card, so it needs git; everything else works without it.
   if (!existsSync(join(io.cwd, ".git"))) {
     warnings.push("This folder isn't a git repository. Groundwork commits each approved card, so run `git init` before you start.");
+  } else if (!dryRun && hadChanges) {
+    warnings.push(
+      "There were uncommitted changes before this install. Commit Groundwork's files on their own (e.g. `Add Groundwork`), " +
+        "so they don't mix with other work and each card's commit holds only that card.",
+    );
   }
   const output = [
     dryRun
