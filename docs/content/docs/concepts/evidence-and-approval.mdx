@@ -27,14 +27,20 @@ verified live, the reviewer must say so and make it the first caveat — never q
 
 ## What approval refuses
 
-`/gw-approve` stops, and says exactly what's missing, when:
+`/gw-approve` runs [`groundwork check`](/docs/reference/cli#check) and stops, saying exactly what's
+missing, when:
 
 - the card's Evidence section is empty,
 - any file it links to is missing, or
-- an acceptance criterion is unchecked with no explanation.
+- an acceptance criterion is unchecked with no reason after it (`- [ ] <criterion> — <why>`).
 
-The agent won't fill the gap itself to get past the gate. Either the work goes back, or the
+The agent is told not to fill the gap itself to get past the gate. Either the work goes back, or the
 evidence gets made first.
+
+This isn't only an instruction. The **commit gate** in the guard runner refuses any commit that names
+a card unless that card is done and passes the same check, and in Claude Code it also needs a
+message from you since the last commit. See [Claude Code](/docs/adapters/claude-code#hooks) and
+[OpenCode](/docs/adapters/opencode#human-only-commands) for what each tool can enforce.
 
 ## Baselines
 

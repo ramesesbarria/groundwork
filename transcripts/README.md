@@ -27,7 +27,7 @@ what a session loads before doing anything, and resuming with and without Ground
 
 ## Why read them
 
-- **The roles are real.** The reviewer transcripts never write code; the tester transcripts write
+- **The roles are real.** In these runs the reviewer never wrote code (it has no file-edit tool, and its instructions forbid it); the tester transcripts write
   tests first and prove they fail for the right reason.
 - **The evidence is real.** Card commits and evidence files in the app repo line up with what the
   subagents did in these sessions.

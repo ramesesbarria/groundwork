@@ -60,8 +60,9 @@ roles and stops at your door.
 2. **Build one card.** The tester writes failing tests, the implementer makes them pass, and a
    reviewer with fresh context re-runs everything and checks every criterion. The proof is saved
    next to the card, with steps you can follow to check it yourself.
-3. **You approve.** Nothing is committed until you do, card by card or once per phase. When the
-   same mistake happens twice it becomes a rule; if it still happens, a guard blocks it.
+3. **You approve.** By default a card is committed only after you approve it, and a commit gate
+   refuses one without its evidence; or approve once per phase. When the same mistake happens
+   twice it becomes a rule; if it still happens, it can become a guard that blocks it.
 
 ```mermaid
 flowchart TD
@@ -114,8 +115,8 @@ The measurements come from one recorded build. [The calculator walkthrough](http
 | | Groundwork | A raw agent session |
 |---|---|---|
 | Project state | Files: spec, cards, handoff, decisions | The chat scrollback |
-| "Done" | Evidence attached; approval refuses without it | Whatever the model summarizes |
-| Review | A separate reviewer with fresh context, can't edit code | The context that wrote it |
+| "Done" | Evidence attached; a card without it can't be committed | Whatever the model summarizes |
+| Review | A separate reviewer with fresh context and no file-edit tool | The context that wrote it |
 | Learning | Repeated mistakes become rules, then guards | Starts fresh every session |
 | Resume | Any session, tool or model continues from the handoff | Re-explain everything |
 
@@ -135,7 +136,7 @@ The [5-minute quickstart](https://ramesesbarria.github.io/groundwork/quickstart)
 - [The build loop](https://ramesesbarria.github.io/groundwork/docs/concepts/the-build-loop) and [evidence and approval](https://ramesesbarria.github.io/groundwork/docs/concepts/evidence-and-approval) explain the mechanics.
 - Adapters for [Claude Code](https://ramesesbarria.github.io/groundwork/docs/adapters/claude-code), [OpenCode](https://ramesesbarria.github.io/groundwork/docs/adapters/opencode) and [other tools](https://ramesesbarria.github.io/groundwork/docs/adapters/other-tools).
 - [What it costs](https://ramesesbarria.github.io/groundwork/docs/concepts/cost) has the full breakdown; [the FAQ](https://ramesesbarria.github.io/groundwork/docs/faq) answers the rest.
-- **Upgrading.** `npx groundwork-ai upgrade` refreshes Groundwork's files and keeps your spec, cards and lessons. [How updating works](https://ramesesbarria.github.io/groundwork/docs/getting-started/installation#updating).
+- **Upgrading.** `npx groundwork-ai upgrade` refreshes Groundwork's files and keeps your spec, cards, lessons and edits. [How updating works](https://ramesesbarria.github.io/groundwork/docs/getting-started/installation#updating). `npx groundwork-ai uninstall` takes it out again.
 
 ## FAQ
 
