@@ -13,7 +13,7 @@ export const CARD_STATUSES = [
 ] as const;
 export type CardStatus = (typeof CARD_STATUSES)[number];
 
-// What people see. Card files keep the internal statuses; core/workflow.md lists the same labels
+// What people see. Card files keep the internal statuses; core/reference/statuses.md lists the same labels
 // and core/hooks/session-start.mjs repeats them (it can't import from the CLI).
 export const STATUS_LABELS: Record<CardStatus, string> = {
   todo: "to do",
@@ -30,7 +30,8 @@ export const statusLabel = (status: string) => STATUS_LABELS[status as CardStatu
 export const APPROVAL_MODES = ["per-card", "per-phase"] as const;
 export type ApprovalMode = (typeof APPROVAL_MODES)[number];
 
-// Allowed status changes. core/workflow.md documents each one, and a test keeps the two in sync.
+// Allowed status changes. core/reference/statuses.md documents each one, core/guards/lib/cards.mjs
+// enforces them, and tests keep all three in sync.
 export const TRANSITIONS: ReadonlyArray<readonly [CardStatus, CardStatus]> = [
   ["todo", "testing"],
   ["testing", "implementing"],

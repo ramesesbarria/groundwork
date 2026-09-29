@@ -8,7 +8,8 @@ import type { ModelHints } from "./adapters/shared.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
 import { VERSION } from "./version.js";
-import { parseJson } from "./config.js";
+import { parseJson, readProjectConfig } from "./config.js";
+import { recordFiles } from "./manifest.js";
 
 export type { PlannedFile } from "./files.js";
 
@@ -47,6 +48,26 @@ export const TEMPLATE_TARGETS: Record<string, string> = {
   // Shipped under another name: npm leaves files called .gitignore out of a package.
   "templates/groundwork.gitignore": ".groundwork/.gitignore",
 };
+
+// Template targets Groundwork keeps up to date; the rest belong to the project once it has them.
+const MANAGED_TARGETS = new Set([".groundwork/config.schema.json", ".groundwork/.gitignore"]);
+const RULES = "templates/rules/";
+
+// Where a core file lands in a project. Each role's rules template becomes .groundwork/rules/<role>.md.
+export function targetOf(path: string): string {
+  if (TEMPLATE_TARGETS[path]) return TEMPLATE_TARGETS[path];
+  if (path.startsWith(RULES)) return `.groundwork/rules/${path.slice(RULES.length)}`;
+  return `.groundwork/${path}`;
+}
+
+// The project's own files: spec, handoff, lessons, config values, AGENTS.md, its rules. `upgrade`
+// never replaces them.
+export const isProjectFile = (target: string) =>
+  target.startsWith(".groundwork/rules/") || (Object.values(TEMPLATE_TARGETS).includes(target) && !MANAGED_TARGETS.has(target));
+
+// Files Groundwork owns outright, whose last-written version the manifest records.
+export const isManaged = (file: PlannedFile) =>
+  (file.mode ?? "replace") === "replace" && !file.pointer && !isProjectFile(file.path) && !file.path.endsWith("/.gitkeep");
 
 // What an existing CLAUDE.md or AGENTS.md gets instead of being replaced. gw-setup merges the rest, with the user's OK.
 // A file that already contains the marker is already connected to Groundwork and is left alone.
@@ -87,7 +108,7 @@ export function stampVersion(configJson: string, version: string): string {
 // Pure: which files `init` writes for this core and adapter.
 export function planInit(core: CoreFiles, adapter: Adapter, version = VERSION): PlannedFile[] {
   const files: PlannedFile[] = Object.entries(core).map(([path, content]) => {
-    const target = TEMPLATE_TARGETS[path] ?? `.groundwork/${path}`;
+    const target = targetOf(path);
     return withPointer({ path: target, content: target === ".groundwork/config.json" ? stampVersion(content, version) : content });
   });
   // A spare copy of the AGENTS.md template, so gw-setup can rebuild AGENTS.md if the user kept their own.
@@ -156,7 +177,26 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
   }
 
-  const { lines, warnings } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
+  const core = readCore(locateCore());
+  let lines: string[];
+  let warnings: string[];
+  if (dryRun) {
+    ({ lines, warnings } = await applyFiles(planInit(core, adapter), io, true));
+  } else {
+    const base = planInit(core, "none");
+    const first = await applyFiles(base, io, false);
+    // Adapter files come from the project's own .groundwork/, as `adapter add` and `doctor` build them,
+    // so a role or command file the user chose to keep is what the adapter points at.
+    const groundwork = join(io.cwd, ".groundwork");
+    const adapterFiles =
+      adapter === "none"
+        ? []
+        : planAdapter(readCore(groundwork), adapter, readProjectConfig(groundwork).models).filter((f) => f.path !== ".gitattributes");
+    const second = await applyFiles(adapterFiles, io, false);
+    lines = [...first.lines, ...second.lines];
+    warnings = [...first.warnings, ...second.warnings];
+    recordFiles(io.cwd, [...base, ...adapterFiles].filter(isManaged), VERSION);
+  }
   // The build loop commits each card, so it needs git; everything else works without it.
   if (!existsSync(join(io.cwd, ".git"))) {
     warnings.push("This folder isn't a git repository. Groundwork commits each approved card, so run `git init` before you start.");

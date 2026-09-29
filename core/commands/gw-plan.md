@@ -1,6 +1,6 @@
 ---
 name: gw-plan
-description: Use when the spec is confirmed and there are no cards yet, or the human wants to plan new work. Breaks the spec into phases and cards, after recording any stack decisions.
+description: Use when the spec is confirmed and there are no cards yet, or new work needs planning. Breaks it into phases and cards.
 ---
 # gw-plan
 
@@ -16,7 +16,7 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
    - has acceptance criteria that can each be checked, by a test where possible (logic that can run without the UI goes in its own files, so it can be tested),
    - lists the cards it needs first in `depends_on`.
 5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
-6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md`, with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md.
+6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md` without its `<!-- -->` comments (every role rereads the card), with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md.
 7. Update HANDOFF: phase 1, next step is `gw-next`.
 
 ## Writes

@@ -25,7 +25,13 @@ describe("generated agent files", () => {
     const out = generateClaudeCode(core, MODELS);
     expect(modelLine(out[".claude/agents/gw-reviewer.md"])).toBe("opus");
     expect(modelLine(out[".claude/agents/gw-tester.md"])).toBe("haiku");
-    expect(modelLine(out[".claude/agents/gw-planner.md"])).toBeUndefined();
+    expect(modelLine(out[".claude/agents/gw-implementer.md"])).toBeUndefined();
+  });
+
+  it("the planner gets no subagent: the main session plans (gw-spec and gw-plan say so)", () => {
+    expect(generateClaudeCode(core)).not.toHaveProperty([".claude/agents/gw-planner.md"]);
+    expect(generateOpenCode(core)).not.toHaveProperty([".opencode/agents/gw-planner.md"]);
+    expect(core["commands/gw-plan.md"]).toMatch(/You act as the planner/);
   });
 
   it("OpenCode agents get their own value when the hint is per tool", () => {

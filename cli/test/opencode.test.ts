@@ -14,7 +14,8 @@ const core = readCore(coreDir);
 const out = generateOpenCode(core);
 
 const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
-const ROLES = ["planner", "tester", "implementer", "reviewer"];
+// Roles that get a subagent. The planner doesn't: the main session plans.
+const ROLES = ["tester", "implementer", "reviewer"];
 
 const temps: string[] = [];
 afterEach(() => {
@@ -59,7 +60,6 @@ describe("OpenCode adapter", () => {
   it("limits tools per role with OpenCode permissions", () => {
     const fm = (role: string) => frontmatter(out[`.opencode/agents/gw-${role}.md`]);
     expect(fm("reviewer")).toMatch(/^\s+edit: deny$/m); // covers edit, write and apply_patch
-    expect(fm("planner")).toMatch(/^\s+bash: deny$/m);
     expect(fm("tester")).not.toContain("deny");
     expect(fm("implementer")).not.toContain("deny");
   });

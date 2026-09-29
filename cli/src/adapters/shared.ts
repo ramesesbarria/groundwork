@@ -38,6 +38,11 @@ export const rolesOf = (core: CoreFiles): CoreRole[] =>
     return { name, description: `Groundwork ${name}. ${firstSentence}` };
   });
 
+// Roles played by the main session rather than a subagent: gw-spec and gw-plan say "You act as the
+// planner", so a planner subagent would never be started. Their role file stays in the core.
+const INLINE_ROLES = new Set(["planner"]);
+export const subagentRolesOf = (core: CoreFiles): CoreRole[] => rolesOf(core).filter((r) => !INLINE_ROLES.has(r.name));
+
 // Optional model per role, from `models` in .groundwork/config.json: one name for every tool, or one per
 // adapter ({ "claude-code": "opus", "opencode": "anthropic/…" }), since each tool names models its own way.
 export type ModelHints = Record<string, string | Record<string, string>>;

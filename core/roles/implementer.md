@@ -12,6 +12,7 @@ If a test looks wrong, stop. Explain why in HANDOFF and on the card's History, a
 
 ## Load
 Read only these:
+- `.groundwork/rules/implementer.md`: this project's rules for your role
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
 - The Codebase map in `.groundwork/SPEC.md`, if there is one, then only the files it points to

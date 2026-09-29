@@ -8,7 +8,8 @@ const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 const out = generateClaudeCode(core);
 
 const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
-const ROLES = ["planner", "tester", "implementer", "reviewer"];
+// Roles that get a subagent. The planner doesn't: the main session plans.
+const ROLES = ["tester", "implementer", "reviewer"];
 
 function frontmatter(md: string): Record<string, string> {
   const match = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -74,9 +75,6 @@ describe("Claude Code adapter", () => {
     expect(agent("reviewer")).not.toContain("Edit");
     expect(agent("reviewer")).not.toContain("Write");
     expect(agent("reviewer")).toContain("Bash");
-
-    // The planner writes docs, never runs code.
-    expect(agent("planner")).not.toContain("Bash");
 
     for (const role of ["tester", "implementer"]) {
       expect(agent(role)).toEqual(expect.arrayContaining(["Edit", "Write", "Bash"]));

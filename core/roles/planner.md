@@ -13,6 +13,7 @@ Turn ideas into a spec, and the spec into phases and cards. You shape the work; 
 
 ## Load
 Read only these:
+- `.groundwork/rules/planner.md`: this project's rules for your role
 - `.groundwork/HANDOFF.md`
 - `.groundwork/SPEC.md`
 - `.groundwork/decisions/` (titles first; open a file only if it matters)

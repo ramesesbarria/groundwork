@@ -10,8 +10,8 @@ it generates points back into `.groundwork/`, so the core stays the single sourc
 | Path | What it is |
 |---|---|
 | `.claude/skills/gw-*/SKILL.md` | One skill per command, with a description that says *when* to use it |
-| `.claude/agents/gw-*.md` | One subagent per role, with limited tools |
-| `.claude/settings.json` | Two hooks: session-start orientation and the guard runner |
+| `.claude/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, each with limited tools |
+| `.claude/settings.json` | Three hooks: session-start orientation, the guard runner, and the approval recorder |
 | `CLAUDE.md` | A short pointer whose first line loads `AGENTS.md`, then lists the commands and subagents |
 
 ## Skills that trigger themselves
@@ -21,19 +21,24 @@ feature idea and there's no confirmed spec yet…"* — so Claude Code can pick 
 plain request like *"I have an app idea"*. You don't have to learn command names.
 
 `/gw-approve` and `/gw-reject` are **human-only**: they carry `disable-model-invocation`, so the
-model cannot run them itself. Approving is always your act.
+model can't run them as skills. That alone wouldn't stop a model reading the command file or
+running `git commit` itself, so the commit gate backs it up: in `per-card` mode a card commit needs a
+message from you since the last commit (see Hooks below).
 
 ## Subagents with different limits
 
-Each role becomes a subagent with only the tools it needs, so the separation of duties isn't just
-words:
+The tester, implementer and reviewer each become a subagent with only the tools they need. Planning
+runs in your main session, so the planner has a role file but no subagent.
 
 | Subagent | Tools | Why |
 |---|---|---|
-| `gw-planner` | Read, Grep, Glob, Write, Edit | Writes specs and cards; never runs commands |
-| `gw-tester` | + Bash | Writes and runs failing tests |
-| `gw-implementer` | + Bash | Makes them pass |
-| `gw-reviewer` | Read, Grep, Glob, Bash — **no editing** | Judges and sends back; can't fix |
+| `gw-tester` | Read, Grep, Glob, Write, Edit, Bash | Writes and runs failing tests |
+| `gw-implementer` | Read, Grep, Glob, Write, Edit, Bash | Makes them pass |
+| `gw-reviewer` | Read, Grep, Glob, Bash — **no file-edit tool** | Judges and sends back |
+
+The tester and implementer are *told* which files are theirs; nothing in the tools stops the
+implementer editing a test, so the reviewer checks the diff for it. The reviewer has a shell for
+running checks, and its role file allows it to write only into `.groundwork/evidence/`.
 
 If you set [`models`](/docs/reference/configuration#models-per-role) per role, they're written into each
 subagent — cheap models for mechanical roles, the strongest for review.
@@ -46,12 +51,24 @@ permissions and hooks survive.
 - **SessionStart** (`startup|clear|compact`) runs `.groundwork/hooks/session-start.mjs`, which
   prints a few lines from `HANDOFF.md` — where things stand and the next step. It injects project
   state, not methodology, and prints nothing if `.groundwork/` isn't there.
-- **PreToolUse** (`Bash|Write|Edit|MultiEdit`) runs `.groundwork/guards/run.mjs`, which applies the
-  guards listed in your config before every shell command and file write. Exit code 2 blocks the
-  action and shows the reason.
+- **PreToolUse** (`Bash|Write|Edit|MultiEdit|NotebookEdit`) runs `.groundwork/guards/run.mjs` before
+  every shell command and file write. Exit code 2 blocks the action and shows the reason. It runs
+  two built-in checks, then the guards listed in your config:
+  - **commit-gate**: a commit whose message names a card needs that card `done` and passing
+    [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode a message from you since
+    the last commit.
+  - **protect-harness**: the agent can't remove guards, turn these checks off, switch to
+    `per-phase`, or take Groundwork's hooks out of settings. You can, in your editor.
+- **UserPromptSubmit** runs `.groundwork/hooks/user-prompt.mjs` on each message *you* send (never on
+  the agent's own actions) and records it in `.groundwork/.approvals/` (git-ignored). That record is
+  how the commit gate tells your approval from the agent's say-so.
 
-New installs start with `no-ai-trailers` on. With `"guards": []`, the hook exits immediately — it's
-always on, but nothing is blocked.
+The runner fails safe: if the config or a guard can't be read, commits are blocked and everything
+else goes through, with a message saying what to fix. New installs start with `no-ai-trailers` on.
+
+These checks stop the lazy or overconfident shortcut and make a deliberate one visible. An agent
+set on getting around them can still use the shell in ways a hook can't foresee; for a hard gate,
+run `npx groundwork-ai check` in CI.
 
 ## Checking the wiring
 

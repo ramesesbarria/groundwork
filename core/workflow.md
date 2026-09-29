@@ -17,27 +17,11 @@ Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, check
 
 ## Card statuses
 
-| From | To | Who | When |
-|---|---|---|---|
-| `todo` | `testing` | runner | Starts the card |
-| `testing` | `implementing` | tester | Failing tests are written and saved |
-| `implementing` | `review` | implementer | Tests, lint and build all pass |
-| `implementing` | `testing` | implementer | A test looks wrong; reason written on the card |
-| `review` | `implementing` | reviewer | Problems found; listed under History |
-| `review` | `awaiting-approval` | reviewer | Passed, in `per-card` mode |
-| `review` | `done` | reviewer | Passed, in `per-phase` mode (the runner commits) |
-| `awaiting-approval` | `done` | human | Approves (the runner commits) |
-| `awaiting-approval` | `rejected` | human | Rejects, with a reason |
-| `done` | `rejected` | human | Rejects a card during a phase review |
-| `rejected` | `implementing` | runner | Picks the card up again; the reason is on the card |
-
-When you tell the human about a card, use plain labels, not these status names: `todo` → to do, `testing` → being tested, `implementing` → being built, `review` → in review, `awaiting-approval` → waiting for you, `done` → done, `rejected` → sent back.
-
-No other changes are allowed. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
+A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-approval` → `done`; the runner starts it, and a card sent back is `rejected` until the runner picks it up again. Before you change a status, read `.groundwork/reference/statuses.md`: who may make each change, and the plain labels to use with the human. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
 
 ## Approval
 
-Set `approvalMode` in `.groundwork/config.json`:
+`approvalMode` in `.groundwork/config.json` (after setup, only the human switches it to `per-phase`; if they ask you to, tell them the one line to change):
 
 - **`per-card`** (default): the runner stops at `awaiting-approval`. The human approves or rejects each card.
 - **`per-phase`**: cards that pass review are committed one by one without stopping. When the phase's last card is done, the runner stops and the human reviews the phase. They can reject any card, which goes back into the loop. Nothing is pushed until the phase is approved.

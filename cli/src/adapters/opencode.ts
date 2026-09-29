@@ -1,11 +1,10 @@
 // OpenCode adapter. Formats from opencode.ai/docs (commands, agents, tools, rules), checked 2026-09-24.
 // OpenCode reads AGENTS.md itself, so no extra rules file is needed.
 import type { CoreFiles } from "../core.js";
-import { commandsOf, modelFor, rolesOf, sortedByPath, yamlValue, type ModelHints } from "./shared.js";
+import { commandsOf, modelFor, sortedByPath, subagentRolesOf, yamlValue, type ModelHints } from "./shared.js";
 
 // OpenCode permission keys each role's subagent is denied. "edit" covers edit, write and apply_patch.
 const ROLE_DENY: Record<string, string[]> = {
-  planner: ["bash"],
   tester: [],
   implementer: [],
   reviewer: ["edit"],
@@ -67,7 +66,7 @@ export function generateOpenCode(core: CoreFiles, models: ModelHints = {}): Reco
     ].join("\n");
   }
 
-  for (const { name: role, description } of rolesOf(core)) {
+  for (const { name: role, description } of subagentRolesOf(core)) {
     const deny = ROLE_DENY[role];
     if (!deny) throw new Error(`No OpenCode permissions defined for role "${role}"`);
     const model = modelFor(models, role, "opencode");

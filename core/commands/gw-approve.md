@@ -1,6 +1,6 @@
 ---
 name: gw-approve
-description: Use when the human says to approve the card awaiting approval, or a whole phase in per-phase mode. Checks the evidence, marks it done and commits it.
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
 ---
 # gw-approve
 

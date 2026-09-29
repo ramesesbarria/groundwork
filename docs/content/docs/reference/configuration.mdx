@@ -8,10 +8,12 @@ take effect immediately. Editors validate it against `config.schema.json` next t
 ```json
 {
   "$schema": "./config.schema.json",
+  "setup": "done",
   "approvalMode": "per-card",
   "experience": "new",
   "tokenBudget": 2000,
   "guards": ["no-ai-trailers"],
+  "enforce": { "commitGate": true, "protectHarness": true },
   "commitFormat": "[{id}] {title}",
   "commands": {
     "install": "npm install",
@@ -28,10 +30,12 @@ take effect immediately. Editors validate it against `config.schema.json` next t
 | Field | Type | Default | What it does |
 |---|---|---|---|
 | `version` | string | written by `init`/`upgrade` | The Groundwork version that last wrote your files; `doctor` compares it with the CLI |
+| `setup` | `pending` \| `done` | `pending` | Whether `gw-setup` has run; `/gw` runs setup until it's `done` |
 | `approvalMode` | `per-card` \| `per-phase` | `per-card` | Who approves when: every card, or each phase |
 | `experience` | `new` \| `experienced` | `new` | How much the agent explains: one sentence per step and "How to check" every time, or terse summaries |
-| `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for the always-loaded files (`AGENTS.md` + `CLAUDE.md`), checked by `doctor` |
+| `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for what every session loads (`AGENTS.md`, `CLAUDE.md`, the command and subagent lists, session start), checked by `doctor` |
 | `guards` | string[] | `["no-ai-trailers"]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/`. The default blocks commits that credit an AI tool; remove it to allow them |
+| `enforce` | object | both `true` | The built-in checks: `commitGate` and `protectHarness` — see below |
 | `models` | object | — | Optional model per role, used only by adapters — see below |
 | `commitFormat` | string | `[{id}] {title}` | First line of each card's commit; quick changes use `quick` as the ID |
 | `commands` | object | empty | The shell commands agents run: `install`, `test`, `lint`, `build`, `run` |
@@ -47,6 +51,20 @@ The `commands` block is how the agent knows your project:
 
 Leave a command empty if the project doesn't have it. `gw-plan` fills these in when a stack is
 chosen, and checks they actually run on your machine before writing them down.
+
+## enforce
+
+Two checks run before every shell command and file write, whatever `guards` lists:
+
+- **`commitGate`**: a commit whose message names a card needs that card `done` and passing
+  [`groundwork check`](/docs/reference/cli#check). In `per-card` mode on Claude Code, it also needs
+  a message from you since the last commit.
+- **`protectHarness`**: the agent can't remove a guard, set either of these to `false`, switch
+  `approvalMode` to `per-phase`, mark setup as not done, change existing guard or hook files, or
+  take Groundwork's hooks out of settings.
+
+Only you can turn them off, by editing this file yourself: the checks see the agent's tool calls,
+not your editor. While `setup` isn't `done`, the agent may write the config freely.
 
 ## Models per role
 
@@ -73,6 +91,7 @@ a role out to use the tool's default. `doctor` warns about role names that don't
 
 Just edit the file — nothing else needs updating:
 
-- Switching `approvalMode` changes the next stop, not past ones.
+- Switching `approvalMode` changes the next stop, not past ones. Switch it yourself: the agent may
+  go back to `per-card`, but not to `per-phase`, which would let cards commit without you.
 - Switching `experience` changes tone immediately (from the next step, since it's read each time).
 - Raising `tokenBudget` after a deliberate decision is fine; `doctor` shows the real number.

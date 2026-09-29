@@ -1,6 +1,6 @@
 ---
 name: gw-quick
-description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value, or reports a bug. Makes it in one pass without a card, cause first for bugs, and the tests must still pass.
+description: Use when the human asks for a small, low-risk change or reports a bug. Makes it in one pass without a card; tests must pass.
 ---
 # gw-quick
 

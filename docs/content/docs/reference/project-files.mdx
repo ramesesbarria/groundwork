@@ -8,14 +8,15 @@ description: "Everything Groundwork knows lives in plain files in your repo, so 
 ```text
 AGENTS.md                     # what every session starts with (short, always loaded)
 .groundwork/
-  config.json                 # your settings: approval mode, commands, guards, models
+  config.json                 # your settings: approval mode, commands, guards, enforcement, models
   workflow.md                 # the loop, step by step
   commands/                   # the gw-* commands, one file each
   roles/                      # planner, tester, implementer, reviewer
+  rules/                      # this project's own rules for each role
   guides/                     # longer steps a command links to
   templates/                  # starting points for cards, specs, decisions…
-  guards/                     # guard scripts + the runner adapters hook up
-  hooks/                      # session-start orientation (Claude Code, OpenCode)
+  guards/                     # guard scripts, the runner adapters hook up, and the built-in checks (lib/)
+  hooks/                      # session-start orientation, and the approval recorder (Claude Code)
   SPEC.md                     # what you're building, in your words
   cards/                      # one file per piece of work
   decisions/                  # each stack choice, with the options you chose from
@@ -23,6 +24,8 @@ AGENTS.md                     # what every session starts with (short, always lo
   HANDOFF.md                  # where things stand right now
   LESSONS.md                  # mistakes worth remembering, and the rules they became
   JOURNAL.md                  # a short recap of each finished phase
+  .manifest.json              # fingerprints of the files Groundwork wrote, so upgrade keeps your edits
+  .gitignore                  # keeps local state (.approvals/, retro.md) out of git
 ```
 
 ## What each file holds
@@ -35,21 +38,23 @@ AGENTS.md                     # what every session starts with (short, always lo
 | `decisions/` | Numbered records: context, 2–4 options with trade-offs, your choice, consequences | `gw-decide`, planner |
 | `evidence/` | Proof per card, plus `baseline/` on existing projects. Kept short on purpose — it's committed | tester, reviewer, setup |
 | `HANDOFF.md` | The current state, overwritten each time, under ~300 words | runner and roles |
-| `LESSONS.md` | Note → rule → guard, each with the mistake that created it | `gw-retro`, role files |
+| `LESSONS.md` | Note → rule → guard, each with the mistake that created it | `gw-retro` |
+| `rules/` | One file per role: rules that only that role needs, promoted from lessons | `gw-retro`, you |
 | `JOURNAL.md` | One recap per finished phase: what shipped, how to try it, decisions, calls, lessons | `gw-approve` |
 | `config.json` | The settings described in [Configuration](/docs/reference/configuration) | `gw-setup`, `gw-decide`, you |
 
-There's also `retro.md` after you run `npx groundwork-ai retro` — the raw report `/gw-retro` reads.
-It's regenerated each time.
+Two files stay out of git (`.groundwork/.gitignore`): `retro.md`, the raw report `npx groundwork-ai retro`
+writes for `/gw-retro`, and `.approvals/`, where Claude Code's hook records your latest message for
+the commit gate.
 
 ## Groundwork's files vs your files
 
 | | Files | Behavior |
 |---|---|---|
-| **Your state** | `SPEC.md`, `cards/`, `decisions/`, `evidence/`, `HANDOFF.md`, `LESSONS.md`, `JOURNAL.md`, config values, your `AGENTS.md` | Never touched by `upgrade`; committed with the work |
-| **Groundwork's own** | `commands/`, `roles/`, `workflow.md`, `guards/`, `hooks/`, `templates/`, `guides/` | Refreshed by `groundwork upgrade`, which asks before overwriting |
+| **Your state** | `SPEC.md`, `cards/`, `decisions/`, `evidence/`, `rules/`, `HANDOFF.md`, `LESSONS.md`, `JOURNAL.md`, config values, your `AGENTS.md` | Never touched by `upgrade`; committed with the work |
+| **Groundwork's own** | `commands/`, `roles/`, `workflow.md`, `guards/`, `hooks/`, `templates/`, `guides/` | Refreshed by `groundwork upgrade`; a file you changed is kept, with the new version saved next to it as `.new` |
 
-Everything under `.groundwork/` is meant to be committed. That's what makes the project resumable
+Everything else under `.groundwork/` is meant to be committed. That's what makes the project resumable
 from a fresh clone, and it gives you the audit trail: cards link evidence, commits link cards, and
 lessons link the mistakes they came from.
 

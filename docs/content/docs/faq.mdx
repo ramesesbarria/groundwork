@@ -42,7 +42,8 @@ at the end of every phase.
 ## Can I change my approval mode later?
 
 Yes — edit `approvalMode` in `.groundwork/config.json`. It's read fresh at each stop, so the next
-step uses the new mode. The same is true of `experience`.
+step uses the new mode. Make that edit yourself: the agent isn't allowed to switch you to
+`per-phase`, since that lets cards commit without you. The same is true of `experience`.
 
 ## What if the agent gets something wrong?
 
@@ -52,8 +53,9 @@ and if that still gets broken, into a guard that blocks it. Nothing changes with
 
 ## How much does it cost in context?
 
-About **400 tokens always loaded** for a fresh install (`AGENTS.md`; `doctor` shows the real
-number). Everything else — roles, commands, workflow — loads only when a step needs it, and cards
+About **1,100 tokens always loaded** on a fresh Claude Code install, about 950 in OpenCode and 450
+with plain markdown: `AGENTS.md`, plus the one-line description of each command and subagent your
+tool keeps in context. `doctor` shows the real number for your project, part by part. Everything else — roles, commands, workflow — loads only when a step needs it, and cards
 carry their own proof so nothing is re-explained. You can also
 [assign cheaper models](/docs/reference/configuration#models-per-role) to the mechanical roles.
 

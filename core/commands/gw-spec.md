@@ -1,6 +1,6 @@
 ---
 name: gw-spec
-description: Use when the human describes a new app or feature idea and there's no confirmed spec for it yet. Writes or updates the spec by asking specific questions in small batches.
+description: Use when the human describes a new app or feature and there's no confirmed spec for it. Writes the spec by asking questions.
 ---
 # gw-spec
 
