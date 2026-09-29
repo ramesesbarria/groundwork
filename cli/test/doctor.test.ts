@@ -45,6 +45,23 @@ describe("groundwork doctor", () => {
     expect(output).toMatch(/no problems/i);
   });
 
+  it("reads a config saved with a byte order mark", async () => {
+    const dir = await installed();
+    const path = join(dir, ".groundwork/config.json");
+    writeFileSync(path, `﻿${readFileSync(path, "utf8")}`);
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(0);
+    expect(output).toMatch(/no problems/i);
+  });
+
+  it("reports a config that isn't valid JSON as a problem instead of crashing", async () => {
+    const dir = await installed();
+    writeFileSync(join(dir, ".groundwork/config.json"), '{ "guards": [], }');
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(1);
+    expect(output).toMatch(/config\.json isn't valid JSON/);
+  });
+
   it("suggests the binary image rules when .gitattributes marks .groundwork/** as text", async () => {
     const dir = await installed();
     writeFileSync(join(dir, ".gitattributes"), ".groundwork/** text eol=lf\n");
@@ -121,7 +138,7 @@ describe("groundwork doctor", () => {
     );
     writeFileSync(
       join(dir, ".groundwork/cards/1.1-thing.md"),
-      "---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: done\ndepends_on: []\n---\n## Evidence\n- Checked against L-001\n",
+      "---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: review\ndepends_on: []\n---\n## Evidence\n- Checked against L-001\n",
     );
     const { code, output } = await doctor(dir);
     expect(code).toBe(0);
@@ -153,14 +170,21 @@ describe("groundwork doctor", () => {
     expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, and every role rereads it/);
   });
 
-  it("suggests re-saving UTF-16 evidence as UTF-8", async () => {
+  it("reports UTF-16 evidence as a problem, with advice that doesn't add a byte order mark", async () => {
     const dir = await installed();
     mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), Buffer.from("﻿5 passed", "utf16le"));
     writeFileSync(join(dir, ".groundwork/evidence/1.1/fine.txt"), "5 passed");
     const { code, output } = await doctor(dir);
-    expect(code).toBe(0);
+    expect(code).toBe(1);
     expect(output).toMatch(/1 evidence file is UTF-16 \(e\.g\. \.groundwork\/evidence\/1\.1\/tests\.txt\)/);
-    expect(output).toMatch(/Out-File -Encoding utf8/);
+    expect(output).toMatch(/WriteAllText/);
+  });
+
+  it("checks CSV, HTML and XML evidence for UTF-16 too", async () => {
+    const dir = await installed();
+    mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/report.xml"), Buffer.from("﻿<ok/>", "utf16le"));
+    expect((await doctor(dir)).output).toMatch(/1 evidence file is UTF-16/);
   });
 });

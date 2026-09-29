@@ -1,6 +1,6 @@
 ---
 name: gw-setup
-description: Use when Groundwork was just installed and AGENTS.md or .groundwork/config.json isn't filled in yet. Sets up a new or existing project with a short interview.
+description: Use when Groundwork was just installed (setup in .groundwork/config.json isn't done). Sets up a new or existing project with a short interview.
 ---
 # gw-setup
 
@@ -17,7 +17,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 
    Save the answers as `experience` (`new` or `experienced`) and `approvalMode`: every piece of work → `per-card`; each milestone → `per-phase`. If they're unsure about approval, use `per-card` for new and `per-phase` for experienced.
 3. If a stack is chosen, ask for the install, test, lint, build and run commands (run: how to start the app to use it), suggesting the usual ones. Otherwise leave them empty until planning.
-4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json`.
+4. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json` with `setup` set to `done`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
 6. Update HANDOFF: next step is `gw-spec` (new project). For an existing project, ask "What do you want to change or add first?", then `gw-spec` for that change, or `gw-quick` if it's small.
 7. Suggest committing the setup now (e.g. `Set up Groundwork`), so the first card's commit only holds that card's work.

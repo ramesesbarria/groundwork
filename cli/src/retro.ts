@@ -5,6 +5,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseCard } from "./cards.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
+import { parseJson } from "./config.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -147,7 +148,7 @@ export function retro(io: Pick<Io, "cwd">): RunResult {
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
 
   const configPath = join(groundwork, "config.json");
-  const config = existsSync(configPath) ? (JSON.parse(readFileSync(configPath, "utf8")) as { commitFormat?: string }) : {};
+  const config = existsSync(configPath) ? (parseJson(readFileSync(configPath, "utf8")) as { commitFormat?: string }) : {};
   const commits = readCommits(io.cwd);
   const signals = [...(commits ? gitSignals(commits, config.commitFormat || DEFAULT_COMMIT_FORMAT) : []), ...cardSignals(groundwork)];
   const output = report(signals, commits ? undefined : "Not a git repo (or no commits yet), so only Groundwork's own files were read.");

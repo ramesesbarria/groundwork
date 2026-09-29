@@ -1,9 +1,11 @@
 {
   "$schema": "./config.schema.json",
+  "setup": "pending",
   "approvalMode": "per-card",
   "experience": "new",
   "tokenBudget": 2000,
   "guards": ["no-ai-trailers"],
+  "enforce": { "commitGate": true, "protectHarness": true },
   "commitFormat": "[{id}] {title}",
   "commands": {
     "install": "",

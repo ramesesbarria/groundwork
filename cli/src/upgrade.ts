@@ -8,7 +8,7 @@ import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import { ADAPTERS, GITATTRIBUTES, locateCore, planAdapter, planInit, stampVersion, TEMPLATE_TARGETS, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
-import { readProjectConfig } from "./config.js";
+import { parseJson, readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -22,7 +22,8 @@ const retiredPaths = RETIRED_COMMANDS.flatMap((name) => [
 ]);
 
 // Files init copies that belong to the project once it has them.
-const PROJECT_FILES = new Set(Object.values(TEMPLATE_TARGETS).filter((path) => path !== ".groundwork/config.schema.json"));
+const MANAGED_TARGETS = new Set([".groundwork/config.schema.json", ".groundwork/.gitignore"]);
+const PROJECT_FILES = new Set(Object.values(TEMPLATE_TARGETS).filter((path) => !MANAGED_TARGETS.has(path)));
 
 // A CLAUDE.md made entirely of lines Groundwork generates, so replacing it loses nothing of the user's.
 export function isGeneratedClaudeMd(text: string): boolean {
@@ -35,16 +36,30 @@ type Commands = { commands?: Record<string, string> };
 
 // Command keys a newer template has that the project's config lacks (e.g. `run` in 0.6).
 export function missingCommands(configJson: string, templateJson: string): string[] {
-  const have = (JSON.parse(configJson) as Commands).commands ?? {};
-  const want = (JSON.parse(templateJson) as Commands).commands ?? {};
+  const have = (parseJson(configJson) as Commands).commands ?? {};
+  const want = (parseJson(templateJson) as Commands).commands ?? {};
   return Object.keys(want).filter((key) => !(key in have));
 }
 
 // Adds them empty, so every value the project already set stays exactly as it is.
 export function withCommands(configJson: string, keys: string[]): string {
-  const config = JSON.parse(configJson) as Commands & Record<string, unknown>;
+  const config = parseJson(configJson) as Commands & Record<string, unknown>;
   config.commands = { ...config.commands, ...Object.fromEntries(keys.map((key) => [key, ""])) };
   return JSON.stringify(config, null, 2) + "\n";
+}
+
+// Older configs have no `setup` key. Setup ran if it filled in both AGENTS.md and SPEC.md: a project
+// that kept its own AGENTS.md has no placeholders there, so SPEC.md is the one that tells.
+export function setupState(cwd: string): "done" | "pending" {
+  const read = (path: string) => (existsSync(join(cwd, path)) ? readFileSync(join(cwd, path), "utf8") : "");
+  const filled = !read("AGENTS.md").includes("{{") && !read(".groundwork/SPEC.md").includes("{{project_name}}");
+  return filled ? "done" : "pending";
+}
+
+export function withSetup(configJson: string, state: "done" | "pending"): string {
+  const config = parseJson(configJson) as Record<string, unknown>;
+  if ("setup" in config) return configJson;
+  return JSON.stringify({ ...config, setup: state }, null, 2) + "\n";
 }
 
 function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
@@ -84,13 +99,15 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const dryRun = args.includes("--dry-run");
 
   const configPath = join(groundwork, "config.json");
-  const config = existsSync(configPath) ? (JSON.parse(readFileSync(configPath, "utf8")) as { version?: string }) : undefined;
+  const config = existsSync(configPath) ? (parseJson(readFileSync(configPath, "utf8")) as { version?: string }) : undefined;
   const from = config?.version ? `version ${config.version}` : "an older version";
 
   const core = readCore(locateCore());
   const files = plan(io.cwd, core);
   const newCommands = config === undefined ? [] : missingCommands(readFileSync(configPath, "utf8"), core["templates/config.json"] ?? "{}");
   const additions = newCommands.map((key) => `  add        commands.${key} (empty) to .groundwork/config.json`);
+  const setup = config !== undefined && !("setup" in config) ? setupState(io.cwd) : undefined;
+  if (setup) additions.push(`  add        setup: "${setup}" to .groundwork/config.json`);
   const yes = { ...io, ask: async () => "y" }; // the human confirms once, below, not per file
   const changes = (await applyFiles(files, yes, true)).lines
     .filter((line) => !line.includes("unchanged"))
@@ -120,7 +137,8 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const { lines } = await applyFiles(files, yes, false);
   for (const path of retiredPaths) rmSync(join(io.cwd, path), { recursive: true, force: true });
   if (config !== undefined) {
-    writeFileSync(configPath, stampVersion(withCommands(readFileSync(configPath, "utf8"), newCommands), VERSION));
+    const updated = withCommands(readFileSync(configPath, "utf8"), newCommands);
+    writeFileSync(configPath, stampVersion(setup ? withSetup(updated, setup) : updated, VERSION));
   }
   const fillIn = newCommands.length > 0 ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`] : [];
 

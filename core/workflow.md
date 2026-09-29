@@ -2,7 +2,7 @@
 
 How a card goes from idea to commit. This works in any AI tool. Adapters only add shortcuts.
 
-**The runner** is the main session: the one you type `gw-next` into. It picks cards, hands them to each role in turn, and commits after approval. The roles are described in `.groundwork/roles/`.
+**The runner** is the main session: the one you type `gw-next` into. It picks cards and hands them to each role (`.groundwork/roles/`) in turn.
 
 ## The loop
 
@@ -44,15 +44,9 @@ Set `approvalMode` in `.groundwork/config.json`:
 
 **No evidence, no approval.** A card can't be approved while its Evidence section is empty or links to a missing file. Evidence is saved in `.groundwork/evidence/<card-id>/` and linked from the card.
 
-**What to save:** the command you ran, its summary line (e.g. "42 passed, 3 failed"), and the failures, about the last 30 lines at most. Not the full output: evidence is committed, so keep each file short enough to read.
+**What to save:** the command you ran, its summary line (e.g. "42 passed, 3 failed"), and the failures, about the last 30 lines at most. Not the full output: evidence is committed, so keep each file short enough to read. Write evidence files with your file-write tool or `node -e`, never with shell redirection (`>`, `Out-File`): Windows PowerShell 5.1 saves those as UTF-16, which git treats as binary.
 
-**After approval** the runner:
-1. sets the card to `done` and adds a History line,
-2. updates HANDOFF.md,
-3. commits the card's changes with the message `[<card-id>] <card title>` (or the project's `commitFormat` in the config), plus a short body saying what changed,
-4. moves to the next card, or stops if the human asked it to.
-
-Commits are made by the runner only, never by a role, and never before approval (or before review passes, in `per-phase` mode).
+**After approval** the runner sets the card to `done`, updates HANDOFF, and commits the card's changes as `[<card-id>] <card title>` (or the config's `commitFormat`) with a short body, then moves on. Only the runner commits, never a role, and never before approval (or before review passes, in `per-phase` mode). The commit gate refuses a card commit while the card isn't `done` or fails `groundwork check`.
 
 ## Experience
 `experience` in `.groundwork/config.json` sets how much you explain. Read it each time (nothing else stores it), so it can change mid-project.
@@ -91,10 +85,4 @@ A fresh session, in any tool or with any model, must be able to continue from HA
 
 ## Without subagents
 
-If your tool can't start separate agents, one session plays every role in turn:
-
-1. Before each role, read that role's file in `.groundwork/roles/` and **only** the files it lists under Load.
-2. Finish the role completely, update the card status and HANDOFF, then switch.
-3. As reviewer, reread the diff from the start as if someone else wrote it. Don't rely on memory from implementing it.
-
-It's weaker than a fresh reviewer, so the reviewer reruns every check itself.
+If your tool can't start separate agents, one session plays every role in turn. Before each role, read its file in `.groundwork/roles/` and **only** what it lists under Load; finish the role, update the card and HANDOFF, then switch. As reviewer, reread the diff as if someone else wrote it and rerun every check: it's weaker than a fresh reviewer.

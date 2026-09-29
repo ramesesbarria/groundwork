@@ -62,10 +62,25 @@ describe("guard runner", () => {
       kind: "write",
       path: "a.ts",
       content: "x",
+      whole: true,
     });
     expect(
       toAction("claude-code", { tool_name: "Edit", tool_input: { file_path: "a.ts", old_string: "x", new_string: "y" } }),
-    ).toEqual({ kind: "write", path: "a.ts", content: "y" });
+    ).toEqual({ kind: "write", path: "a.ts", content: "y", edits: [{ old: "x", new: "y", all: false }] });
+    expect(
+      toAction("claude-code", {
+        tool_name: "MultiEdit",
+        tool_input: { file_path: "a.ts", edits: [{ old_string: "a", new_string: "b" }, { old_string: "c", new_string: "d", replace_all: true }] },
+      }),
+    ).toEqual({
+      kind: "write",
+      path: "a.ts",
+      content: "b\nd",
+      edits: [
+        { old: "a", new: "b", all: false },
+        { old: "c", new: "d", all: true },
+      ],
+    });
     expect(toAction("claude-code", { tool_name: "Read", tool_input: { file_path: "a.ts" } })).toBeNull();
   });
 
@@ -101,6 +116,106 @@ describe("guard runner", () => {
     expect(blocked.stderr).toMatch(/attribution/i);
 
     expect(hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } }).status).toBe(0);
+  });
+
+  it("maps NotebookEdit and OpenCode patches to writes", async () => {
+    const { toAction } = await load("run.mjs");
+    expect(toAction("claude-code", { tool_name: "NotebookEdit", tool_input: { notebook_path: "a.ipynb", new_source: "x" } })).toEqual({
+      kind: "write",
+      path: "a.ipynb",
+      content: "x",
+    });
+    const patch = "*** Begin Patch\n*** Update File: src/a.ts\n@@\n-old\n+new\n*** Add File: src/b.ts\n+hello\n*** End Patch";
+    expect(toAction("opencode", { tool: "apply_patch", args: { patchText: patch } })).toEqual({
+      kind: "write",
+      path: "src/a.ts",
+      paths: ["src/a.ts", "src/b.ts"],
+      content: "new\nhello",
+    });
+  });
+});
+
+describe("guard runner fails safe", () => {
+  const trailer = { tool_name: "Bash", tool_input: { command: "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } };
+  const listing = { tool_name: "Bash", tool_input: { command: "ls" } };
+
+  function project(config: string, extraGuards: Record<string, string> = {}) {
+    const dir = tempDir();
+    cpSync(guardsDir, join(dir, ".groundwork/guards"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/config.json"), config);
+    for (const [name, code] of Object.entries(extraGuards)) writeFileSync(join(dir, `.groundwork/guards/${name}.mjs`), code);
+    return (input: object | string) =>
+      spawnSync(process.execPath, [join(dir, ".groundwork/guards/run.mjs"), "claude-code"], {
+        input: typeof input === "string" ? input : JSON.stringify(input),
+        encoding: "utf8",
+      });
+  }
+
+  it("reads a config that starts with a byte order mark", () => {
+    const hook = project(`﻿${JSON.stringify({ guards: ["no-ai-trailers"] })}`);
+    const result = hook(trailer);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/attribution/i);
+  });
+
+  it("blocks commits, and only commits, while config.json can't be parsed", () => {
+    const hook = project('{ "guards": ["no-ai-trailers"], }');
+    const commit = hook(trailer);
+    expect(commit.status).toBe(2);
+    expect(commit.stderr).toContain("config.json");
+    const other = hook(listing);
+    expect(other.status).toBe(0);
+    expect(other.stderr).toContain("config.json");
+  });
+
+  it("still runs later guards when an earlier one throws, and blocks commits it couldn't check", () => {
+    const hook = project(JSON.stringify({ guards: ["broken", "no-ai-trailers"] }), {
+      broken: 'export function check() { throw new Error("boom"); }',
+    });
+    const blocked = hook(trailer);
+    expect(blocked.status).toBe(2);
+    expect(blocked.stderr).toMatch(/attribution/i);
+    const clean = hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } });
+    expect(clean.status).toBe(2);
+    expect(clean.stderr).toContain('"broken"');
+    expect(hook(listing).status).toBe(0);
+  });
+
+  it("allows input it doesn't understand", () => {
+    const hook = project(JSON.stringify({ guards: ["no-ai-trailers"] }));
+    expect(hook("not json").status).toBe(0);
+    expect(hook("").status).toBe(0);
+  });
+
+  it("treats a guard name that looks like a path as invalid, never importing it", async () => {
+    const { runGuards } = await load("run.mjs");
+    const result = await runGuards({ kind: "command", command: "ls" }, ["../../x"], guardsDir);
+    expect(result.block).toBe(false);
+    expect(result.failed).toEqual(["../../x"]);
+    expect(result.warnings.join(" ")).toContain("isn't a guard name");
+  });
+});
+
+describe("no-ai-trailers edge cases", () => {
+  it("allows human co-authors, even named Ai or with an AI company's email domain", async () => {
+    const { check } = await load("no-ai-trailers.mjs");
+    expect(check(commitWith("Fix\n\nCo-Authored-By: Ai Nakamura <ai@example.jp>")).block).toBe(false);
+    expect(check(commitWith("Fix\n\nCo-Authored-By: Jane Doe <jane@cursor.com>")).block).toBe(false);
+  });
+
+  it("ignores text outside the commit, like an echo before it", async () => {
+    const { check } = await load("no-ai-trailers.mjs");
+    expect(check({ kind: "command", command: 'git log && echo "Co-Authored-By: Claude" commit' }).block).toBe(false);
+  });
+
+  it("reads a message file passed with -F", async () => {
+    const { check } = await load("no-ai-trailers.mjs");
+    const dir = tempDir();
+    const message = join(dir, "msg.txt");
+    writeFileSync(message, "Fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n");
+    expect(check({ kind: "command", command: `git commit -F "${message}"` }).block).toBe(true);
+    writeFileSync(message, "Fix\n");
+    expect(check({ kind: "command", command: `git commit -F "${message}"` }).block).toBe(false);
   });
 });
 
@@ -138,6 +253,15 @@ describe("Claude Code wiring", () => {
     expect(JSON.stringify(merged)).toContain("run.mjs");
     const twice = mergeSettings(merged, JSON.parse(ours[".claude/settings.json"]));
     expect(twice).toEqual(merged);
+  });
+
+  it("mergeSettings refreshes Groundwork's own entry, e.g. a wider matcher, without duplicating it", () => {
+    const current = JSON.parse(ours[".claude/settings.json"]);
+    const old = structuredClone(current);
+    old.hooks.PreToolUse[0].matcher = "Bash|Write|Edit";
+    const merged = mergeSettings(old, current);
+    expect(merged.hooks!.PreToolUse).toHaveLength(1);
+    expect(merged.hooks!.PreToolUse[0].matcher).toContain("NotebookEdit");
   });
 
   it("init merges into an existing .claude/settings.json without asking", async () => {

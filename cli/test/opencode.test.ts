@@ -110,6 +110,32 @@ describe("OpenCode guard plugin", () => {
     await expect(before({ tool: "shell", input: { command: trailerCommit } })).resolves.toBeUndefined();
   });
 
+  it("with a broken config, blocks commits only instead of every tool call", async () => {
+    const project = tempDir();
+    cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
+    writeFileSync(join(project, ".groundwork/config.json"), '{ "guards": ["no-ai-trailers"], }');
+    mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
+    const file = join(project, ".opencode/plugins/groundwork-guards.js");
+    writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
+    const { default: plugin } = await import(pathToFileURL(file).href);
+    const hooks: Record<string, Hook> = {};
+    const register = (prefix: string) => async (name: string, callback: Hook) => {
+      hooks[`${prefix}.${name}`] = callback;
+      return { dispose: async () => {} };
+    };
+    await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
+    const before = hooks["tool.execute.before"];
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+      await expect(before({ tool: "read", input: { path: "a.ts" } })).resolves.toBeUndefined();
+      await expect(before({ tool: "shell", input: { command: "ls" } })).resolves.toBeUndefined();
+      await expect(before({ tool: "shell", input: { command: "git commit -m 'Fix'" } })).rejects.toThrow(/config\.json/);
+    } finally {
+      console.warn = warn;
+    }
+  });
+
   it("adds where things stand to the system prompt, as a text part", async () => {
     const hooks = await loadPlugin([], "- **Current card:** 1.2 Login\n- **Status:** implementing\n- **Next step:** make the tests pass\n");
     const input = { agent: "build", system: [{ type: "text", text: "tool prompt" }] };
@@ -129,27 +155,13 @@ describe("OpenCode guard plugin", () => {
     const { toAction } = await import(pathToFileURL(join(coreDir, "guards/run.mjs")).href);
     expect(toAction("opencode", { tool: "shell", args: { command: "ls" } })).toEqual({ kind: "command", command: "ls" });
     expect(toAction("opencode", { tool: "bash", args: { command: "ls" } })).toEqual({ kind: "command", command: "ls" });
-    expect(toAction("opencode", { tool: "write", args: { filePath: "a.ts", content: "x" } })).toEqual({
-      kind: "write",
-      path: "a.ts",
-      content: "x",
-    });
-    expect(toAction("opencode", { tool: "edit", args: { filePath: "a.ts", oldString: "x", newString: "y" } })).toEqual({
-      kind: "write",
-      path: "a.ts",
-      content: "y",
-    });
+    const written = { kind: "write", path: "a.ts", content: "x", whole: true };
+    const edited = { kind: "write", path: "a.ts", content: "y", edits: [{ old: "x", new: "y", all: false }] };
+    expect(toAction("opencode", { tool: "write", args: { filePath: "a.ts", content: "x" } })).toEqual(written);
+    expect(toAction("opencode", { tool: "edit", args: { filePath: "a.ts", oldString: "x", newString: "y" } })).toEqual(edited);
     // OpenCode 2.x names the file argument path.
-    expect(toAction("opencode", { tool: "write", args: { path: "a.ts", content: "x" } })).toEqual({
-      kind: "write",
-      path: "a.ts",
-      content: "x",
-    });
-    expect(toAction("opencode", { tool: "edit", args: { path: "a.ts", oldString: "x", newString: "y" } })).toEqual({
-      kind: "write",
-      path: "a.ts",
-      content: "y",
-    });
+    expect(toAction("opencode", { tool: "write", args: { path: "a.ts", content: "x" } })).toEqual(written);
+    expect(toAction("opencode", { tool: "edit", args: { path: "a.ts", oldString: "x", newString: "y" } })).toEqual(edited);
     expect(toAction("opencode", { tool: "read", args: { path: "a.ts" } })).toBeNull();
   });
 });

@@ -2,7 +2,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { Io } from "./index.js";
-import { mergeSettings } from "./settings.js";
+import { mergeSettings, type Settings } from "./settings.js";
+import { parseJson } from "./config.js";
 
 export interface PlannedFile {
   path: string;
@@ -19,11 +20,13 @@ export interface PlannedFile {
 export interface ApplyResult {
   lines: string[]; // one line per file that changed (or would change, in a dry run)
   kept: string[]; // files the user chose to keep
+  warnings: string[]; // things the user must fix by hand, for the end of the output
 }
 
 export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean): Promise<ApplyResult> {
   const lines: string[] = [];
   const kept: string[] = [];
+  const warnings: string[] = [];
 
   for (const planned of files) {
     const target = join(io.cwd, planned.path);
@@ -45,8 +48,10 @@ export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean):
       }
       lines.push(`  add lines  ${file.path}`);
       if (!dryRun) {
-        const separator = current === "" || current.endsWith("\n") ? "" : "\n";
-        writeFileSync(target, `${current}${separator}${missing.join("\n")}\n`);
+        // Keep the file's own line endings, so a CRLF file doesn't end up mixed.
+        const eol = current.includes("\r\n") ? "\r\n" : "\n";
+        const separator = current === "" || current.endsWith("\n") ? "" : eol;
+        writeFileSync(target, `${current}${separator}${missing.join(eol)}${eol}`);
       }
       continue;
     }
@@ -55,12 +60,16 @@ export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean):
       const current = readFileSync(target, "utf8");
       let merged: string;
       try {
-        merged = JSON.stringify(mergeSettings(JSON.parse(current), JSON.parse(file.content)), null, 2) + "\n";
+        merged = JSON.stringify(mergeSettings(parseJson(current) as Settings, parseJson(file.content) as Settings), null, 2) + "\n";
       } catch {
-        lines.push(`  skip       ${file.path} (not valid JSON; add Groundwork's hook by hand)`);
+        lines.push(`  skip       ${file.path} (not valid JSON)`);
+        warnings.push(
+          `${file.path} isn't valid JSON, so Groundwork's hooks weren't added and guards won't run. ` +
+            "Fix the file, then run `npx groundwork-ai adapter add claude-code`.",
+        );
         continue;
       }
-      if (JSON.stringify(JSON.parse(merged)) === JSON.stringify(JSON.parse(current))) {
+      if (JSON.stringify(parseJson(merged)) === JSON.stringify(parseJson(current))) {
         if (dryRun) lines.push(`  unchanged  ${file.path}`);
         continue;
       }
@@ -91,5 +100,5 @@ export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean):
     lines.push(`  ${exists ? "overwrite" : "create   "}  ${file.path}`);
   }
 
-  return { lines, kept };
+  return { lines, kept, warnings };
 }

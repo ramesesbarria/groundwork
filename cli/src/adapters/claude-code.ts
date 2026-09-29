@@ -61,7 +61,7 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
   ].join("\n");
 
   // Guards: every shell command and file write goes through the runner, which applies the guards
-  // listed in .groundwork/config.json (none by default). Exit code 2 blocks the action.
+  // listed in .groundwork/config.json. Exit code 2 blocks the action.
   // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF. Claude Code
   // adds a SessionStart hook's plain-text output as context (code.claude.com/docs/en/hooks).
   out[".claude/settings.json"] =
@@ -76,8 +76,15 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
           ],
           PreToolUse: [
             {
-              matcher: "Bash|Write|Edit|MultiEdit",
+              matcher: "Bash|Write|Edit|MultiEdit|NotebookEdit",
               hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code' }],
+            },
+          ],
+          // Fires only on the human's own messages, so the commit gate can tell a human approval
+          // from the agent's say-so.
+          UserPromptSubmit: [
+            {
+              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/user-prompt.mjs" "$CLAUDE_PROJECT_DIR"' }],
             },
           ],
         },

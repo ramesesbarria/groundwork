@@ -12,9 +12,10 @@ const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 // Words and paths that only make sense for one tool.
 const TOOL_SPECIFIC = [/\.claude\//, /\.opencode\//, /CLAUDE_PROJECT_DIR/, /Skill tool/, /subagent_type/, /Claude Code/, /OpenCode/i, /claude-code/];
 
-// The one allowed exception: the guard runner translates each tool's hook input into a Groundwork
-// action, so every adapter can share the same guards. It works without any tool.
-const ALLOWED = new Set(["guards/run.mjs"]);
+// The allowed exceptions: the guard runner translates each tool's hook input into a Groundwork action,
+// so every adapter can share the same guards; the built-in checks protect the adapters' own files and
+// know which tools record the human's messages. All of them work without any tool.
+const ALLOWED = new Set(["guards/run.mjs", "guards/lib/harness.mjs", "guards/lib/commit-gate.mjs"]);
 
 describe("core is adapter-free", () => {
   it("no core file mentions a specific tool, apart from the allow-list", () => {
