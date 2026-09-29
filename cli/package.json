@@ -37,11 +37,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p tsconfig.json && vitest run",
+    "test:coverage": "tsc -p tsconfig.json && vitest run --coverage",
     "prepack": "npm run build && node scripts/copy-core.mjs",
     "postpack": "node scripts/copy-core.mjs --clean"
   },
   "devDependencies": {
     "@types/node": "^24.13.6",
+    "@vitest/coverage-v8": "^5.0.2",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
   }

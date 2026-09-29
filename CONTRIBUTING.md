@@ -12,6 +12,7 @@ git clone https://github.com/ramesesbarria/groundwork.git
 cd groundwork
 npm ci          # the CLI's dependencies
 npm test        # builds the CLI, then runs the tests
+npm run test:coverage -w groundwork-ai   # the same, with a coverage report
 ```
 
 ## Try the CLI from source

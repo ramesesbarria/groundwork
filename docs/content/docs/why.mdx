@@ -19,14 +19,16 @@ Close the laptop mid-card; the next session continues instead of restarting.
 
 A card is built test-first: the tester writes failing tests and saves the output, the implementer
 makes them pass, and the reviewer re-runs everything with fresh context before it reaches you.
-Approval is refused while the evidence is missing. "Done" is what the proof shows, not what the
+A card without its evidence can't be approved or committed: `groundwork check` and the commit gate
+refuse it. "Done" is what the proof shows, not what the
 agent says.
 
 ### Roles with different jobs
 
-The tester can't write the implementation. The implementer can't edit the tests. The reviewer can't
-fix code — it sends the card back. The planner can't write code or choose your stack. In tools with
-subagents each role runs in a fresh context, so review really is review.
+Each role is told what it may touch: the tester writes tests only, the implementer leaves the tests
+alone, and the planner never picks your stack. The reviewer has no file-edit tool, so it sends
+problems back instead of fixing them, and it checks the diff for anything a role wasn't meant to
+change. In tools with subagents each role runs in a fresh context, so review really is review.
 
 ### You set the pace
 
@@ -38,7 +40,7 @@ yourself**, and **the caveats** — in plain words, without reading a diff.
 
 When something goes wrong, it's written down as a lesson with the mistake that caused it. If it
 happens again, the lesson becomes a rule the agent sees in every session. If it still happens, it
-becomes a guard that blocks the action outright. `/gw-retro` proposes each promotion; nothing
+can become a guard that blocks the action outright, and the agent can't switch a guard off. `/gw-retro` proposes each promotion; nothing
 changes without your OK.
 
 ### Right-sized, and small
