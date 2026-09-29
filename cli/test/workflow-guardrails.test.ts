@@ -67,11 +67,12 @@ describe("tester", () => {
 });
 
 describe("AGENTS.md template", () => {
-  it("states the commit rule for both approval modes", () => {
+  it("ties the commit rule to the approval mode, which the workflow spells out for every mode", () => {
     const agents = read("templates/AGENTS.md");
-    expect(agents).not.toContain("Don't commit until the human approves");
-    expect(agents).toContain("`per-card`");
-    expect(agents).toContain("`per-phase`");
+    expect(agents).not.toContain("Don't commit until the human approves"); // untrue in per-phase and at-end
+    expect(agents).toMatch(/Commit only when the workflow allows[^\n]*`approvalMode`/);
+    const workflow = read("workflow.md");
+    for (const mode of ["per-card", "per-phase", "at-end"]) expect(workflow).toContain(`**\`${mode}\`**`);
   });
 });
 

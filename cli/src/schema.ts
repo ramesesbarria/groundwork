@@ -6,6 +6,7 @@ export const CARD_STATUSES = [
   "todo",
   "testing",
   "implementing",
+  "built",
   "review",
   "awaiting-approval",
   "done",
@@ -19,6 +20,7 @@ export const STATUS_LABELS: Record<CardStatus, string> = {
   todo: "to do",
   testing: "being tested",
   implementing: "being built",
+  built: "built but not reviewed",
   review: "in review",
   "awaiting-approval": "waiting for you",
   done: "done",
@@ -27,7 +29,7 @@ export const STATUS_LABELS: Record<CardStatus, string> = {
 
 export const statusLabel = (status: string) => STATUS_LABELS[status as CardStatus] ?? status;
 
-export const APPROVAL_MODES = ["per-card", "per-phase"] as const;
+export const APPROVAL_MODES = ["per-card", "per-phase", "at-end"] as const;
 export type ApprovalMode = (typeof APPROVAL_MODES)[number];
 
 // Allowed status changes. core/reference/statuses.md documents each one, core/guards/lib/cards.mjs
@@ -44,4 +46,9 @@ export const TRANSITIONS: ReadonlyArray<readonly [CardStatus, CardStatus]> = [
   ["awaiting-approval", "rejected"],
   ["done", "rejected"],
   ["rejected", "implementing"],
+  // at-end mode: the runner builds each card itself, then one review covers them all.
+  ["todo", "implementing"],
+  ["implementing", "built"],
+  ["built", "awaiting-approval"],
+  ["built", "implementing"],
 ];

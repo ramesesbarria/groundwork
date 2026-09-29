@@ -25,7 +25,8 @@ AGENTS.md                     # what every session starts with (short, always lo
   LESSONS.md                  # mistakes worth remembering, and the rules they became
   JOURNAL.md                  # a short recap of each finished phase
   .manifest.json              # fingerprints of the files Groundwork wrote, so upgrade keeps your edits
-  .gitignore                  # keeps local state (.approvals/, retro.md) out of git
+  .gitignore                  # keeps local state (.approvals/, retro.md, private/) out of git
+  private/                    # anything secret the agent needs: never committed
 ```
 
 ## What each file holds
@@ -43,9 +44,11 @@ AGENTS.md                     # what every session starts with (short, always lo
 | `JOURNAL.md` | One recap per finished phase: what shipped, how to try it, decisions, calls, lessons | `gw-approve` |
 | `config.json` | The settings described in [Configuration](/docs/reference/configuration) | `gw-setup`, `gw-decide`, you |
 
-Two files stay out of git (`.groundwork/.gitignore`): `retro.md`, the raw report `npx groundwork-ai retro`
-writes for `/gw-retro`, and `.approvals/`, where Claude Code's hook records your latest message for
-the commit gate.
+Three things stay out of git (`.groundwork/.gitignore`): `retro.md`, the raw report `npx groundwork-ai retro`
+writes for `/gw-retro`; `.approvals/`, where Claude Code's hook records your latest message for
+the commit gate; and `private/`, for anything secret the agent needs to know (a password, a key, a
+surprise). Everything else in `.groundwork/` is committed, so the agent is told to keep secrets
+out of the spec, cards and handoff.
 
 ## Groundwork's files vs your files
 

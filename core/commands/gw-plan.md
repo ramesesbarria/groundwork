@@ -15,14 +15,14 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
    - is small enough for tester → implementer → reviewer in one session,
    - has acceptance criteria that can each be checked, by a test where possible (logic that can run without the UI goes in its own files, so it can be tested),
    - lists the cards it needs first in `depends_on`.
-5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes.
+5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes. Say in one line how the work gets saved: each card is committed when the approval mode allows. If they'd rather commit themselves, set `autoCommit` to `false`. If they'd rather skip the per-card loop (a deadline, say), `at-end` mode builds straight through with one review at the end: give them `npx groundwork-ai mode at-end` to run.
 6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md` without its `<!-- -->` comments (every role rereads the card), with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md.
 7. Update HANDOFF: phase 1, next step is `gw-next`.
 
 ## Writes
 - `.groundwork/decisions/NNNN-<topic>.md`
 - `.groundwork/cards/<id>-<slug>.md`
-- `.groundwork/config.json` and `AGENTS.md` (commands, after the stack decision)
+- `.groundwork/config.json` and `AGENTS.md` (commands, after the stack decision; `autoCommit` if the human asks)
 - `.groundwork/HANDOFF.md`
 
 ## Must not

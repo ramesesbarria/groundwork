@@ -5,16 +5,47 @@ title: "Approval modes"
 In the default mode, **nothing is committed without your approval**, and a commit gate checks every
 card commit: the card must be done, with its evidence. How often you're asked is your choice.
 
-Set it in `.groundwork/config.json`:
-
 | Mode | What happens |
 |---|---|
 | **`per-card`** (default) | The runner stops after every card. You approve or reject each one before its commit. |
 | **`per-phase`** | Cards that pass review commit on their own. When the phase's last card is done, the runner stops and you review the phase as a whole. |
+| **`at-end`** | For a deadline. The agent builds every card straight through, then one review covers them all, and you approve once. |
 
-During setup the agent asks in plain words — *"every piece of work, or each milestone?"* If you're
-unsure, `new` users default to per-card, `experienced` to per-phase. You can change it any time;
-it's read fresh at each stop.
+During setup the agent asks in plain words — *"every piece of work, each milestone, or only once
+everything is built?"* If you're unsure, `new` users default to per-card, `experienced` to
+per-phase.
+
+To change it later, run the command yourself:
+
+```bash
+npx groundwork-ai mode at-end      # or per-card, per-phase; with no mode it shows the current one
+```
+
+The agent isn't allowed to relax this on its own. If you ask it to skip the process, it gives you
+the command to run (in Claude Code, type it with `!` in front). It can always switch back to
+`per-card` for you.
+
+## Building straight through (`at-end`)
+
+When time is short, the full loop per card can be more than you want. In `at-end` mode:
+
+- **The agent builds each card itself**, in order, without stopping: tests first, then the code,
+  until the tests, lint and build pass. The test output is saved as the card's evidence.
+- **Each card is committed as a checkpoint** once it's built, marked *(not reviewed yet)*, so
+  the work is never only on your disk. `npx groundwork-ai status` lists these cards as
+  *built but not reviewed*.
+- **One review at the end.** When every card is built, a reviewer with fresh context goes over
+  all of them, reruns the checks, and sends back anything that doesn't hold up.
+- **You approve once**, for the whole build. The commit gate still refuses a card without its
+  evidence.
+
+It's less careful than reviewing card by card, and it says so: nothing is marked done until the
+review and you have seen it.
+
+## Commits
+
+The agent commits each card when the mode allows. If you'd rather commit yourself, set
+`"autoCommit": false` in `.groundwork/config.json`: the agent then tells you what to commit instead.
 
 ## What every stop shows
 

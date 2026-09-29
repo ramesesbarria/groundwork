@@ -2,7 +2,9 @@
 //
 // A commit whose message names a card (per commitFormat) is blocked unless that card is `done` and
 // passes `groundwork check`: evidence saved and linked, criteria ticked or explained, and in per-card
-// mode an "approved by human" line. Commits that don't name a card (setup, plan, quick) aren't gated.
+// and at-end mode an "approved by human" line. In at-end mode a `built` card with its test output may
+// also be committed, as a checkpoint before the end review. Commits that don't name a card (setup,
+// plan, quick, the end approval) aren't gated.
 //
 // Where the tool tells Groundwork about the human's own messages (Claude Code's UserPromptSubmit hook
 // writes .groundwork/.approvals/last-human.json), per-card commits also need a human message since
@@ -69,6 +71,12 @@ function findCard(project, id) {
   return undefined;
 }
 
+const WHEN = {
+  "per-card": "In per-card mode a card is committed only after the human approves it with /gw-approve.",
+  "per-phase": "In per-phase mode a card is committed once review passes and marks it done.",
+  "at-end": "In at-end mode a card is committed once it's built with its test output saved, and again after the human approves.",
+};
+
 export function commitGate(action, { project, config, tool }) {
   const id = cardIdIn(commitText(action.command, project), config.commitFormat);
   if (!id) return { block: false };
@@ -78,19 +86,16 @@ export function commitGate(action, { project, config, tool }) {
   const approvalMode = config.approvalMode ?? "per-card";
   const status = frontmatter(md).status;
   const problems = checkCard(md, { projectDir: project, approvalMode });
-  if (status !== "done") problems.unshift(`its status is "${status}", not done`);
+  // at-end mode commits each card as a checkpoint once it's built, before the end review.
+  const checkpoint = approvalMode === "at-end" && status === "built";
+  if (status !== "done" && !checkpoint) {
+    problems.unshift(`its status is "${status}", not ${approvalMode === "at-end" ? "built or done" : "done"}`);
+  }
   if (problems.length > 0) {
-    return {
-      block: true,
-      reason:
-        `Card ${id} isn't ready to commit: ${problems.join("; ")}. ` +
-        (approvalMode === "per-card"
-          ? "In per-card mode a card is committed only after the human approves it with /gw-approve."
-          : "In per-phase mode a card is committed once review passes and marks it done."),
-    };
+    return { block: true, reason: `Card ${id} isn't ready to commit: ${problems.join("; ")}. ${WHEN[approvalMode] ?? WHEN["per-card"]}` };
   }
 
-  if (approvalMode === "per-card" && RECORDS_HUMAN.has(tool)) {
+  if (!checkpoint && approvalMode !== "per-phase" && RECORDS_HUMAN.has(tool)) {
     const path = join(project, HUMAN_MARKER);
     let marker;
     try {

@@ -61,7 +61,8 @@ roles and stops at your door.
    reviewer with fresh context re-runs everything and checks every criterion. The proof is saved
    next to the card, with steps you can follow to check it yourself.
 3. **You approve.** By default a card is committed only after you approve it, and a commit gate
-   refuses one without its evidence; or approve once per phase. When the same mistake happens
+   refuses one without its evidence; or approve once per phase, or once after the whole build when
+   there's a deadline. When the same mistake happens
    twice it becomes a rule; if it still happens, it can become a guard that blocks it.
 
 ```mermaid

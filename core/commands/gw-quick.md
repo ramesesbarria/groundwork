@@ -5,7 +5,7 @@ description: Use when the human asks for a small, low-risk change or reports a b
 # gw-quick
 
 ## Purpose
-The light path. Process cost should match the size of the change: no card file, no separate roles, no evidence folder. The checks still run and the project's rules still apply.
+The light path, sized to the change: no card file, no separate roles, no evidence folder. The checks still run and the project's rules still apply.
 
 ## When to use it
 Use it for a **small** change with one concern and low risk: a typo, copy or style tweak, a config value, a dependency bump, or a bug (see "Fixing a bug", even when the cause isn't clear yet).
@@ -26,23 +26,25 @@ Make a card instead (`gw-plan`, then `gw-next`) when the change:
 6. Show a short summary of the diff.
 7. Commit with the message `[quick] <what changed>` (or the config's `commitFormat`, with `quick` as the ID):
    - `per-card` mode: only after the human says OK.
-   - `per-phase` mode: once the checks pass.
-8. Add one line to Notes in `.groundwork/HANDOFF.md`, e.g. "Quick change: fixed typo on the home page (abc123)". Don't change the current card or next step.
+   - `per-phase` and `at-end` mode: once the checks pass. (`autoCommit` off: say what to commit.)
+8. Add one line to Notes in `.groundwork/HANDOFF.md`, e.g. "Quick change: fixed a typo (abc123)". Leave the current card and next step alone.
+
+**A run of small tweaks** (often from screenshots): one line each under "Tweaks since last commit" in HANDOFF's Notes, then one `[quick]` commit for all of them when the human moves on.
 
 ## Fixing a bug
 Cause first, then the fix. In step 3 above:
 1. Reproduce the bug with a failing test, and see it fail for the reason the human described.
-2. State the cause in one sentence, with the evidence that shows it (a log line, a value, the line of code).
+2. State the cause in one sentence, with the evidence that shows it (a log line, a value).
 3. Only then fix it, and see the test pass.
 
-If there's still no cause after two honest attempts, **stop**: say what you tried and suggest a card, so it gets planned and reviewed properly.
+If there's still no cause after two honest attempts, **stop**: say what you tried and suggest a card.
 
 ## Trying something out
 For a question like "Can this library do X?" or "Is this even possible?". The answer is what you keep, not the code.
 1. State the question in one line.
-2. Try it on a throwaway branch (`try/<topic>`) or in a scratch folder outside the project. Never on the main branch.
+2. Try it on a throwaway branch (`try/<topic>`) or a scratch folder outside the project, never on the main branch.
 3. Report the answer, the evidence behind it, and a recommendation.
-4. Don't merge the code. If the human wants to keep it, that's a new card. Delete the branch once they have the answer.
+4. Don't merge the code: keeping it is a new card. Delete the branch once they have the answer.
 
 Steps 5–8 above don't apply: nothing is committed to the main branch.
 

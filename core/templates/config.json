@@ -2,6 +2,7 @@
   "$schema": "./config.schema.json",
   "setup": "pending",
   "approvalMode": "per-card",
+  "autoCommit": true,
   "experience": "new",
   "tokenBudget": 2000,
   "guards": ["no-ai-trailers"],

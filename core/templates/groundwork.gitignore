@@ -3,3 +3,5 @@
 .approvals/
 # Written by `groundwork retro` for /gw-retro to read.
 retro.md
+# Private notes the agent needs but git must never hold: passwords, keys, surprises.
+private/

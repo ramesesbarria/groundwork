@@ -17,9 +17,13 @@ Read this before you change a card's status. `groundwork check` and the commit g
 | `awaiting-approval` | `rejected` | human | Rejects, with a reason |
 | `done` | `rejected` | human | Rejects a card during a phase review |
 | `rejected` | `implementing` | runner | Picks the card up again; the reason is on the card |
+| `todo` | `implementing` | runner | `at-end` mode: builds the card itself |
+| `implementing` | `built` | runner | `at-end` mode: tests, lint and build pass; output saved |
+| `built` | `awaiting-approval` | reviewer | `at-end` mode: the end review passed it |
+| `built` | `implementing` | reviewer | `at-end` mode: the end review found problems |
 
 No other changes are allowed. Every change gets one line under the card's History: `YYYY-MM-DD <from> → <to>: <why>`, as in `.groundwork/templates/card.md`.
 
 ## Plain labels
 
-When you tell the human about a card, use plain labels, not these status names: `todo` → to do, `testing` → being tested, `implementing` → being built, `review` → in review, `awaiting-approval` → waiting for you, `done` → done, `rejected` → sent back.
+When you tell the human about a card, use plain labels, not these status names: `todo` → to do, `testing` → being tested, `implementing` → being built, `built` → built but not reviewed, `review` → in review, `awaiting-approval` → waiting for you, `done` → done, `rejected` → sent back.

@@ -12,6 +12,7 @@ const LABELS = {
   todo: "to do",
   testing: "being tested",
   implementing: "being built",
+  built: "built but not reviewed",
   review: "in review",
   "awaiting-approval": "waiting for you",
   done: "done",

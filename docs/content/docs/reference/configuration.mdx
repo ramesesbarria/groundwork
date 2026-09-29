@@ -10,6 +10,7 @@ take effect immediately. Editors validate it against `config.schema.json` next t
   "$schema": "./config.schema.json",
   "setup": "done",
   "approvalMode": "per-card",
+  "autoCommit": true,
   "experience": "new",
   "tokenBudget": 2000,
   "guards": ["no-ai-trailers"],
@@ -31,7 +32,8 @@ take effect immediately. Editors validate it against `config.schema.json` next t
 |---|---|---|---|
 | `version` | string | written by `init`/`upgrade` | The Groundwork version that last wrote your files; `doctor` compares it with the CLI |
 | `setup` | `pending` \| `done` | `pending` | Whether `gw-setup` has run; `/gw` runs setup until it's `done` |
-| `approvalMode` | `per-card` \| `per-phase` | `per-card` | Who approves when: every card, or each phase |
+| `approvalMode` | `per-card` \| `per-phase` \| `at-end` | `per-card` | When you approve: every card, each phase, or once after the whole build. After setup, change it with `npx groundwork-ai mode` |
+| `autoCommit` | boolean | `true` | Whether the agent commits each card when the mode allows; `false` and it tells you what to commit |
 | `experience` | `new` \| `experienced` | `new` | How much the agent explains: one sentence per step and "How to check" every time, or terse summaries |
 | `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for what every session loads (`AGENTS.md`, `CLAUDE.md`, the command and subagent lists, session start), checked by `doctor` |
 | `guards` | string[] | `["no-ai-trailers"]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/`. The default blocks commits that credit an AI tool; remove it to allow them |
@@ -59,8 +61,8 @@ Two checks run before every shell command and file write, whatever `guards` list
 - **`commitGate`**: a commit whose message names a card needs that card `done` and passing
   [`groundwork check`](/docs/reference/cli#check). In `per-card` mode on Claude Code, it also needs
   a message from you since the last commit.
-- **`protectHarness`**: the agent can't remove a guard, set either of these to `false`, switch
-  `approvalMode` to `per-phase`, mark setup as not done, change existing guard or hook files, or
+- **`protectHarness`**: the agent can't remove a guard, set either of these to `false`, change
+  `approvalMode` (except back to `per-card`), turn `autoCommit` back on after you turned it off, mark setup as not done, change existing guard or hook files, or
   take Groundwork's hooks out of settings.
 
 Only you can turn them off, by editing this file yourself: the checks see the agent's tool calls,
@@ -91,7 +93,7 @@ a role out to use the tool's default. `doctor` warns about role names that don't
 
 Just edit the file — nothing else needs updating:
 
-- Switching `approvalMode` changes the next stop, not past ones. Switch it yourself: the agent may
-  go back to `per-card`, but not to `per-phase`, which would let cards commit without you.
+- Switching `approvalMode` changes the next stop, not past ones. Switch it yourself with
+  `npx groundwork-ai mode`: the agent may go back to `per-card`, but nothing looser.
 - Switching `experience` changes tone immediately (from the next step, since it's read each time).
 - Raising `tokenBudget` after a deliberate decision is fine; `doctor` shows the real number.
