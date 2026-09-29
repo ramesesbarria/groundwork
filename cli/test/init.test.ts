@@ -176,6 +176,14 @@ describe("groundwork init", () => {
     expect(read(dir, ".claude/settings.json")).toBe("{ not json");
   });
 
+  it("warns when the repo already had uncommitted changes, so Groundwork's files get their own commit", async () => {
+    const dir = tempProject();
+    execFileSync("git", ["init", "-q"], { cwd: dir });
+    writeFileSync(join(dir, "app.js"), "work in progress\n");
+    const { output } = await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    expect(output).toMatch(/Warning: There were uncommitted changes before this install/);
+  });
+
   it("keeps CRLF line endings when it appends to an existing file", async () => {
     const dir = tempProject();
     writeFileSync(join(dir, "AGENTS.md"), "# Mine\r\n\r\nMy rules.\r\n");

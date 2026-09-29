@@ -2,6 +2,9 @@ node_modules/
 dist/
 *.log
 cli/core/
+# Copied in by the pack step; the real one is at the repo root
+cli/LICENSE
+coverage/
 
 # Local development notes for Groundwork itself (not part of the product)
 .groundwork/
