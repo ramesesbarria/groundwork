@@ -24,20 +24,16 @@ Then open your AI tool in the project and type `/gw`.
   <Card title="What it costs" href="/docs/concepts/cost" description="Where the tokens go, and when it pays off." />
 </Cards>
 
-## New in 0.7.0
+## New in 0.8.0
 
-Most of these came straight out of measuring the [calculator run](/proof):
+The rules are enforced in code now, not only asked for in the prompts:
 
-- **A lighter runner.** Short hand-offs, no rerunning checks between roles, and a fresh session
-  suggested when each phase closes. [The build loop →](/docs/concepts/the-build-loop#the-runner-stays-light)
-- **Roles record their own calls.** The tester and implementer write their own History and `call:`
-  lines, and every role treats anything missing from its files as not agreed.
-  [Cards and phases →](/docs/concepts/cards-and-phases)
-- **`doctor` shows what a session costs before it starts**, flags cards long enough to be worth
-  trimming, and finds evidence files saved as UTF-16. [CLI →](/docs/reference/cli#doctor)
-- **OpenCode sessions know where things stand.** On OpenCode 2.x, every new session gets the
-  handoff lines at start, like Claude Code. [OpenCode →](/docs/adapters/opencode#session-start)
-- **`no-ai-trailers` is on by default** for new projects. [Configuration →](/docs/reference/configuration)
-- **Measure your own run** with a prompt you paste into your AI tool. [What it costs →](/docs/concepts/cost#measure-your-own-run)
-- **`gw-ui-spec` names what tests look for** (an id, label or role), so testers don't guess
-  selectors. [UI and animation →](/docs/guides/ui-and-animation)
+- **A commit gate.** A card is committed only once it's done and has its evidence; in Claude Code,
+  per-card commits also need a message from you. [Evidence and approval →](/docs/concepts/evidence-and-approval#what-approval-refuses)
+- **The agent can't switch the checks off.** It can't remove guards, loosen approval or strip
+  Groundwork's hooks; you still can. [Configuration →](/docs/reference/configuration#enforce)
+- **Build straight through** with `at-end` mode when there's a deadline: every card built and
+  committed as a checkpoint, one review, one approval. [Approval modes →](/docs/getting-started/approval-modes#building-straight-through-at-end)
+- **Upgrades keep your edits**, and each role gets a rules file upgrades never touch. [CLI →](/docs/reference/cli#upgrade)
+- **New commands:** `check`, `mode` and `uninstall`. [CLI →](/docs/reference/cli)
+- **Secrets stay out of committed files**, in a git-ignored `.groundwork/private/`. [Project files →](/docs/reference/project-files)
