@@ -3,8 +3,10 @@ import { init } from "./init.js";
 import { status } from "./status.js";
 import { adapter } from "./adapter.js";
 import { doctor } from "./doctor.js";
+import { check } from "./check.js";
 import { retro } from "./retro.js";
 import { upgrade } from "./upgrade.js";
+import { uninstall } from "./uninstall.js";
 import { VERSION } from "./version.js";
 
 export interface RunResult {
@@ -34,7 +36,9 @@ const COMMANDS: Record<string, string> = {
   adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode)",
   status: "Show the current phase, cards by status, and what's ready or blocked",
   doctor: "Check harness health and the context token budget (exits 1 on problems)",
+  check: "Check cards against the workflow: evidence, criteria, status moves, approval (check [card-id...]; exits 1 on problems)",
   retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
+  uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };
 
 function usage(): string {
@@ -64,6 +68,8 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "status") return status(fullIo);
   if (cmd === "adapter") return adapter(args, fullIo);
   if (cmd === "doctor") return doctor(fullIo);
+  if (cmd === "check") return check(args, fullIo);
   if (cmd === "retro") return retro(fullIo);
+  if (cmd === "uninstall") return uninstall(args, fullIo);
   return { code: 1, output: `Unknown command: ${cmd}\n\n${usage()}` };
 }

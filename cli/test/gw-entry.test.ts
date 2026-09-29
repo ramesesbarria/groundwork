@@ -47,9 +47,19 @@ describe("/gw", () => {
     expect(rows[0][1]).not.toBe("");
   });
 
+  it("decides whether setup ran from config.json, not AGENTS.md, which a project may already have", () => {
+    const [state] = routes().find(([s]) => /nothing set up/i.test(s)) ?? [""];
+    expect(state).toContain("`setup`");
+    expect(state).not.toMatch(/AGENTS\.md|placeholders/);
+    const setup = readFileSync(join(repo, "core/commands/gw-setup.md"), "utf8");
+    expect(setup).toMatch(/`setup` set to `done`/);
+    const template = JSON.parse(readFileSync(join(repo, "core/templates/config.json"), "utf8"));
+    expect(template.setup).toBe("pending");
+  });
+
   it("sends each state to the right place", () => {
     const action = (pattern: RegExp) => routes().find(([state]) => pattern.test(state))?.[1] ?? "";
-    expect(action(/placeholders/)).toContain("gw-setup");
+    expect(action(/nothing set up/i)).toContain("gw-setup");
     expect(action(/no spec|spec is still/i)).toContain("gw-spec");
     expect(action(/no cards/i)).toContain("gw-plan");
     expect(action(/`awaiting-approval`/)).toMatch(/summary/i);

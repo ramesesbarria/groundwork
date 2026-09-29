@@ -49,11 +49,21 @@ Load only the files it lists under Load.
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Write|Edit|MultiEdit",
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
             "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs\\" claude-code"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/user-prompt.mjs\\" \\"$CLAUDE_PROJECT_DIR\\""
           }
         ]
       }
@@ -113,7 +123,7 @@ Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-setup/SKILL.md": "---
 name: gw-setup
-description: Use when Groundwork was just installed and AGENTS.md or .groundwork/config.json isn't filled in yet. Sets up a new or existing project with a short interview.
+description: Use when Groundwork was just installed (setup in .groundwork/config.json isn't done). Sets up a new or existing project with a short interview.
 ---
 Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
 ",

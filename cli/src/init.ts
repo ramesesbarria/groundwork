@@ -8,6 +8,7 @@ import type { ModelHints } from "./adapters/shared.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
 import { VERSION } from "./version.js";
+import { parseJson } from "./config.js";
 
 export type { PlannedFile } from "./files.js";
 
@@ -43,6 +44,8 @@ export const TEMPLATE_TARGETS: Record<string, string> = {
   "templates/JOURNAL.md": ".groundwork/JOURNAL.md",
   "templates/config.json": ".groundwork/config.json",
   "templates/config.schema.json": ".groundwork/config.schema.json",
+  // Shipped under another name: npm leaves files called .gitignore out of a package.
+  "templates/groundwork.gitignore": ".groundwork/.gitignore",
 };
 
 // What an existing CLAUDE.md or AGENTS.md gets instead of being replaced. gw-setup merges the rest, with the user's OK.
@@ -76,7 +79,7 @@ export function planAdapter(core: CoreFiles, adapter: Adapter, models: ModelHint
 
 // The project's config with the Groundwork version that wrote its files, so doctor can tell when it's behind.
 export function stampVersion(configJson: string, version: string): string {
-  const { $schema, ...rest } = JSON.parse(configJson) as Record<string, unknown>;
+  const { $schema, ...rest } = parseJson(configJson) as Record<string, unknown>;
   delete rest.version;
   return JSON.stringify({ ...($schema === undefined ? {} : { $schema }), version, ...rest }, null, 2) + "\n";
 }
@@ -153,7 +156,11 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
   }
 
-  const { lines } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
+  const { lines, warnings } = await applyFiles(planInit(readCore(locateCore()), adapter), io, dryRun);
+  // The build loop commits each card, so it needs git; everything else works without it.
+  if (!existsSync(join(io.cwd, ".git"))) {
+    warnings.push("This folder isn't a git repository. Groundwork commits each approved card, so run `git init` before you start.");
+  }
   const output = [
     dryRun
       ? `Dry run (adapter: ${adapter}). Nothing was written.`
@@ -161,6 +168,7 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
         ? `Groundwork is already up to date (adapter: ${adapter}). Nothing to change.`
         : `Groundwork installed (adapter: ${adapter}).`,
     ...lines,
+    ...(warnings.length > 0 ? ["", ...warnings.map((w) => `Warning: ${w}`)] : []),
     ...(dryRun ? [] : ["", NEXT_STEPS[adapter]]),
   ];
   return { code: 0, output: output.join("\n") };

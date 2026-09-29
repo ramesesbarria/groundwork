@@ -155,6 +155,36 @@ describe("groundwork init", () => {
     expect(output).toContain("/gw-setup");
   });
 
+  it("warns, at the end, when the folder isn't a git repo", async () => {
+    const plain = await run(["init", "--adapter", "none"], { cwd: tempProject(), ask: answers().ask });
+    expect(plain.output).toMatch(/Warning: This folder isn't a git repository/);
+    const repo = tempProject();
+    mkdirSync(join(repo, ".git"));
+    const inRepo = await run(["init", "--adapter", "none"], { cwd: repo, ask: answers().ask });
+    expect(inRepo.output).not.toMatch(/Warning/);
+  });
+
+  it("warns, at the end, when .claude/settings.json can't be merged, since guards then won't run", async () => {
+    const dir = tempProject();
+    mkdirSync(join(dir, ".git"));
+    mkdirSync(join(dir, ".claude"));
+    writeFileSync(join(dir, ".claude/settings.json"), "{ not json");
+    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    const lines = output.split("\n");
+    const warning = lines.findIndex((line) => /Warning: \.claude\/settings\.json isn't valid JSON/.test(line));
+    expect(warning).toBeGreaterThan(lines.findIndex((line) => line.includes("skip")));
+    expect(read(dir, ".claude/settings.json")).toBe("{ not json");
+  });
+
+  it("keeps CRLF line endings when it appends to an existing file", async () => {
+    const dir = tempProject();
+    writeFileSync(join(dir, "AGENTS.md"), "# Mine\r\n\r\nMy rules.\r\n");
+    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    const text = read(dir, "AGENTS.md");
+    expect(text).toContain(".groundwork/HANDOFF.md");
+    expect(text.replace(/\r\n/g, "")).not.toContain("\n");
+  });
+
   it("works from the built CLI, finding the core files on its own", () => {
     const dir = tempProject();
     mkdirSync(join(dir, "sub"));

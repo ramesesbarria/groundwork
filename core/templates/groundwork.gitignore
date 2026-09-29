@@ -1,0 +1,5 @@
+# Groundwork: local state that isn't part of the project's history.
+# The human's latest message, recorded for the commit gate.
+.approvals/
+# Written by `groundwork retro` for /gw-retro to read.
+retro.md

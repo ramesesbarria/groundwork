@@ -24,8 +24,9 @@ export async function adapter(args: string[], io: Io): Promise<RunResult> {
 
   // Build from the project's own .groundwork/, so custom or older commands and roles are respected.
   const models = readProjectConfig(groundwork).models;
-  const { lines } = await applyFiles(planAdapter(readCore(groundwork), tool, models), io, false);
+  const { lines, warnings } = await applyFiles(planAdapter(readCore(groundwork), tool, models), io, false);
   const header =
     lines.length === 0 ? `The ${tool} adapter is already up to date. Nothing to change.` : `Added the ${tool} adapter.`;
-  return { code: 0, output: [header, ...lines, "", NEXT_STEPS[tool]].join("\n") };
+  const warned = warnings.length > 0 ? ["", ...warnings.map((w) => `Warning: ${w}`)] : [];
+  return { code: 0, output: [header, ...lines, ...warned, "", NEXT_STEPS[tool]].join("\n") };
 }

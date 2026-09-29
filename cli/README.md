@@ -19,7 +19,7 @@ Your first 10 minutes: tell `/gw` your idea and answer a few questions, agree th
 again builds the first card. It stops to tell you what changed and how to check it, and nothing is
 committed until you `/gw-approve`.
 
-Terminal commands: `init`, `upgrade`, `adapter add <tool>`, `status`, `doctor`, `retro`. Run
+Terminal commands: `init`, `upgrade`, `adapter add <tool>`, `status`, `doctor`, `retro`, `uninstall`. Run
 `npx groundwork-ai` for help.
 
 MIT licensed.

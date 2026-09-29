@@ -24,6 +24,13 @@
       "description": "The Groundwork version that installed or last upgraded this project's .groundwork/ files. Written by `groundwork init` and `groundwork upgrade`; `groundwork doctor` compares it with the CLI.",
       "type": "string"
     },
+    "setup": {
+      "description": "Whether gw-setup has run for this project. init writes pending; gw-setup sets done. /gw runs setup until it's done.",
+      "enum": [
+        "pending",
+        "done"
+      ]
+    },
     "approvalMode": {
       "description": "per-card: the human approves every card before it is committed. per-phase: cards commit after review passes, and the human approves the phase as a whole.",
       "enum": [
@@ -51,6 +58,15 @@
         "type": "string"
       },
       "uniqueItems": true
+    },
+    "enforce": {
+      "description": "Built-in checks that run before every shell command and file write, whatever `guards` lists. commitGate: a commit naming a card needs that card done and passing `groundwork check` (and, where the tool records the human's messages, a human message since the last commit in per-card mode). protectHarness: the agent can't weaken Groundwork's own setup (guards, hooks, this setting, approvalMode). Both default to true; only the human can turn them off, by editing this file.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commitGate": { "type": "boolean", "default": true },
+        "protectHarness": { "type": "boolean", "default": true }
+      }
     },
     "models": {
       "description": "Optional model per role, used only by adapters (the core ignores it). A value is one model name for every tool, or an object with one name per adapter (keyed by the adapter's name, as in `groundwork adapter add`), since each tool names models its own way. Leave a role out to use the tool's default.",

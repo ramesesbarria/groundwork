@@ -8,8 +8,9 @@ import { estimateTokens } from "./tokens.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
 import { nextReady, parseCard } from "./cards.js";
 import { compareVersions, VERSION } from "./version.js";
-import { readProjectConfig } from "./config.js";
+import { parseJson, readProjectConfig } from "./config.js";
 import { rolesOf } from "./adapters/shared.js";
+import { checkProject } from "./check.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -20,6 +21,7 @@ const read = (path: string) => (existsSync(path) ? readFileSync(path, "utf8") : 
 const HOOK_EFFECT: Record<string, string> = {
   PreToolUse: "guard hook, so guards won't run",
   SessionStart: "session-start hook, so new sessions aren't told where things stand",
+  UserPromptSubmit: "user-prompt hook, so the commit gate can't see your approvals and blocks per-card card commits",
 };
 
 interface Findings {
@@ -91,7 +93,7 @@ function textFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) return textFiles(path);
-    return /\.(txt|md|log|json)$/i.test(entry.name) ? [path] : [];
+    return /\.(txt|md|log|json|csv|html?|xml)$/i.test(entry.name) ? [path] : [];
   });
 }
 
@@ -99,9 +101,12 @@ function checkEvidenceEncoding(groundwork: string, f: Findings) {
   const utf16 = textFiles(join(groundwork, "evidence")).filter(isUtf16);
   if (utf16.length === 0) return;
   const first = relative(groundwork, utf16[0]).replace(/\\/g, "/");
-  f.suggestions.push(
+  // A problem, not a suggestion: git won't diff these, and GitHub won't show them.
+  f.problems.push(
     `${utf16.length} evidence file${utf16.length === 1 ? " is" : "s are"} UTF-16 (e.g. .groundwork/${first}), so git and GitHub treat ` +
-      "them as binary. Save them as UTF-8; in Windows PowerShell 5.1 use `Out-File -Encoding utf8` instead of `>`.",
+      "them as binary. Save them as UTF-8 without a byte order mark: write them with the AI tool's file-write tool or " +
+      "`node -e`, not `>`. (In Windows PowerShell 5.1, `Out-File -Encoding utf8` adds a byte order mark; " +
+      "`[IO.File]::WriteAllText(path, text)` doesn't.)",
   );
 }
 
@@ -225,13 +230,21 @@ function checkVersion(projectVersion: string | undefined, f: Findings): boolean 
   return true;
 }
 
-export function doctor(io: Pick<Io, "cwd">): RunResult {
+export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
 
   const configText = read(join(groundwork, "config.json"));
-  const config = JSON.parse(configText || "{}") as { tokenBudget?: number; guards?: string[]; version?: string };
   const f: Findings = { problems: [], suggestions: [] };
+  let config: { tokenBudget?: number; guards?: string[]; version?: string } = {};
+  try {
+    config = parseJson(configText || "{}") as typeof config;
+  } catch (error) {
+    f.problems.push(
+      `.groundwork/config.json isn't valid JSON (${(error as Error).message}). Until it's fixed, guards block every commit. ` +
+        "Fix the file; the other checks below use default settings.",
+    );
+  }
 
   const behind = configText !== "" && checkVersion(config.version, f);
   const budget = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
@@ -241,6 +254,9 @@ export function doctor(io: Pick<Io, "cwd">): RunResult {
   checkAdapters(io.cwd, groundwork, behind, f);
   checkModels(groundwork, f);
   const cardText = checkCards(cards, f);
+  for (const card of await checkProject(io.cwd)) {
+    for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
+  }
   checkCardSize(cards, f);
   checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);

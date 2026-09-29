@@ -76,8 +76,14 @@ your words, and the consequences. `/gw` and approvals point back to them.
 
 ## How do I uninstall it?
 
-Delete `.groundwork/`, the adapter folders (`.claude/` or `.opencode/`), and Groundwork's pointer
-lines in `AGENTS.md` / `CLAUDE.md`. Nothing else is installed and nothing runs in the background.
+Run `npx groundwork-ai uninstall` (add `--dry-run` to preview). It removes only what Groundwork
+added: its commands, subagents and plugin, its hook entries in `.claude/settings.json`, its pointer
+lines in `AGENTS.md` and `CLAUDE.md`, and its lines in `.gitattributes`. Any of those files you've
+changed are kept and listed. It asks once before deleting `.groundwork/`, which holds your spec,
+cards and evidence; `--keep-state` keeps it.
+
+Don't delete `.claude/` or `.opencode/` wholesale: they also hold your own settings, skills and
+agents. Nothing else is installed and nothing runs in the background.
 
 ## Is it ready for real projects?
 

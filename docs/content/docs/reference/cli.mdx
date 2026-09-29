@@ -17,7 +17,9 @@ npx groundwork-ai <command>
 | [`adapter add`](#adapter-add) | Add or refresh an AI tool adapter |
 | [`status`](#status) | Show the phase, cards by status, what's ready and what's blocked |
 | [`doctor`](#doctor) | Check harness health and the context budget |
+| [`check`](#check) | Check cards against the workflow's rules |
 | [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
+| [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
 
 `npx groundwork-ai --version` prints the version; `npx groundwork-ai help` prints usage.
 
@@ -107,6 +109,23 @@ in CI). It reports:
   `AGENTS.md` with no lesson ID.
 - **Typos** — a `models` entry naming a role that doesn't exist.
 
+## check
+
+```bash
+npx groundwork-ai check          # every card
+npx groundwork-ai check 1.2      # one card
+```
+
+Checks cards against the workflow's rules and **exits 1 when one breaks them**, so `/gw-approve`,
+the commit gate and CI can all rely on it:
+
+- the status is a real one, and every status change recorded in History is one the workflow allows
+- a card waiting for approval or done has Evidence, every file it links to exists, and every
+  acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
+- in `per-card` mode, a done card's History has the "approved by human" line
+
+`doctor` runs the same checks and lists what it finds as problems.
+
 ## retro
 
 ```bash
@@ -117,3 +136,21 @@ Reads git history and Groundwork's own files, and writes `.groundwork/retro.md`:
 committed soon after a card, rejections, reviewer send-backs, judgment calls that were later
 rejected, and a count per lesson cited. It only reports — `/gw-retro` turns the signals into
 proposed changes, with your approval.
+
+## uninstall
+
+```bash
+npx groundwork-ai uninstall        # add --dry-run to preview
+```
+
+Removes what Groundwork added and nothing else:
+
+- adapter files (commands, skills, subagents, the OpenCode plugin) that are exactly as Groundwork
+  wrote them; any you changed are kept and listed
+- Groundwork's hook entries in `.claude/settings.json`, leaving your own settings and hooks
+- the pointer line it appended to your `AGENTS.md`, and a `CLAUDE.md` it wrote itself
+- its blocks in `.gitattributes`
+
+Last, it asks once before deleting `.groundwork/`, which holds your spec, cards, decisions and
+evidence. The default is to keep it, and `--keep-state` keeps it without asking. An `AGENTS.md`
+that setup wrote for this project is kept too: it's your project's file by then.
