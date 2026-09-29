@@ -5,7 +5,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-export const STATUSES = ["todo", "testing", "implementing", "review", "awaiting-approval", "done", "rejected"];
+export const STATUSES = ["todo", "testing", "implementing", "built", "review", "awaiting-approval", "done", "rejected"];
 
 // The allowed status changes; .groundwork/reference/statuses.md documents each one.
 export const TRANSITIONS = [
@@ -20,6 +20,11 @@ export const TRANSITIONS = [
   ["awaiting-approval", "rejected"],
   ["done", "rejected"],
   ["rejected", "implementing"],
+  // at-end mode: the runner builds each card itself, then one review covers them all.
+  ["todo", "implementing"],
+  ["implementing", "built"],
+  ["built", "awaiting-approval"],
+  ["built", "implementing"],
 ];
 
 export function frontmatter(md) {
@@ -69,12 +74,17 @@ export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
     }
   }
 
-  if (fm.status === "awaiting-approval" || fm.status === "done") {
+  // A built card (at-end mode) has its test output but hasn't been reviewed, so its criteria aren't
+  // ticked yet; the end review does that.
+  if (fm.status === "built" || fm.status === "awaiting-approval" || fm.status === "done") {
     const evidence = section(md, "Evidence");
     if (evidence === "") problems.push(`it's ${fm.status}, but its Evidence section is empty`);
     for (const link of evidenceLinks(md)) {
       if (!existsSync(resolve(projectDir, link))) problems.push(`Evidence links to ${link}, which doesn't exist`);
     }
+  }
+
+  if (fm.status === "awaiting-approval" || fm.status === "done") {
     const criteria = section(md, "Acceptance criteria").split(/\r?\n/).filter((line) => /^- \[[ xX]\]/.test(line.trim()));
     if (criteria.every((line) => line.trim().replace(/^- \[[ xX]\]/, "").trim() === "")) {
       problems.push("it has no acceptance criteria");
@@ -86,7 +96,8 @@ export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
     }
   }
 
-  if (fm.status === "done" && approvalMode === "per-card" && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
+  // per-card and at-end both end with the human approving each card (at-end: all at once).
+  if (fm.status === "done" && approvalMode !== "per-phase" && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
     problems.push('it\'s done, but History has no "approved by human" line');
   }
   return problems;

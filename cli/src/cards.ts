@@ -43,15 +43,18 @@ export function readCards(groundworkDir: string): Card[] {
     .sort((a, b) => compareCardIds(a.id, b.id));
 }
 
-const isDone = (cards: Card[], id: string) => cards.find((c) => c.id === id)?.status === "done";
+// A dependency is met once it's done; in at-end mode, once it's built, since review comes at the end.
+const MET: Record<string, string[]> = { "at-end": ["built", "review", "awaiting-approval", "done"] };
+const isMet = (cards: Card[], id: string, mode?: string) =>
+  (MET[mode ?? ""] ?? ["done"]).includes(cards.find((c) => c.id === id)?.status ?? "");
 
-// The card gw-next would pick: lowest ID, status todo or rejected, all dependencies done.
-export const nextReady = (cards: Card[]) =>
-  cards.find((c) => (c.status === "todo" || c.status === "rejected") && c.dependsOn.every((d) => isDone(cards, d)));
+// The card gw-next would pick: lowest ID, status todo or rejected, all dependencies met.
+export const nextReady = (cards: Card[], mode?: string) =>
+  cards.find((c) => (c.status === "todo" || c.status === "rejected") && c.dependsOn.every((d) => isMet(cards, d, mode)));
 
-// Waiting cards with at least one dependency that isn't done, and which ones.
-export const blocked = (cards: Card[]) =>
+// Waiting cards with at least one dependency that isn't met, and which ones.
+export const blocked = (cards: Card[], mode?: string) =>
   cards
     .filter((c) => c.status === "todo" || c.status === "rejected")
-    .map((c) => ({ card: c, waitingOn: c.dependsOn.filter((d) => !isDone(cards, d)) }))
+    .map((c) => ({ card: c, waitingOn: c.dependsOn.filter((d) => !isMet(cards, d, mode)) }))
     .filter((b) => b.waitingOn.length > 0);

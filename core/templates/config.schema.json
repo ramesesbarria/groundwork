@@ -32,11 +32,17 @@
       ]
     },
     "approvalMode": {
-      "description": "per-card: the human approves every card before it is committed. per-phase: cards commit after review passes, and the human approves the phase as a whole.",
+      "description": "per-card: the human approves every card before it is committed. per-phase: cards commit after review passes, and the human approves the phase as a whole. at-end: the runner builds every card straight through (committing each as a checkpoint), one review covers them all, and the human approves once at the end. After setup, only the human changes this (`npx groundwork-ai mode`).",
       "enum": [
         "per-card",
-        "per-phase"
+        "per-phase",
+        "at-end"
       ]
+    },
+    "autoCommit": {
+      "description": "Whether the runner commits each card when the workflow allows (default). false: it never commits; it tells the human what to commit instead.",
+      "type": "boolean",
+      "default": true
     },
     "experience": {
       "description": "How much the agent explains. new: one sentence per step, How to check at every approval stop, a labeled recommendation for stack choices. experienced: terse, a short approval summary, options only unless asked. Read fresh each time, so it can change mid-project.",

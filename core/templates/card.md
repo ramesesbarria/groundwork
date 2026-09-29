@@ -2,7 +2,7 @@
 id: {{id}}
 title: {{title}}
 phase: {{phase}}
-status: todo | testing | implementing | review | awaiting-approval | done | rejected
+status: todo | testing | implementing | built | review | awaiting-approval | done | rejected
 depends_on: []
 ---
 ## Goal

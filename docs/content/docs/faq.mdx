@@ -35,15 +35,17 @@ block new work, and then asks what you want to change.
 
 ## Will it commit or push without asking?
 
-Commits happen only after your approval of a card (or of a phase, in `per-phase` mode). Pushing
-never happens unless you ask. `per-phase` is the most autonomous mode there is, and it still stops
-at the end of every phase.
+In the default mode, a card is committed only after you approve it. In `per-phase` mode each card
+commits once its review passes, and you approve the phase. In `at-end` mode each card commits as a
+checkpoint once it's built, marked *not reviewed yet*, and you approve the whole build at the end.
+Set `"autoCommit": false` if you'd rather make every commit yourself. Pushing never happens unless
+you ask.
 
 ## Can I change my approval mode later?
 
-Yes — edit `approvalMode` in `.groundwork/config.json`. It's read fresh at each stop, so the next
-step uses the new mode. Make that edit yourself: the agent isn't allowed to switch you to
-`per-phase`, since that lets cards commit without you. The same is true of `experience`.
+Yes — run `npx groundwork-ai mode <mode>` yourself (`per-card`, `per-phase` or `at-end`). It's read
+fresh at each stop, so the next step uses the new mode. The agent isn't allowed to loosen it on
+its own. The same is true of `experience`.
 
 ## What if the agent gets something wrong?
 

@@ -19,12 +19,14 @@ If the human didn't ask for this in their own words, stop and ask them to approv
 3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, and caveats. It's the human's last look before the commit. Follow `experience` in the config as `gw-next` does: `new` always gets How to check; `experienced` gets a short summary.
 4. Set the card status to `done` and add a History line: date, "approved by human".
 5. Update `.groundwork/HANDOFF.md`: card done, and the next step. If this was the last card of its phase, the phase is closed: add its recap (below) and say "phase <n> approved" in HANDOFF.
-6. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` (or the config's `commitFormat`) and a short body saying what changed. Stage only this card's files.
+6. Commit the card's changes (code, tests, card, evidence, HANDOFF) with the message `[<card-id>] <card title>` (or the config's `commitFormat`) and a short body saying what changed. Stage only this card's files. With `autoCommit` off, say what to commit instead.
 7. Show the human the commit, then run `gw-next` if they asked to keep going.
 
 **Approving a phase (`per-phase` mode).** The cards are already committed. Check every card in the phase is `done` and passes the evidence check in step 2; list any that don't. Show one summary for the phase (step 3), including every `call:` line from the phase's cards. If all pass, write "phase <n> approved" and the date in HANDOFF, with the next step. Push only if the human asks.
 
-**Fresh session per phase.** When a phase closes, tell the human in one line that the next phase is cheaper in a new session: everything it needs is in HANDOFF, and `gw` picks it up. A long chat re-reads its whole history on every step, so its cost keeps rising.
+**`at-end` mode:** approve the whole build at once, as "Approving" in `.groundwork/guides/at-end.md` says.
+
+**Fresh session per phase.** When a phase closes, tell the human in one line that the next phase is cheaper in a new session: everything it needs is in HANDOFF, and `gw` picks it up.
 
 **Phase recap.** When a phase closes, append exactly one recap to `.groundwork/JOURNAL.md` (create it if missing), in the format its comment shows: what shipped, how to try it, decisions, calls, and lessons added. Under about 150 words; link to cards instead of copying them.
 

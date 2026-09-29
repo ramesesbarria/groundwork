@@ -23,6 +23,8 @@ const CONFIG = ".groundwork/config.json";
 const NAMES_HARNESS = /\.groundwork[\\/](guards|hooks|\.approvals|config\.json)|\.claude[\\/]settings|\.opencode[\\/]plugins[\\/]groundwork/;
 const WRITES = /(>|\brm\b|\bmv\b|\bcp\b|\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|Rename-Item|writeFile|rmSync|unlink|\bgit\s+(checkout|restore|rm)\b)/;
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
+// `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
+const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;
 
 const ASK = "Only the human changes Groundwork's own setup. Tell them what you wanted to change and why, and ask them to make the change themselves.";
 
@@ -53,9 +55,12 @@ export function weakenedConfig(before, next) {
   for (const key of ["commitGate", "protectHarness"]) {
     if ((before.enforce ?? {})[key] !== false && (next.enforce ?? {})[key] === false) lost.push(`turn off enforce.${key}`);
   }
-  if ((before.approvalMode ?? "per-card") === "per-card" && next.approvalMode === "per-phase") {
-    lost.push("switch approvalMode to per-phase, so cards commit without your approval");
+  // The agent may only make approval stricter (back to per-card). Any other switch is the human's.
+  const mode = before.approvalMode ?? "per-card";
+  if (next.approvalMode !== undefined && next.approvalMode !== mode && next.approvalMode !== "per-card") {
+    lost.push(`switch approvalMode to ${next.approvalMode}, which changes when you approve the work`);
   }
+  if (before.autoCommit === false && next.autoCommit !== false) lost.push("turn automatic commits back on, which you turned off");
   if (before.setup === "done" && next.setup !== "done") lost.push("mark setup as not done");
   return lost;
 }
@@ -129,6 +134,9 @@ function checkWrite(action, project) {
 function checkCommand(action) {
   const command = action.command;
   if (UNINSTALL.test(command)) return { block: true, reason: `Uninstalling Groundwork is the human's call. ${ASK}` };
+  if (MODE_SWITCH.test(command)) {
+    return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
+  }
   if (/^\s*git\s+(commit|add|status|diff|log|show)\b/.test(command) && !/[;&|]/.test(command)) return { block: false };
   if (NAMES_HARNESS.test(command) && WRITES.test(command)) {
     return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };

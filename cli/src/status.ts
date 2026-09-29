@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { blocked, nextReady, readCards } from "./cards.js";
 import { CARD_STATUSES, statusLabel } from "./schema.js";
+import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -40,11 +41,17 @@ export function status(io: Pick<Io, "cwd">): RunResult {
   if (inProgress.length > 0) {
     lines.push(`In progress:   ${inProgress.map((c) => `${c.id} ${c.title} (${statusLabel(c.status)})`).join(", ")}`);
   }
+  // Built straight through (at-end mode) and not reviewed yet: said plainly, never rounded up to done.
+  const unreviewed = cards.filter((c) => c.status === "built");
+  if (unreviewed.length > 0) {
+    lines.push(`Not reviewed:  ${unreviewed.map((c) => c.id).join(", ")} (built but not reviewed)`);
+  }
 
-  const next = nextReady(cards);
+  const mode = String(readProjectConfig(dir).approvalMode ?? "per-card");
+  const next = nextReady(cards, mode);
   lines.push(`Next ready:    ${next ? `${next.id} ${next.title}` : "none"}`);
 
-  const waiting = blocked(cards);
+  const waiting = blocked(cards, mode);
   if (waiting.length > 0) {
     lines.push("Blocked:");
     for (const { card, waitingOn } of waiting) lines.push(`  ${card.id} ${card.title}  ← waiting on ${waitingOn.join(", ")}`);

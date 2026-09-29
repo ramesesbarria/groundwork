@@ -260,6 +260,18 @@ function checkCards(cards: CardFile[], f: Findings): string {
   return allText;
 }
 
+// Cards built straight through (at-end mode) that no review has covered yet, said plainly.
+function checkUnreviewed(cards: CardFile[], f: Findings) {
+  const parsed = cards.flatMap((c) => (c.card ? [c.card] : []));
+  const built = parsed.filter((c) => c.status === "built").map((c) => c.id);
+  if (built.length === 0) return;
+  const waiting = parsed.some((c) => ["todo", "testing", "implementing", "rejected"].includes(c.status));
+  f.suggestions.push(
+    `${built.length} card${built.length === 1 ? " is" : "s are"} built but not reviewed yet (${built.join(", ")}). ` +
+      (waiting ? "The end review covers them once the rest are built." : "Everything is built: run /gw for the end review, then approve."),
+  );
+}
+
 function checkLessons(cwd: string, groundwork: string, cardText: string, f: Findings) {
   const lessons = [...withoutComments(read(join(groundwork, "LESSONS.md"))).matchAll(/^### (L-\d+)/gm)].map((m) => m[1]);
   const agents = read(join(cwd, "AGENTS.md"));
@@ -308,6 +320,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkAdapters(io.cwd, groundwork, behind, f);
   checkModels(groundwork, f);
   const cardText = checkCards(cards, f);
+  checkUnreviewed(cards, f);
   for (const card of await checkProject(io.cwd)) {
     for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
   }

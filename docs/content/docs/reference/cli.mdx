@@ -18,6 +18,7 @@ npx groundwork-ai <command>
 | [`status`](#status) | Show the phase, cards by status, what's ready and what's blocked |
 | [`doctor`](#doctor) | Check harness health and the context budget |
 | [`check`](#check) | Check cards against the workflow's rules |
+| [`mode`](#mode) | Show or change when you approve the work |
 | [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
 
@@ -139,6 +140,17 @@ the commit gate and CI can all rely on it:
 - in `per-card` mode, a done card's History has the "approved by human" line
 
 `doctor` runs the same checks and lists what it finds as problems.
+
+## mode
+
+```bash
+npx groundwork-ai mode             # show the current approval mode
+npx groundwork-ai mode at-end      # per-card, per-phase or at-end
+```
+
+Changes `approvalMode` in `.groundwork/config.json`. It's the command you run yourself: the agent
+isn't allowed to relax approval on its own, so when you ask it to, it gives you this line to run.
+See [Approval modes](/docs/getting-started/approval-modes).
 
 ## retro
 

@@ -38,6 +38,7 @@ describe("paths the prompts name", () => {
   const MADE_LATER = [
     /^\.groundwork\/retro\.md$/,
     /^\.groundwork\/\.approvals\/$/,
+    /^\.groundwork\/private\/$/,
     /^\.groundwork\/evidence\/baseline\/?$/,
     /^\.groundwork\/cards\/[^/]+\.md$/,
     /^\.groundwork\/decisions\/[^/]+\.md$/,
@@ -65,7 +66,7 @@ describe("paths the prompts name", () => {
 
 describe("token budgets", () => {
   const BUDGETS: [string, number][] = [
-    ["workflow.md", 1400],
+    ["workflow.md", 1450], // three approval modes; the details of at-end live in guides/at-end.md
     ...commands.map((p): [string, number] => [p, 900]),
     ...roles.map((p): [string, number] => [p, 800]),
     ["templates/AGENTS.md", 500],
