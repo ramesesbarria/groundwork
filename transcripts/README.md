@@ -1,6 +1,6 @@
 # Transcripts
 
-The raw evidence behind the [walkthrough](https://ramesesbarria.github.io/groundwork/guides/walkthrough): a
+The raw evidence behind the [walkthrough](https://ramesesbarria.github.io/groundwork/docs/guides/walkthrough): a
 calculator app built with Groundwork in OpenCode, across two main chats and 18 subagent chats. Nothing
 is edited except for the export itself — these are the sessions as they ran.
 

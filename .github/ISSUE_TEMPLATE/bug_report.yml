@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in Groundwork didn't work as expected.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. npx groundwork-ai init --adapter opencode
+        2. /gw ...
+  - type: input
+    id: groundwork-version
+    attributes:
+      label: Groundwork version
+      description: Run `npx groundwork-ai --version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: tool
+    attributes:
+      label: AI tool
+      options:
+        - Claude Code
+        - OpenCode
+        - Another tool (plain markdown)
+    validations:
+      required: true
+  - type: input
+    id: tool-version
+    attributes:
+      label: AI tool version and model
+      placeholder: e.g. OpenCode 2.0.18 with DeepSeek V4.1 Flash
+  - type: input
+    id: os-node
+    attributes:
+      label: OS and Node.js version
+      description: Run `node --version`.
+      placeholder: e.g. Windows 11, Node 22.12.0
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of npx groundwork-ai doctor
+      description: Run it in the project folder and paste the output.
+      render: text
