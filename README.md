@@ -145,10 +145,20 @@ The [5-minute quickstart](https://ramesesbarria.github.io/groundwork/quickstart)
 
 More questions: [the FAQ](https://ramesesbarria.github.io/groundwork/docs/faq).
 
+## What's in this repo
+
+| Folder | What it is |
+|---|---|
+| `core/` | The workflow itself, in plain markdown: commands, roles, templates, guards and hooks. `init` copies it into your project. |
+| `cli/` | The `groundwork-ai` npm package. TypeScript on Node.js 22+, tested with Vitest. |
+| `docs/` | The documentation site: Next.js and Fumadocs, deployed to GitHub Pages. |
+| `transcripts/` | The raw sessions and measurements behind the calculator walkthrough. |
+| `checks/` | Maintainer tools: the OpenCode compatibility check and the session cost script. |
+
 ## Contributing
 
-Issues and pull requests are welcome. The docs live in `docs/`. Run `npm test` before opening a PR;
-CI runs Windows and Linux on Node 22 and 24.
+Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, the tests and
+the docs site.
 
 ## License
 

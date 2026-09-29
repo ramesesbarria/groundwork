@@ -144,13 +144,28 @@ it.
 
 ## Measure your own run
 
-OpenCode can export any session with its per-call token counts. From the project folder:
+Most AI tools keep a record of every model call: a usage or stats command, a session export, or
+session files on disk. Paste this into your tool, in the project folder, after a phase or two:
 
-```bash
-opencode session export <session-id> > main.json
-node checks/session-costs.mjs main.json tester-1.1.json ...
+```text
+Measure what this project's Groundwork run cost, using the records this tool keeps about its own
+sessions. Report only numbers you can read from those records. Don't estimate or recall; if a
+number isn't recorded, write "not recorded". Don't change any files.
+
+1. Find where this tool records token usage per model call (a usage or stats command, a session
+   export, or its session files on disk). Say exactly where you read from, and which fields you
+   used for each number below.
+2. List every session that worked on this project: the main chat (the runner) and each subagent
+   (tester, implementer, reviewer). Match each subagent to its card using .groundwork/cards/.
+3. For each session: model calls; context at the first call and at the largest call (context =
+   everything the model was sent for that call, cached or not); context re-read (the sum over all
+   calls); fresh tokens (not served from cache: uncached input, output and reasoning); reasoning
+   tokens; and cost.
+4. Split the main chat by what I asked for, so work that wasn't building (an export, a deploy)
+   can be set aside.
+5. Finish with three tables: per session, per card (all three roles), and per role, each with a
+   total row.
 ```
 
-[`checks/session-costs.mjs`](https://github.com/ramesesbarria/groundwork/blob/main/checks/session-costs.mjs)
-prints each session's calls, first and peak context, tokens re-read, fresh tokens and cost, and splits
-a main chat per human turn, so work that wasn't building can be set aside.
+Compare the tables with the calculator's above: the first-call context of each role session should
+stay about the same from the first card to the last, and the runner's is the one to watch.
