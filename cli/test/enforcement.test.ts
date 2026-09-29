@@ -38,7 +38,10 @@ const bash = (command: string) => ({ tool_name: "Bash", tool_input: { command } 
 const edit = (file: string, from: string, to: string) => ({ tool_name: "Edit", tool_input: { file_path: file, old_string: from, new_string: to } });
 const write = (file: string, content: string) => ({ tool_name: "Write", tool_input: { file_path: file, content } });
 
-describe("protect-harness", () => {
+// Each test starts real hook processes and git, which is slow on Windows runners.
+const SLOW = { timeout: 30_000 };
+
+describe("protect-harness", SLOW, () => {
   it("blocks removing a guard, and allows adding one", async () => {
     const dir = await project();
     const removed = hook(dir, edit(".groundwork/config.json", '"no-ai-trailers"', ""));
@@ -92,7 +95,7 @@ describe("protect-harness", () => {
   });
 });
 
-describe("commit-gate", () => {
+describe("commit-gate", SLOW, () => {
   function card(dir: string, status: string, history = "- 2026-09-29 approved by human") {
     mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), "5 passed\n");
