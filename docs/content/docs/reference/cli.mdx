@@ -46,12 +46,21 @@ into the source tree.
 
 ```bash
 npx groundwork-ai upgrade          # add --dry-run to preview
+npx groundwork-ai upgrade --yes    # in a script or CI, where nobody can answer
 ```
 
-Replaces Groundwork's own files — commands, roles, workflow, guards, hooks, templates — with this
-version's, asking before overwriting anything. **Your state is never touched:** spec, handoff,
-lessons, cards, decisions, evidence, your `AGENTS.md` and `CLAUDE.md`, and your config values all
-stay exactly as they are. If a newer version adds a config key, it's added empty.
+Updates Groundwork's own files — commands, roles, workflow, guards, hooks, templates — to this
+version's, after asking once. **Your state is never touched:** spec, handoff, lessons, rules
+(`.groundwork/rules/`), cards, decisions, evidence, your `AGENTS.md` and `CLAUDE.md`, and your config
+values all stay exactly as they are. If a newer version adds a config key, it's added.
+
+**Your edits are kept.** Groundwork records a fingerprint of each file it writes
+(`.groundwork/.manifest.json`). A file that still matches is replaced; one you changed is left
+alone, and the new version is saved next to it as `<file>.new` for you to compare and merge.
+Projects installed before this was recorded get their files replaced once, with a note to check
+`git diff`; from then on, edits are kept.
+
+Without a terminal to ask in, `upgrade` changes nothing unless you pass `--yes`.
 
 ## adapter add
 
@@ -59,8 +68,9 @@ stay exactly as they are. If a newer version adds a config key, it's added empty
 npx groundwork-ai adapter add opencode
 ```
 
-Adds or refreshes one tool's files (commands, subagents, hooks). Useful when you switch tools or
-want two adapters in the same project. It asks before overwriting.
+Adds or refreshes one tool's files (commands, subagents, hooks), built from your project's own
+`.groundwork/`. Useful when you switch tools or want two adapters in the same project. It asks
+before overwriting.
 
 ## status
 
@@ -76,12 +86,12 @@ Phase:         1 — Voting
 Current card:  1.2 Voting
 Next step:     make `npm test voting` pass
 
-Cards:         3 to do · 1 being built · 2 done
+Cards:         2 to do · 1 being built · 1 done
 In progress:   1.2 Voting (being built)
 Next ready:    none
 Blocked:
   1.3 Close the vote  ← waiting on 1.2
-  1.4 Results page    ← waiting on 1.3
+  1.4 Results page  ← waiting on 1.3
 ```
 
 ## doctor
@@ -93,14 +103,18 @@ npx groundwork-ai doctor
 Checks the install and the context budget, and **exits 1 when it finds a problem** (so it can run
 in CI). It reports:
 
-- **Always loaded** — the real token estimate for `AGENTS.md` and `CLAUDE.md` against `tokenBudget`,
-  with advice when it's over.
+- **Always loaded** — what every session carries, part by part, against `tokenBudget`: `AGENTS.md`,
+  `CLAUDE.md`, the skill, command and subagent lists your tool keeps in context, and the
+  session-start lines. With advice when it's over.
 - **Startup cost** — what a `/gw` session and each role read before touching any code: the
   always-loaded files, the command or role file, HANDOFF and the current card. Your AI tool's own
   instructions come on top (about 8.5k tokens in OpenCode with DeepSeek, measured).
-- **Card size** — cards over ≈1,500 tokens, since every role rereads the card.
+- **Cards** — the same checks as [`check`](#check); cards over ≈1,500 tokens (every role rereads
+  the card); and History or Evidence lines over 200 characters, whose detail belongs in an evidence
+  file.
 - **Evidence encoding** — evidence saved as UTF-16 (what Windows PowerShell 5.1's `>` writes),
   which git and GitHub treat as binary.
+- **Config** — a `config.json` that isn't valid JSON, since guards then block every commit.
 - **Missing wires** — a guard listed in config without a file, a hook missing from settings, an
   adapter file that drifted from what Groundwork would generate, `CLAUDE.md` that doesn't load
   `AGENTS.md`.

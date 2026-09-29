@@ -4,7 +4,9 @@ import { join } from "node:path";
 import { readCore } from "./core.js";
 import { applyFiles } from "./files.js";
 import { readProjectConfig } from "./config.js";
-import { ADAPTERS, isAdapter, NEXT_STEPS, planAdapter } from "./init.js";
+import { ADAPTERS, isAdapter, isManaged, NEXT_STEPS, planAdapter } from "./init.js";
+import { recordFiles } from "./manifest.js";
+import { VERSION } from "./version.js";
 import type { Io, RunResult } from "./index.js";
 
 const TOOLS = ADAPTERS.filter((a) => a !== "none");
@@ -24,7 +26,9 @@ export async function adapter(args: string[], io: Io): Promise<RunResult> {
 
   // Build from the project's own .groundwork/, so custom or older commands and roles are respected.
   const models = readProjectConfig(groundwork).models;
-  const { lines, warnings } = await applyFiles(planAdapter(readCore(groundwork), tool, models), io, false);
+  const planned = planAdapter(readCore(groundwork), tool, models);
+  const { lines, warnings } = await applyFiles(planned, io, false);
+  recordFiles(io.cwd, planned.filter(isManaged), VERSION);
   const header =
     lines.length === 0 ? `The ${tool} adapter is already up to date. Nothing to change.` : `Added the ${tool} adapter.`;
   const warned = warnings.length > 0 ? ["", ...warnings.map((w) => `Warning: ${w}`)] : [];

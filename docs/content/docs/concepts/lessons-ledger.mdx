@@ -10,7 +10,7 @@ mistakes live, and each one climbs a ladder only when it has to.
 | Level | Where it lives | What it means |
 |---|---|---|
 | **NOTE** | `.groundwork/LESSONS.md` | Written down; the reviewer reads it when checking work |
-| **RULE** | `AGENTS.md` or a role file | Always in context for the agent |
+| **RULE** | `AGENTS.md`, or `.groundwork/rules/<role>.md` for one role | Always in context for the agent (or that role) |
 | **GUARD** | `.groundwork/guards/*.mjs` | A script that blocks the action outright |
 
 A lesson moves up only when its mistake **repeats** — never on a single signal:
@@ -36,10 +36,15 @@ export function check(action) {
 }
 ```
 
-Guards are listed in `.groundwork/config.json`. New installs start with `no-ai-trailers` on; `"guards": []` means none run. Adapters wire them
+Guards are listed in `.groundwork/config.json`. New installs start with `no-ai-trailers` on. Adapters wire them
 into the tool's hooks: in Claude Code a `PreToolUse` hook runs them before every shell command and
 file write, and a guard that blocks exits with code 2. `groundwork doctor` flags a guard listed in
 config without a matching file, or a hook missing from the adapter's settings.
+
+Two checks are built in and run whatever the list says: the **commit gate** (a card is committed only
+once it's done and passes `groundwork check`) and **protect-harness**. The second is what keeps the
+ladder's top rung in place: the agent can add a guard, but only you can remove one or turn the
+built-in checks off, by editing the config yourself.
 
 A guard is code, so `/gw-retro` proposes one as a **card** to plan — it isn't written on the spot.
 
@@ -68,8 +73,9 @@ going wrong.
 npx groundwork-ai doctor
 ```
 
-- Measures the always-loaded files against `tokenBudget` and shows the real number (about 400 tokens
-  on a fresh install; the default budget is 2,000).
+- Measures what every session loads against `tokenBudget`, part by part: `AGENTS.md`, your tool's
+  list of commands and subagents, and the session-start lines (about 1,100 tokens on a fresh Claude
+  Code install; the default budget is 2,000).
 - Flags a lesson that's never cited in a card or in `AGENTS.md` — a candidate to archive.
 - Flags a rule in `AGENTS.md` that has no lesson ID, because every rule should trace back to the
   mistake it prevents.

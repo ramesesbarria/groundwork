@@ -1,11 +1,11 @@
 ---
 name: gw-retro
-description: Use when a phase ends, or the human asks why the same mistakes keep happening. Proposes moving lessons up the ladder (note, rule, guard), and nothing changes without the human's OK.
+description: Use when a phase ends, or the same mistakes keep happening. Proposes turning lessons into rules or guards, with the human's OK.
 ---
 # gw-retro
 
 ## Purpose
-Turn repeated mistakes into lessons that stick. A lesson moves up the ladder each time its mistake comes back: **NOTE** (recorded in LESSONS) → **RULE** (in AGENTS.md or a role file, always in context) → **GUARD** (a script that blocks the action). Run it at the end of a phase, or when something keeps going wrong.
+Turn repeated mistakes into lessons that stick. A lesson moves up the ladder each time its mistake comes back: **NOTE** (recorded in LESSONS) → **RULE** (in AGENTS.md or a role's rules file, always in context) → **GUARD** (a script that blocks the action). Run it at the end of a phase, or when something keeps going wrong.
 
 ## Steps
 1. Run `groundwork retro` (or `npx groundwork-ai retro`). It writes `.groundwork/retro.md`: reverts, fix commits soon after a card, rejections, reviewer send-backs, and counts per lesson cited. Without the CLI, read the History sections of the cards instead.
@@ -13,7 +13,7 @@ Turn repeated mistakes into lessons that stick. A lesson moves up the ladder eac
 3. Group signals that describe the same mistake, even if worded differently. Ignore one-off signals.
 4. Propose one change per repeated mistake:
    - **New NOTE**: it repeats but isn't in LESSONS yet. Write its origin (cards, commits).
-   - **NOTE → RULE**: a NOTE whose mistake happened again. Say where the rule goes (AGENTS.md, or one role file if only that role needs it).
+   - **NOTE → RULE**: a NOTE whose mistake happened again. Say where the rule goes: AGENTS.md, or `.groundwork/rules/<role>.md` if only that role needs it. Never `.groundwork/roles/`: upgrades replace those files.
    - **RULE → GUARD**: a RULE that was still broken, and a script could detect it. A new guard is code, so propose it as a card for `gw-plan` rather than writing it here.
    - **Archive**: a lesson nothing has touched in a long time (see `groundwork doctor`).
 5. Show the proposals as a short list, each with its evidence, and **wait for** the human to accept or decline each one.

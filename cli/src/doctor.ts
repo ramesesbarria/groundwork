@@ -1,7 +1,8 @@
 // `groundwork doctor`: harness health and the context budget.
 // Problems make it exit 1 (so it can run in CI); suggestions don't.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 import { readCore } from "./core.js";
 import { planAdapter } from "./init.js";
 import { estimateTokens } from "./tokens.js";
@@ -29,16 +30,53 @@ interface Findings {
   suggestions: string[];
 }
 
-function checkBudget(cwd: string, budget: number, f: Findings): { line: string; tokens: number } {
-  const files = ["AGENTS.md", "CLAUDE.md"].filter((name) => existsSync(join(cwd, name)));
-  const tokens = files.reduce((sum, name) => sum + estimateTokens(read(join(cwd, name))), 0);
+// The name and description lines of each file: what a tool keeps in context from a skill, command or
+// subagent so the model knows it exists. The body loads only when it's used.
+function listingTokens(dir: string, pattern: RegExp): number {
+  if (!existsSync(dir)) return 0;
+  const files = readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return existsSync(join(path, "SKILL.md")) && pattern.test(entry.name) ? [join(path, "SKILL.md")] : [];
+    return pattern.test(entry.name) ? [path] : [];
+  });
+  return files.reduce((sum, path) => {
+    const lines = read(path).split(/\r?\n/).filter((line) => /^(name|description):/.test(line));
+    return sum + estimateTokens(lines.join("\n"));
+  }, 0);
+}
+
+async function sessionStartTokens(groundwork: string): Promise<number> {
+  const hook = join(groundwork, "hooks", "session-start.mjs");
+  if (!existsSync(hook)) return 0;
+  try {
+    const { orientation } = (await import(pathToFileURL(hook).href)) as { orientation?: (dir: string) => string };
+    return orientation ? estimateTokens(orientation(dirname(groundwork)) ?? "") : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ lines: string[]; tokens: number }> {
+  const parts: [string, number][] = [];
+  for (const name of ["AGENTS.md", "CLAUDE.md"]) if (existsSync(join(cwd, name))) parts.push([name, estimateTokens(read(join(cwd, name)))]);
+  parts.push(["skill list", listingTokens(join(cwd, ".claude/skills"), /^gw/)]);
+  parts.push(["subagent list", listingTokens(join(cwd, ".claude/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".opencode/agents"), /^gw-.*\.md$/)]);
+  parts.push(["command list", listingTokens(join(cwd, ".opencode/commands"), /^gw.*\.md$/)]);
+  // Session-start lines reach a session only through an adapter's hook or plugin.
+  const wired = read(join(cwd, ".claude/settings.json")).includes("session-start") || existsSync(join(cwd, ".opencode/plugins/groundwork-guards.js"));
+  if (wired) parts.push(["session start", await sessionStartTokens(join(cwd, ".groundwork"))]);
+  const shown = parts.filter(([, n]) => n > 0);
+  const tokens = shown.reduce((sum, [, n]) => sum + n, 0);
   if (tokens > budget) {
     f.problems.push(
-      `${files.join(" and ")} are ≈${tokens} tokens, over the ${budget}-token budget. Move rules that rarely matter ` +
+      `What every session loads is ≈${tokens} tokens, over the ${budget}-token budget. Move rules that rarely matter ` +
         "back to .groundwork/LESSONS.md as notes, or raise tokenBudget in .groundwork/config.json.",
     );
   }
-  return { line: `Always loaded:  ≈${tokens} tokens (budget ${budget})`, tokens };
+  return {
+    lines: [`Always loaded:  ≈${tokens} tokens (budget ${budget}): ${shown.map(([name, n]) => `${name} ${n}`).join(", ")}`],
+    tokens,
+  };
 }
 
 // Every role rereads the card, so a long History or Evidence section is paid for again and again.
@@ -110,14 +148,30 @@ function checkEvidenceEncoding(groundwork: string, f: Findings) {
   );
 }
 
+// Longer than this, a History or Evidence line is carrying detail that belongs in an evidence file.
+const LINE_LIMIT = 200;
+
 function checkCardSize(cards: CardFile[], f: Findings) {
   for (const { name, text, card } of cards) {
+    const id = card?.id ?? name;
     const tokens = estimateTokens(text);
-    if (tokens <= CARD_TOKEN_LIMIT) continue;
-    f.suggestions.push(
-      `Card ${card?.id ?? name} is ≈${tokens} tokens, and every role rereads it. Keep its History and Evidence lines ` +
-        "to a sentence or two; the details belong in the evidence files.",
-    );
+    if (tokens > CARD_TOKEN_LIMIT) {
+      f.problems.push(
+        `Card ${id} is ≈${tokens} tokens, over ${CARD_TOKEN_LIMIT}, and every role rereads it. Keep its History and Evidence ` +
+          "lines to a sentence or two; the details belong in the evidence files.",
+      );
+    }
+    for (const section of ["History", "Evidence"]) {
+      const long = withoutComments(sectionBody(text, section))
+        .split(/\r?\n/)
+        .filter((line) => line.length > LINE_LIMIT);
+      if (long.length > 0) {
+        f.suggestions.push(
+          `Card ${id}: ${long.length} ${section} line${long.length === 1 ? " is" : "s are"} over ${LINE_LIMIT} characters ` +
+            `(e.g. "${long[0].slice(0, 60)}…"). Move the detail into an evidence file.`,
+        );
+      }
+    }
   }
 }
 
@@ -247,7 +301,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   }
 
   const behind = configText !== "" && checkVersion(config.version, f);
-  const budget = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
+  const budget = await checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
   const cards = readCardFiles(groundwork);
   checkGitAttributes(io.cwd, f);
   checkGuards(groundwork, config.guards ?? [], f);
@@ -261,7 +315,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 
-  const lines = ["Groundwork doctor", "", budget.line, ...startupCost(groundwork, budget.tokens, cards), ""];
+  const lines = ["Groundwork doctor", "", ...budget.lines, ...startupCost(groundwork, budget.tokens, cards), ""];
   if (f.problems.length === 0) lines.push("No problems found.");
   else lines.push(`Problems (${f.problems.length}):`, ...f.problems.map((p) => `  ✗ ${p}`));
   if (f.suggestions.length > 0) lines.push("", `Suggestions (${f.suggestions.length}):`, ...f.suggestions.map((s) => `  • ${s}`));

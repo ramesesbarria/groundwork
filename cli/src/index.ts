@@ -18,6 +18,8 @@ export interface RunResult {
 export interface Io {
   cwd: string;
   ask(question: string): Promise<string>;
+  // Whether someone can answer `ask`. Without a terminal, `ask` returns "" (the default answer).
+  interactive: boolean;
 }
 
 async function askTerminal(question: string): Promise<string> {
@@ -32,7 +34,7 @@ async function askTerminal(question: string): Promise<string> {
 
 const COMMANDS: Record<string, string> = {
   init: "Install Groundwork into this project (--adapter claude-code|opencode|none, --dry-run)",
-  upgrade: "Update this project's Groundwork files to this version; your spec, cards and lessons stay as they are (--dry-run)",
+  upgrade: "Update this project's Groundwork files to this version; your spec, cards, lessons and edits stay (--dry-run, --yes)",
   adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode)",
   status: "Show the current phase, cards by status, and what's ready or blocked",
   doctor: "Check harness health and the context token budget (exits 1 on problems)",
@@ -62,7 +64,11 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "--version" || cmd === "-v") {
     return { code: 0, output: VERSION };
   }
-  const fullIo: Io = { cwd: io.cwd ?? process.cwd(), ask: io.ask ?? askTerminal };
+  const fullIo: Io = {
+    cwd: io.cwd ?? process.cwd(),
+    ask: io.ask ?? askTerminal,
+    interactive: io.interactive ?? (io.ask !== undefined || Boolean(process.stdin.isTTY)),
+  };
   if (cmd === "init") return init(args, fullIo);
   if (cmd === "upgrade") return upgrade(args, fullIo);
   if (cmd === "status") return status(fullIo);

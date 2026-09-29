@@ -1,6 +1,6 @@
 ---
 name: gw-reject
-description: Use when the human says to reject the card awaiting approval, with a reason. The card goes back to the implementer.
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
 ---
 # gw-reject
 

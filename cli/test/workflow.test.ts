@@ -4,6 +4,8 @@ import { APPROVAL_MODES, CARD_STATUSES, TRANSITIONS } from "../src/schema.js";
 import { estimateTokens } from "../src/tokens.js";
 
 const workflow = readFileSync(new URL("../../core/workflow.md", import.meta.url), "utf8");
+// The full table lives in a reference file the runner reads before changing a status.
+const statuses = readFileSync(new URL("../../core/reference/statuses.md", import.meta.url), "utf8");
 
 function section(md: string, heading: string): string {
   const start = md.indexOf(`## ${heading}`);
@@ -27,7 +29,7 @@ describe("workflow.md", () => {
   });
 
   it("has a transitions table that matches the schema exactly", () => {
-    const rows = tableRows(section(workflow, "Card statuses"));
+    const rows = tableRows(section(statuses, "Card statuses"));
     const pairs = rows.map(([from, to]) => `${from} → ${to}`).sort();
     expect(pairs).toEqual(TRANSITIONS.map(([from, to]) => `${from} → ${to}`).sort());
     for (const row of rows) expect(row[2], `no "who" for ${row[0]} → ${row[1]}`).toBeTruthy();
@@ -42,6 +44,7 @@ describe("workflow.md", () => {
 
   it("says who starts a card and what happens after approval", () => {
     expect(section(workflow, "Card statuses")).toMatch(/runner/i);
+    expect(section(workflow, "Card statuses")).toContain(".groundwork/reference/statuses.md");
     const approval = section(workflow, "Approval");
     expect(approval).toMatch(/commit/i);
     expect(approval).toMatch(/done/);

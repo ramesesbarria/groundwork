@@ -1,6 +1,6 @@
 ---
 name: gw-handoff
-description: Use when stopping for any reason, such as the human ending the session or context running low. Writes the current state to .groundwork/HANDOFF.md so any session, tool or model can continue.
+description: Use when stopping for any reason, such as the session ending or context running low. Saves the state to HANDOFF.md.
 ---
 # gw-handoff
 

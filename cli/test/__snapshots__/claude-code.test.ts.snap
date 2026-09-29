@@ -10,14 +10,6 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 You are the Groundwork implementer. Read \`.groundwork/roles/implementer.md\` now and follow it exactly.
 Load only the files it lists under Load.
 ",
-  ".claude/agents/gw-planner.md": "---
-name: gw-planner
-description: Groundwork planner. Turn ideas into a spec, and the spec into phases and cards.
-tools: Read, Grep, Glob, Write, Edit
----
-You are the Groundwork planner. Read \`.groundwork/roles/planner.md\` now and follow it exactly.
-Load only the files it lists under Load.
-",
   ".claude/agents/gw-reviewer.md": "---
 name: gw-reviewer
 description: Groundwork reviewer. Check the work with fresh eyes, then either pass it to the human or send it back.
@@ -73,75 +65,75 @@ Load only the files it lists under Load.
 ",
   ".claude/skills/gw-approve/SKILL.md": "---
 name: gw-approve
-description: Use when the human says to approve the card awaiting approval, or a whole phase in per-phase mode. Checks the evidence, marks it done and commits it.
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
 disable-model-invocation: true
 ---
 Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-decide/SKILL.md": "---
 name: gw-decide
-description: Use when the work needs a choice the human hasn't made yet, such as a framework, database, library or service. Lays out 2–4 options, waits for the human's choice, and records it.
+description: Use when the work needs a choice the human hasn't made, like a framework or database. Offers options and records the pick.
 ---
 Read \`.groundwork/commands/gw-decide.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-handoff/SKILL.md": "---
 name: gw-handoff
-description: Use when stopping for any reason, such as the human ending the session or context running low. Writes the current state to .groundwork/HANDOFF.md so any session, tool or model can continue.
+description: Use when stopping for any reason, such as the session ending or context running low. Saves the state to HANDOFF.md.
 ---
 Read \`.groundwork/commands/gw-handoff.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-next/SKILL.md": "---
 name: gw-next
-description: Use when there's a plan and the human wants to keep building, for example by saying next or carry on. Runs the next card through tester, implementer and reviewer, then stops for approval.
+description: Use when there's a plan and the human wants to keep building. Runs the next card through tester, implementer and reviewer.
 ---
 Read \`.groundwork/commands/gw-next.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-plan/SKILL.md": "---
 name: gw-plan
-description: Use when the spec is confirmed and there are no cards yet, or the human wants to plan new work. Breaks the spec into phases and cards, after recording any stack decisions.
+description: Use when the spec is confirmed and there are no cards yet, or new work needs planning. Breaks it into phases and cards.
 ---
 Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-quick/SKILL.md": "---
 name: gw-quick
-description: Use when the human asks for a small, low-risk change, such as a typo, a copy tweak or a config value, or reports a bug. Makes it in one pass without a card, cause first for bugs, and the tests must still pass.
+description: Use when the human asks for a small, low-risk change or reports a bug. Makes it in one pass without a card; tests must pass.
 ---
 Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-reject/SKILL.md": "---
 name: gw-reject
-description: Use when the human says to reject the card awaiting approval, with a reason. The card goes back to the implementer.
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
 disable-model-invocation: true
 ---
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-retro/SKILL.md": "---
 name: gw-retro
-description: Use when a phase ends, or the human asks why the same mistakes keep happening. Proposes moving lessons up the ladder (note, rule, guard), and nothing changes without the human's OK.
+description: Use when a phase ends, or the same mistakes keep happening. Proposes turning lessons into rules or guards, with the human's OK.
 ---
 Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-setup/SKILL.md": "---
 name: gw-setup
-description: Use when Groundwork was just installed (setup in .groundwork/config.json isn't done). Sets up a new or existing project with a short interview.
+description: Use when Groundwork was just installed and setup in .groundwork/config.json isn't done. Sets the project up with a short interview.
 ---
 Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-spec/SKILL.md": "---
 name: gw-spec
-description: Use when the human describes a new app or feature idea and there's no confirmed spec for it yet. Writes or updates the spec by asking specific questions in small batches.
+description: Use when the human describes a new app or feature and there's no confirmed spec for it. Writes the spec by asking questions.
 ---
 Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
 ",
   ".claude/skills/gw-ui-spec/SKILL.md": "---
 name: gw-ui-spec
-description: Use when a card involves UI or animation work, before anything is built. Agrees in writing how it will look and behave, as checkable criteria on the card.
+description: Use when a card involves UI or animation, before it's built. Agrees how it will look and behave, as checkable criteria.
 ---
 Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
 ",
   ".claude/skills/gw/SKILL.md": "---
 name: gw
-description: Use when a session starts, or the human asks where things stand, what's next, or to carry on. Works out the project's state, says it in plain words, and runs the next step.
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
 ---
 Read \`.groundwork/commands/gw.md\` now and follow it exactly.
 ",
@@ -150,7 +142,7 @@ Read \`.groundwork/commands/gw.md\` now and follow it exactly.
 ## Claude Code
 Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.
 The others: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.
-When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.
+When a command says to run a role, use its subagent: gw-implementer, gw-reviewer, gw-tester.
 ",
 }
 `;

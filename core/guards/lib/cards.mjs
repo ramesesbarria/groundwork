@@ -7,7 +7,7 @@ import { join, resolve } from "node:path";
 
 export const STATUSES = ["todo", "testing", "implementing", "review", "awaiting-approval", "done", "rejected"];
 
-// The allowed status changes; core/workflow.md documents each one.
+// The allowed status changes; .groundwork/reference/statuses.md documents each one.
 export const TRANSITIONS = [
   ["todo", "testing"],
   ["testing", "implementing"],

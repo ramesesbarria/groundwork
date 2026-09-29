@@ -1,6 +1,6 @@
 ---
 name: gw
-description: Use when a session starts, or the human asks where things stand, what's next, or to carry on. Works out the project's state, says it in plain words, and runs the next step.
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
 ---
 # gw
 

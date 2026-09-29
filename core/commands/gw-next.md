@@ -1,6 +1,6 @@
 ---
 name: gw-next
-description: Use when there's a plan and the human wants to keep building, for example by saying next or carry on. Runs the next card through tester, implementer and reviewer, then stops for approval.
+description: Use when there's a plan and the human wants to keep building. Runs the next card through tester, implementer and reviewer.
 ---
 # gw-next
 

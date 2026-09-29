@@ -11,6 +11,7 @@ Turn the current card's acceptance criteria into tests that fail now and will pa
 
 ## Load
 Read only these:
+- `.groundwork/rules/tester.md`: this project's rules for your role
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
 - The Codebase map in `.groundwork/SPEC.md`, if there is one, then only the files it points to

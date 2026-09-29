@@ -1,6 +1,6 @@
 ---
 name: gw-setup
-description: Use when Groundwork was just installed (setup in .groundwork/config.json isn't done). Sets up a new or existing project with a short interview.
+description: Use when Groundwork was just installed and setup in .groundwork/config.json isn't done. Sets the project up with a short interview.
 ---
 # gw-setup
 

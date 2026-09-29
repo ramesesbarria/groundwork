@@ -1,14 +1,16 @@
 // `groundwork upgrade`: bring a project's Groundwork files up to this version.
-// Groundwork's own files are replaced; the project's state (spec, handoff, lessons, cards, decisions,
-// evidence, config values, its own AGENTS.md and CLAUDE.md) is never touched. Command keys a newer
-// version added are put into the config empty, next to the project's own values.
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+// The project's state (spec, handoff, lessons, rules, cards, decisions, evidence, config values, its
+// own AGENTS.md and CLAUDE.md) is never touched. Groundwork's own files are replaced, unless the user
+// changed one since Groundwork wrote it: then theirs stays and the new version is written next to it
+// as <file>.new. Command keys a newer version added are put into the config empty.
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
-import { ADAPTERS, GITATTRIBUTES, locateCore, planAdapter, planInit, stampVersion, TEMPLATE_TARGETS, type Adapter } from "./init.js";
+import { ADAPTERS, GITATTRIBUTES, isManaged, isProjectFile, locateCore, planAdapter, planInit, stampVersion, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
 import { parseJson, readProjectConfig } from "./config.js";
+import { editState, readManifest, recordFiles } from "./manifest.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -21,9 +23,11 @@ const retiredPaths = RETIRED_COMMANDS.flatMap((name) => [
   `.opencode/commands/${name}.md`,
 ]);
 
-// Files init copies that belong to the project once it has them.
-const MANAGED_TARGETS = new Set([".groundwork/config.schema.json", ".groundwork/.gitignore"]);
-const PROJECT_FILES = new Set(Object.values(TEMPLATE_TARGETS).filter((path) => !MANAGED_TARGETS.has(path)));
+// Subagent files a later version stopped generating, removed only if Groundwork wrote them.
+const RETIRED_AGENTS: [string, string][] = [
+  [".claude/agents/gw-planner.md", "You are the Groundwork planner."],
+  [".opencode/agents/gw-planner.md", "You are the Groundwork planner."],
+];
 
 // A CLAUDE.md made entirely of lines Groundwork generates, so replacing it loses nothing of the user's.
 export function isGeneratedClaudeMd(text: string): boolean {
@@ -69,12 +73,16 @@ function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
 }
 
 // Groundwork's own files for this project: the managed part of the core, plus each installed adapter.
+// Project files are left out, except a role's rules file the project doesn't have yet.
 function plan(cwd: string, core: CoreFiles): PlannedFile[] {
   // Old installs may predate the binary image rules; append-lines only adds what's missing.
   const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
   files.push(
     ...planInit(core, "none").filter(
-      (f) => f.path.startsWith(".groundwork/") && !PROJECT_FILES.has(f.path) && !f.path.endsWith("/.gitkeep"),
+      (f) =>
+        f.path.startsWith(".groundwork/") &&
+        !f.path.endsWith("/.gitkeep") &&
+        (!isProjectFile(f.path) || (f.path.startsWith(".groundwork/rules/") && !existsSync(join(cwd, f.path)))),
     ),
   );
   const models = readProjectConfig(join(cwd, ".groundwork")).models;
@@ -93,10 +101,39 @@ function plan(cwd: string, core: CoreFiles): PlannedFile[] {
   return files.filter((file) => (seen.has(file.path) ? false : (seen.add(file.path), true)));
 }
 
+type Step = { file: PlannedFile; action: "create" | "replace" | "keep" ; unknown?: boolean };
+
+const sameText = (a: string, b: string) => a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
+
+// What to do with each file Groundwork owns: create, replace, or keep the user's edit.
+function decide(cwd: string, files: PlannedFile[]): Step[] {
+  const manifest = readManifest(cwd);
+  const steps: Step[] = [];
+  for (const file of files) {
+    const path = join(cwd, file.path);
+    if (!existsSync(path)) {
+      steps.push({ file, action: "create" });
+      continue;
+    }
+    const current = readFileSync(path, "utf8");
+    if (sameText(current, file.content)) continue;
+    const state = editState(manifest, file.path, current);
+    if (state === "edited") steps.push({ file, action: "keep" });
+    else steps.push({ file, action: "replace", unknown: state === "unknown" && file.path !== "CLAUDE.md" });
+  }
+  return steps;
+}
+
+const describe = (step: Step) =>
+  step.action === "keep"
+    ? `  keep       ${step.file.path} (you changed it; the new version goes in ${step.file.path}.new)`
+    : `  ${step.action.padEnd(9)}  ${step.file.path}`;
+
 export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
   const dryRun = args.includes("--dry-run");
+  const yes = args.includes("--yes");
 
   const configPath = join(groundwork, "config.json");
   const config = existsSync(configPath) ? (parseJson(readFileSync(configPath, "utf8")) as { version?: string }) : undefined;
@@ -104,46 +141,91 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
 
   const core = readCore(locateCore());
   const files = plan(io.cwd, core);
+  const managed = files.filter(isManaged);
+  const others = files.filter((f) => !isManaged(f));
+  const steps = decide(io.cwd, managed);
+
   const newCommands = config === undefined ? [] : missingCommands(readFileSync(configPath, "utf8"), core["templates/config.json"] ?? "{}");
   const additions = newCommands.map((key) => `  add        commands.${key} (empty) to .groundwork/config.json`);
   const setup = config !== undefined && !("setup" in config) ? setupState(io.cwd) : undefined;
   if (setup) additions.push(`  add        setup: "${setup}" to .groundwork/config.json`);
-  const yes = { ...io, ask: async () => "y" }; // the human confirms once, below, not per file
-  const changes = (await applyFiles(files, yes, true)).lines
+
+  const auto = { ...io, ask: async () => "y" }; // the human confirms once, below, not per file
+  const otherChanges = (await applyFiles(others, auto, true)).lines
     .filter((line) => !line.includes("unchanged"))
     .map((line) => line.replace(/^ {2}exists {5}(.*) \(would ask before overwriting\)$/, "  replace    $1"));
-  const removals = retiredPaths.filter((path) => existsSync(join(io.cwd, path))).map((path) => `  remove     ${path}`);
+  const retiredAgents = RETIRED_AGENTS.filter(([path, marker]) => existsSync(join(io.cwd, path)) && readFileSync(join(io.cwd, path), "utf8").includes(marker)).map(([path]) => path);
+  const removals = [...retiredPaths.filter((path) => existsSync(join(io.cwd, path))), ...retiredAgents].map((path) => `  remove     ${path}`);
   const restamp = config !== undefined && config.version !== VERSION;
 
-  if (changes.length === 0 && removals.length === 0 && additions.length === 0 && !restamp) {
+  if (steps.length === 0 && otherChanges.length === 0 && removals.length === 0 && additions.length === 0 && !restamp) {
     return { code: 0, output: `Groundwork is already up to date (${VERSION}). Nothing to change.` };
   }
-  const list = [...changes, ...removals, ...additions];
+  const list = [...steps.map(describe), ...otherChanges, ...removals, ...additions];
   if (dryRun) {
     return { code: 0, output: [`Dry run: upgrading from ${from} to ${VERSION} would change:`, ...list, "Nothing was written."].join("\n") };
   }
 
-  const answer = (
-    await io.ask(
-      `Upgrade Groundwork here from ${from} to ${VERSION}? This replaces Groundwork's own files (commands, roles, workflow, ` +
-        "guards, hooks, templates) and keeps your spec, handoff, lessons, cards, decisions and evidence exactly as they are. " +
-        "If you edited Groundwork's files, commit first so you can compare. [Y/n]: ",
+  if (!yes) {
+    // No terminal to ask in (a script, CI or an agent's shell): never take silence as a yes.
+    if (!io.interactive) {
+      return {
+        code: 1,
+        output: [`Upgrading from ${from} to ${VERSION} would change:`, ...list, "", "Nothing was changed. Run `npx groundwork-ai upgrade --yes` to apply it."].join("\n"),
+      };
+    }
+    const answer = (
+      await io.ask(
+        `Upgrade Groundwork here from ${from} to ${VERSION}? This updates Groundwork's own files (commands, roles, workflow, ` +
+          "guards, hooks, templates); any you changed are kept, with the new version saved next to them as .new. Your spec, " +
+          "handoff, lessons, rules, cards, decisions and evidence stay exactly as they are. [Y/n]: ",
+      )
     )
-  )
-    .trim()
-    .toLowerCase();
-  if (answer === "n" || answer === "no") return { code: 0, output: "Nothing was changed." };
+      .trim()
+      .toLowerCase();
+    if (answer === "n" || answer === "no") return { code: 0, output: "Nothing was changed." };
+  }
 
-  const { lines } = await applyFiles(files, yes, false);
-  for (const path of retiredPaths) rmSync(join(io.cwd, path), { recursive: true, force: true });
+  for (const { file, action } of steps) {
+    const target = join(io.cwd, action === "keep" ? `${file.path}.new` : file.path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, file.content);
+  }
+  const { lines } = await applyFiles(others, auto, false);
+  for (const path of [...retiredPaths, ...retiredAgents]) rmSync(join(io.cwd, path), { recursive: true, force: true });
   if (config !== undefined) {
     const updated = withCommands(readFileSync(configPath, "utf8"), newCommands);
     writeFileSync(configPath, stampVersion(setup ? withSetup(updated, setup) : updated, VERSION));
   }
-  const fillIn = newCommands.length > 0 ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`] : [];
+  recordFiles(io.cwd, managed, VERSION);
+
+  const kept = steps.filter((s) => s.action === "keep");
+  const unknown = steps.filter((s) => s.unknown);
+  const fillIn =
+    newCommands.length > 0
+      ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`]
+      : [];
+  const notes = [
+    ...(kept.length > 0
+      ? [`You changed ${kept.length} of Groundwork's files, so they were kept. Compare each with its .new file, merge what you want, then delete the .new file.`]
+      : []),
+    ...(unknown.length > 0
+      ? ["This project had no record of the files Groundwork last wrote (it's from before that was tracked), so its files were replaced. If you had edited any, `git diff` shows it. From now on, edits are kept."]
+      : []),
+  ];
 
   return {
     code: 0,
-    output: [`Upgraded Groundwork from ${from} to ${VERSION}.`, ...lines, ...removals, ...additions, ...fillIn, "", "Run `npx groundwork-ai doctor` to check the result."].join("\n"),
+    output: [
+      `Upgraded Groundwork from ${from} to ${VERSION}.`,
+      ...steps.map(describe),
+      ...lines,
+      ...removals,
+      ...additions,
+      ...fillIn,
+      ...(notes.length > 0 ? ["", ...notes] : []),
+      "",
+      "Run `npx groundwork-ai doctor` to check the result.",
+    ].join("\n"),
   };
 }

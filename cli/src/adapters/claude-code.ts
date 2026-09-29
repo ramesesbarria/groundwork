@@ -1,10 +1,9 @@
 import type { CoreFiles } from "../core.js";
-import { commandsOf, modelFor, rolesOf, sortedByPath, yamlValue, type ModelHints } from "./shared.js";
+import { commandsOf, modelFor, sortedByPath, subagentRolesOf, yamlValue, type ModelHints } from "./shared.js";
 
 // Claude Code tools each role's subagent may use. The reviewer judges and doesn't repair,
-// so it can't edit files; the planner writes docs and never runs code.
+// so it has no file-edit tool.
 const ROLE_TOOLS: Record<string, string[]> = {
-  planner: ["Read", "Grep", "Glob", "Write", "Edit"],
   tester: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"],
   implementer: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"],
   reviewer: ["Read", "Grep", "Glob", "Bash"],
@@ -32,7 +31,7 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
     ].join("\n");
   }
 
-  const roles = rolesOf(core);
+  const roles = subagentRolesOf(core);
   for (const { name: role, description } of roles) {
     const tools = ROLE_TOOLS[role];
     if (!tools) throw new Error(`No Claude Code tools defined for role "${role}"`);

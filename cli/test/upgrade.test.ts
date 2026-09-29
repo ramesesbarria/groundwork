@@ -46,8 +46,11 @@ const STATE: Record<string, string> = {
 async function v03Project(): Promise<string> {
   const dir = tempDir();
   await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+  rmSync(join(dir, ".groundwork/.manifest.json")); // 0.3 kept no record of the files it wrote
   const cfg = config(dir);
   delete cfg.version;
+  delete cfg.setup; // keys 0.3 didn't have
+  delete cfg.enforce;
   cfg.approvalMode = "per-phase";
   cfg.commands.test = "npm test";
   write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
@@ -207,6 +210,71 @@ describe("groundwork upgrade", () => {
     const attributes = read(dir, ".gitattributes");
     expect(attributes).toContain(".groundwork/** text eol=lf");
     expect(attributes).toContain("*.png binary");
+  });
+
+  it("keeps a Groundwork file the user changed, writing the new version next to it", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    const mine = `${read(dir, ".groundwork/roles/reviewer.md")}\n- RULE L-002: never mock the database\n`;
+    write(dir, ".groundwork/roles/reviewer.md", mine);
+    write(dir, ".groundwork/workflow.md", "# Old workflow\n"); // pretend Groundwork wrote an older version
+    const manifest = JSON.parse(read(dir, ".groundwork/.manifest.json"));
+    manifest.files[".groundwork/workflow.md"] = (await import("../src/manifest.js")).fingerprint("# Old workflow\n");
+    write(dir, ".groundwork/.manifest.json", JSON.stringify(manifest));
+    const cfg = config(dir);
+    cfg.version = "0.7.0";
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2));
+
+    const { output } = await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(read(dir, ".groundwork/roles/reviewer.md")).toBe(mine);
+    expect(read(dir, ".groundwork/roles/reviewer.md.new")).toBe(core["roles/reviewer.md"]);
+    expect(read(dir, ".groundwork/workflow.md")).toBe(core["workflow.md"]); // unchanged since written: replaced
+    expect(output).toMatch(/keep {7}\.groundwork\/roles\/reviewer\.md \(you changed it/);
+    expect(output).toMatch(/Compare each with its \.new file/);
+  });
+
+  it("gives each role a rules file that upgrades never touch", async () => {
+    const dir = await v03Project();
+    rmSync(join(dir, ".groundwork/rules"), { recursive: true });
+    await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(read(dir, ".groundwork/rules/reviewer.md")).toContain("# Rules for the reviewer");
+    write(dir, ".groundwork/rules/reviewer.md", "- RULE L-002: never mock the database\n");
+    const cfg = config(dir);
+    cfg.version = "0.1.0";
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2));
+    await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(read(dir, ".groundwork/rules/reviewer.md")).toBe("- RULE L-002: never mock the database\n");
+    expect(core["roles/reviewer.md"]).toContain(".groundwork/rules/reviewer.md");
+  });
+
+  it("without a terminal, changes nothing unless given --yes", async () => {
+    const dir = await v03Project();
+    const noTerminal = { cwd: dir, ask: async () => "", interactive: false };
+    const refused = await run(["upgrade"], noTerminal);
+    expect(refused.code).toBe(1);
+    expect(refused.output).toMatch(/Run `npx groundwork-ai upgrade --yes`/);
+    expect(read(dir, ".groundwork/roles/tester.md")).toBe("# Role: Tester\nOld text.\n");
+    const applied = await run(["upgrade", "--yes"], noTerminal);
+    expect(applied.code).toBe(0);
+    expect(read(dir, ".groundwork/roles/tester.md")).toBe(core["roles/tester.md"]);
+  });
+
+  it("fills in `setup` for an older config: done if setup filled in SPEC.md, pending if not", async () => {
+    const done = await v03Project(); // STATE has a filled-in SPEC.md
+    await run(["upgrade"], { cwd: done, ask: answers("y").ask });
+    expect(config(done).setup).toBe("done");
+
+    const pending = await v03Project();
+    write(pending, ".groundwork/SPEC.md", core["templates/SPEC.md"]);
+    await run(["upgrade"], { cwd: pending, ask: answers("y").ask });
+    expect(config(pending).setup).toBe("pending");
+  });
+
+  it("removes the old planner subagent Groundwork generated", async () => {
+    const dir = await v03Project();
+    write(dir, ".claude/agents/gw-planner.md", "---\nname: gw-planner\n---\nYou are the Groundwork planner. Read `.groundwork/roles/planner.md`.\n");
+    await run(["upgrade"], { cwd: dir, ask: answers("y").ask });
+    expect(existsSync(join(dir, ".claude/agents/gw-planner.md"))).toBe(false);
   });
 
   it("says to run init when Groundwork isn't installed", async () => {

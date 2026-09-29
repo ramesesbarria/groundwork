@@ -55,9 +55,9 @@ describe("plain status labels", () => {
     for (const [name, text] of Object.entries(files)) expect(readFileSync(join(dir, ".groundwork/cards", name), "utf8")).toBe(text);
   });
 
-  it("the workflow tells agents to use the same labels with the human", () => {
-    const workflow = core("workflow.md");
-    for (const label of Object.values(STATUS_LABELS)) expect(workflow).toContain(label);
+  it("the status reference tells agents to use the same labels with the human", () => {
+    const reference = core("reference/statuses.md");
+    for (const label of Object.values(STATUS_LABELS)) expect(reference).toContain(label);
   });
 
   it("the session-start hook uses the same labels", async () => {

@@ -158,7 +158,7 @@ describe("groundwork doctor", () => {
     expect(output).toMatch(/AI tool's own instructions come on top/);
   });
 
-  it("suggests shortening a card every role would reread at length, without failing", async () => {
+  it("reports a card too long for every role to reread as a problem", async () => {
     const dir = await installed();
     const history = Array.from({ length: 80 }, (_, i) => `2026-09-26 step ${i}: ${"a long line of detail ".repeat(4)}`).join("\n");
     writeFileSync(
@@ -166,8 +166,35 @@ describe("groundwork doctor", () => {
       `---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: todo\ndepends_on: []\n---\n## History\n${history}\n`,
     );
     const { code, output } = await doctor(dir);
+    expect(code).toBe(1);
+    expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, over 1500, and every role rereads it/);
+  });
+
+  it("suggests moving detail out of a History or Evidence line over 200 characters", async () => {
+    const dir = await installed();
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.1-thing.md"),
+      `---\nid: 1.1\ntitle: Thing\nphase: 1\nstatus: todo\ndepends_on: []\n---\n## History\n- 2026-09-26 ${"detail ".repeat(40)}\n`,
+    );
+    const { code, output } = await doctor(dir);
     expect(code).toBe(0);
-    expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, and every role rereads it/);
+    expect(output).toMatch(/Card 1\.1: 1 History line is over 200 characters/);
+  });
+
+  it("counts what Claude Code keeps in context from the skill and subagent lists", async () => {
+    const { output } = await doctor(await installed());
+    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\): AGENTS\.md \d+, CLAUDE\.md \d+, skill list \d+, subagent list \d+/);
+  });
+
+  it("passes right after init in a project that kept its own role file", async () => {
+    const dir = tempDir();
+    mkdirSync(join(dir, ".groundwork/roles"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/roles/tester.md"), "# Role: Tester\n\n## Job\nOur own tester. Tests first.\n");
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
+    expect(readFileSync(join(dir, ".groundwork/roles/tester.md"), "utf8")).toContain("Our own tester");
+    const { code, output } = await doctor(dir);
+    expect(output).not.toMatch(/gw-tester\.md differs/);
+    expect(code).toBe(0);
   });
 
   it("reports UTF-16 evidence as a problem, with advice that doesn't add a byte order mark", async () => {

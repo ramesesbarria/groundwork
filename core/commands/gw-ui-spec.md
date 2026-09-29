@@ -1,6 +1,6 @@
 ---
 name: gw-ui-spec
-description: Use when a card involves UI or animation work, before anything is built. Agrees in writing how it will look and behave, as checkable criteria on the card.
+description: Use when a card involves UI or animation, before it's built. Agrees how it will look and behave, as checkable criteria.
 ---
 # gw-ui-spec
 
