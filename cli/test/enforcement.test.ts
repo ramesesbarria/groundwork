@@ -156,13 +156,14 @@ describe("commit-gate", SLOW, () => {
     spawnSync(process.execPath, [join(dir, ".groundwork/hooks/user-prompt.mjs"), dir], { input: JSON.stringify({ prompt }), encoding: "utf8" });
   const commitCard = bash('git add -A && git commit -m "[1.1] Books"');
 
-  it("blocks committing a card that isn't done", async () => {
+  it("blocks committing a card that isn't done, and names the two-step rule", async () => {
     const dir = await project();
     card(dir, "awaiting-approval", "- 2026-09-29 review → awaiting-approval: passed");
     humanSpeaks(dir);
     const result = hook(dir, commitCard);
     expect(result.status).toBe(2);
     expect(result.stderr).toMatch(/\[commit-gate\] Card 1\.1 isn't ready to commit: its status is "awaiting-approval"/);
+    expect(result.stderr).toMatch(/Change the card first, then commit as a separate step: the gate reads the card as it is before the command runs\./);
   });
 
   it("in per-card mode, needs a message from the human since the last commit", async () => {
@@ -171,6 +172,7 @@ describe("commit-gate", SLOW, () => {
     const before = hook(dir, commitCard);
     expect(before.status).toBe(2);
     expect(before.stderr).toMatch(/No message from the human since the last commit/);
+    expect(before.stderr).not.toMatch(/separate step/); // the two-step rule is for the card problems, not the human-marker check
 
     const spoke = humanSpeaks(dir);
     expect(spoke.status).toBe(0);

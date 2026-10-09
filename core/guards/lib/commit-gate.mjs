@@ -84,6 +84,10 @@ const WHEN = {
   "at-end": "In at-end mode a card is committed once it's built with its test output saved, and again after the human approves.",
 };
 
+// The runner learns this by trial otherwise: the gate reads the card as it is before the command
+// runs, so the status edit and the commit can't share one shell command.
+const TWO_STEP = "Change the card first, then commit as a separate step: the gate reads the card as it is before the command runs.";
+
 export function commitGate(action, { project, config, tool }) {
   const id = cardIdIn(commitText(action.command, project), config.commitFormat);
   if (!id) return { block: false };
@@ -99,7 +103,7 @@ export function commitGate(action, { project, config, tool }) {
     problems.unshift(`its status is "${status}", not ${approvalMode === "at-end" ? "built or done" : "done"}`);
   }
   if (problems.length > 0) {
-    return { block: true, reason: `Card ${id} isn't ready to commit: ${problems.join("; ")}. ${WHEN[approvalMode] ?? WHEN["per-card"]}` };
+    return { block: true, reason: `Card ${id} isn't ready to commit: ${problems.join("; ")}. ${WHEN[approvalMode] ?? WHEN["per-card"]} ${TWO_STEP}` };
   }
 
   if (!checkpoint && approvalMode !== "per-phase" && toolRecordsHuman(tool, project)) {

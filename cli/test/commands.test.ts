@@ -130,6 +130,10 @@ describe("gw-next", () => {
     expect(text).toContain("`awaiting-approval`");
     expect(text).toMatch(/stop/i);
   });
+
+  it("tells the runner to change the card first and commit as a separate step", () => {
+    expect(steps()).toMatch(/card first[^\n]*separate step/i);
+  });
 });
 
 describe("gw-approve", () => {
@@ -154,6 +158,10 @@ describe("gw-approve", () => {
 
   it("only approves a card that is awaiting approval", () => {
     expect(section(command("gw-approve"), "Steps")).toContain("`awaiting-approval`");
+  });
+
+  it("tells the approver the card change and the commit are separate steps", () => {
+    expect(command("gw-approve")).toMatch(/separate steps[^\n]*gate reads the card/i);
   });
 });
 
