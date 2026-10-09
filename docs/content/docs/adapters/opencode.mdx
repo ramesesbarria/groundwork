@@ -56,10 +56,12 @@ fresh each time, and skipped for Groundwork's own subagents, which get their car
 ## Human-only commands
 
 `/gw-approve` and `/gw-reject` are ordinary commands whose text says only the human runs them, and
-the runner is instructed never to run them. The commit gate still refuses to commit a card that isn't
-`done`, lacks evidence, or has no "approved by human" line in `per-card` mode.
+the runner is instructed never to run them. The commit gate backs that up: it refuses to commit a
+card that isn't `done`, lacks evidence, or has no "approved by human" line in `per-card` mode.
 
-What OpenCode doesn't have yet is Claude Code's check that *you* sent a message since the last
-commit: Groundwork hasn't verified a plugin hook that fires only on the human's own messages. So in
-OpenCode, "approved by human" is a line the agent is told to write only after you approve, and the
-commit gate can't tell whether you actually did.
+Since 0.8.1 it also checks that *you* sent a message since the last commit. The plugin records your
+own prompt submissions (they arrive as raw text in a top-level session) in
+`.groundwork/.approvals/`; subagent tasks arrive as prompts in a child session and are ignored, so a
+spawned agent can't record its own approval. Once that signal has proven itself, the gate demands
+it — verified live on OpenCode 2.0.26. On an older 2.x whose plugin API lacks the prompt hook, the
+gate falls back to checking the card alone, as before.

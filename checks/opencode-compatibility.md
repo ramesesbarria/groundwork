@@ -59,8 +59,35 @@ file under .opencode/ or .groundwork/guards/, and do not try to fix anything. Ju
 8. Anything else you noticed: warnings, errors, tool names or arguments that differ from what
    Groundwork's files assume (see .groundwork/guards/run.mjs, the "opencode" section).
 
+9. Human-approval marker. Read .groundwork/.approvals/last-human.json and report its "head" and "at"
+   values, and whether .groundwork/.approvals/records-human exists. Then ask the gw-tester subagent
+   to run `echo hi` once, and read last-human.json again: its "at" must be unchanged, because a
+   subagent prompt must not count as the human's.
+
 Finish with a table: Check | Expected | Observed | Pass/Fail.
 ```
+
+## Human-approval marker (checked 2026-10-09, OpenCode 2.0.26)
+
+The commit gate's human check depends on the plugin's `prompt` session hook, so re-check this whenever
+OpenCode changes its plugin API:
+
+1. Send a plain message. `.groundwork/.approvals/last-human.json` and `records-human` should both
+   appear (both were written on 2.0.26).
+2. Ask for a subagent (e.g. "use the task tool to launch gw-tester and have it run echo hi").
+   On 2.0.26 the hook also fires for the subagent's prompt, which arrives in a child session; the
+   plugin skips any session with a `parentID`. Confirm `last-human.json`'s `at` did not change after
+   the subagent ran. If a future version drops `parentID` or delivers subagent prompts differently,
+   the marker must be reworked before it can be trusted.
+3. `/gw-approve <id>` arrives as the raw command text in a top-level session, before command
+   expansion (observed with `opencode run "/gw-approve 1.1"`).
+4. End to end: with a `done` card and its evidence committed, ask the agent to make two commits
+   naming the card in one run. The first should pass; the second must be refused with
+   `[commit-gate] No message from the human since the last commit`.
+
+The event shape observed on 2.0.26: `{ sessionID, messageID, prompt: { text, files, agents,
+skills }, metadata, delivery }`. A temporary probe plugin that appends each event to a log is the
+easiest way to watch fires.
 
 ## Check these yourself
 
