@@ -92,12 +92,44 @@ describe("OpenCode guard plugin", () => {
       return { dispose: async () => {} };
     };
     await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
-    return hooks;
+    return { hooks, project };
   }
 
-  const installedPlugin = async (guards: string[]) => (await loadPlugin(guards))["tool.execute.before"];
+  const installedPlugin = async (guards: string[]) => (await loadPlugin(guards)).hooks["tool.execute.before"];
 
   const trailerCommit = "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'";
+
+  // A project with the core installed, for the mounts that need to tweak files first.
+  function coreProject(): string {
+    const project = tempDir();
+    cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
+    cpSync(join(coreDir, "hooks"), join(project, ".groundwork/hooks"), { recursive: true });
+    writeFileSync(join(project, ".groundwork/config.json"), JSON.stringify({ guards: [] }));
+    return project;
+  }
+
+  // Mounts the generated plugin with a mock context and returns its registered hooks. `failsPrompt`
+  // makes the session registry reject the prompt hook, like a tool that doesn't have it.
+  async function mountPlugin(project: string, { failsPrompt = false } = {}) {
+    mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
+    const file = join(project, ".opencode/plugins/groundwork-guards.js");
+    writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
+    const { default: plugin } = await import(pathToFileURL(file).href);
+    const hooks: Record<string, Hook> = {};
+    const register = (prefix: string) => async (name: string, callback: Hook) => {
+      if (failsPrompt && prefix === "session" && name === "prompt") throw new Error("no such hook");
+      hooks[`${prefix}.${name}`] = callback;
+      return { dispose: async () => {} };
+    };
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+      await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
+    } finally {
+      console.warn = warn;
+    }
+    return hooks;
+  }
 
   it("throws to block a commit with an AI trailer when the guard is on", async () => {
     const before = await installedPlugin(["no-ai-trailers"]);
@@ -108,6 +140,33 @@ describe("OpenCode guard plugin", () => {
   it("does nothing when no guards are on", async () => {
     const before = await installedPlugin([]);
     await expect(before({ tool: "shell", input: { command: trailerCommit } })).resolves.toBeUndefined();
+  });
+
+  it("records the human's messages for the commit gate, and advertises the hook on the first one", async () => {
+    const { hooks, project } = await loadPlugin([]);
+    const records = join(project, ".groundwork/.approvals/records-human");
+    expect(existsSync(records)).toBe(false); // nothing is advertised before a real message
+    await hooks["session.prompt"]({ prompt: { text: "/gw-approve 1.2" } });
+    const marker = JSON.parse(readFileSync(join(project, ".groundwork/.approvals/last-human.json"), "utf8"));
+    expect(marker.approves).toBe("1.2");
+    expect(readFileSync(records, "utf8")).toContain('"opencode"');
+  });
+
+  it("still loads, and claims nothing, when the tool has no prompt hook", async () => {
+    const project = coreProject();
+    const hooks = await mountPlugin(project, { failsPrompt: true });
+    expect(typeof hooks["tool.execute.before"]).toBe("function");
+    expect(typeof hooks["session.context"]).toBe("function");
+    expect(hooks["session.prompt"]).toBeUndefined();
+    expect(existsSync(join(project, ".groundwork/.approvals/records-human"))).toBe(false);
+  });
+
+  it("claims nothing when the hooks file is too old to export recordHuman", async () => {
+    const project = coreProject();
+    writeFileSync(join(project, ".groundwork/hooks/user-prompt.mjs"), "export const something = 1;\n");
+    const hooks = await mountPlugin(project);
+    expect(hooks["session.prompt"]).toBeUndefined();
+    expect(existsSync(join(project, ".groundwork/.approvals/records-human"))).toBe(false);
   });
 
   it("with a broken config, blocks commits only instead of every tool call", async () => {
@@ -137,7 +196,7 @@ describe("OpenCode guard plugin", () => {
   });
 
   it("adds where things stand to the system prompt, as a text part", async () => {
-    const hooks = await loadPlugin([], "- **Current card:** 1.2 Login\n- **Status:** implementing\n- **Next step:** make the tests pass\n");
+    const { hooks } = await loadPlugin([], "- **Current card:** 1.2 Login\n- **Status:** implementing\n- **Next step:** make the tests pass\n");
     const input = { agent: "build", system: [{ type: "text", text: "tool prompt" }] };
     await hooks["session.context"](input);
     expect(input.system).toHaveLength(2);
@@ -145,7 +204,7 @@ describe("OpenCode guard plugin", () => {
   });
 
   it("leaves Groundwork's own subagents alone, since the runner hands them their card", async () => {
-    const hooks = await loadPlugin([], "- **Current card:** 1.2 Login\n");
+    const { hooks } = await loadPlugin([], "- **Current card:** 1.2 Login\n");
     const input = { agent: "gw-tester", system: [] as object[] };
     await hooks["session.context"](input);
     expect(input.system).toEqual([]);

@@ -1,6 +1,6 @@
 // The built-in checks in the guard runner: protect-harness and commit-gate.
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -83,6 +83,7 @@ describe("protect-harness", SLOW, () => {
     const dir = await project();
     expect(hook(dir, write(".groundwork/.approvals/last-human.json", "{}")).status).toBe(2);
     expect(hook(dir, bash("sed -i 's/a/b/' .groundwork/guards/run.mjs")).status).toBe(2);
+    expect(hook(dir, bash("git clean -fdx .groundwork/.approvals")).status).toBe(2);
     expect(hook(dir, bash('echo {} > .groundwork/config.json')).status).toBe(2);
     expect(hook(dir, bash("npx groundwork-ai uninstall")).status).toBe(2);
     expect(hook(dir, bash("cat .groundwork/config.json")).status).toBe(0);
@@ -134,13 +135,35 @@ describe("commit-gate", SLOW, () => {
     expect(hook(dir, commitCard).status).toBe(2); // that message was used up by the commit
   });
 
-  it("checks the card on tools that don't record human messages, without asking for one", async () => {
+  it("checks the card without asking for a human message when the tool records none", async () => {
     const dir = await project();
     card(dir, "done");
     const opencode = { tool: "shell", args: { command: 'git commit -m "[1.1] Books"' } };
     expect(hook(dir, opencode, "opencode").status).toBe(0);
     card(dir, "done", "- 2026-09-29 started");
-    expect(hook(dir, opencode, "opencode").stderr).toMatch(/no "approved by human" line/);
+    const bad = hook(dir, opencode, "opencode");
+    expect(bad.status).toBe(2);
+    expect(bad.stderr).toMatch(/no "approved by human" line/);
+  });
+
+  it("on OpenCode, needs the human's message once the plugin says its prompt hook is live", async () => {
+    const dir = await project();
+    card(dir, "done");
+    const opencode = { tool: "shell", args: { command: 'git commit -m "[1.1] Books"' } };
+    // Before the plugin advertises the hook, only the card checks apply, as documented.
+    expect(hook(dir, opencode, "opencode").status).toBe(0);
+
+    mkdirSync(join(dir, ".groundwork/.approvals"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/.approvals/records-human"), "{}\n");
+    const before = hook(dir, opencode, "opencode");
+    expect(before.status).toBe(2);
+    expect(before.stderr).toMatch(/No message from the human since the last commit/);
+
+    humanSpeaks(dir);
+    expect(hook(dir, opencode, "opencode").status).toBe(0);
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "[1.1] Books");
+    expect(hook(dir, opencode, "opencode").status).toBe(2); // that message was used up by the commit
   });
 
   it("in per-phase mode, commits a reviewed card without an approval", async () => {
@@ -153,6 +176,13 @@ describe("commit-gate", SLOW, () => {
     const dir = await project();
     expect(hook(dir, bash('git commit -m "Plan phase 1"')).status).toBe(0);
     expect(hook(dir, bash('git commit -m "[quick] Fix typo"')).status).toBe(0);
+  });
+
+  it("importing the user-prompt hook records nothing until a message arrives", async () => {
+    const dir = await project();
+    const module = await import(pathToFileURL(join(dir, ".groundwork/hooks/user-prompt.mjs")).href);
+    expect(typeof module.recordHuman).toBe("function");
+    expect(existsSync(join(dir, ".groundwork/.approvals/last-human.json"))).toBe(false);
   });
 
   it("reads the card from a message file, and understands other commit formats", async () => {
