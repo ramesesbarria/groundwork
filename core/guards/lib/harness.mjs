@@ -14,17 +14,14 @@ import { relative, resolve, sep } from "node:path";
 const parseJson = (text) => JSON.parse(text.replace(/^﻿/, ""));
 
 // Files an agent may not change once they exist.
-const LOCKED = [/^\.groundwork\/guards\//, /^\.groundwork\/hooks\//];
+const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/];
 // The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
 // can see what it does.
-const PLUGINS = /^\.opencode\/plugins\//;
-const APPROVALS = /^\.groundwork\/\.approvals\//;
+const PLUGINS = /^\.opencode\/plugins(\/|$)/;
+const APPROVALS = /^\.groundwork\/\.approvals(\/|$)/;
 const SETTINGS = /^\.claude\/settings(\.local)?\.json$/;
 const CONFIG = ".groundwork/config.json";
 
-// Shell commands that name one of these files and change or delete something.
-const NAMES_HARNESS = /\.groundwork[\\/](guards|hooks|\.approvals|config\.json)|\.claude[\\/]settings|\.opencode[\\/]plugins/;
-const WRITES = /(>|\brm\b|\bmv\b|\bcp\b|\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|Rename-Item|writeFile|rmSync|unlink|\bgit\s+(checkout|restore|rm|clean)\b)/;
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
 const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;
@@ -137,21 +134,92 @@ function checkWrite(action, project) {
   return { block: false };
 }
 
-function checkCommand(action) {
+// Shell commands that change their file arguments. `git` is checked by subcommand below; `sed` and
+// `perl` only count when they edit in place; copy verbs write only their last argument (the
+// destination). Everything else is a read, as far as their text shows.
+const WRITE_COMMANDS = new Set(["rm", "rmdir", "rd", "unlink", "mv", "tee", "del", "erase", "move", "ren", "rename", "set-content", "add-content", "out-file", "remove-item", "move-item", "rename-item", "truncate"]);
+const COPY_COMMANDS = new Set(["cp", "copy", "copy-item"]);
+const GIT_WRITES = new Set(["clean", "rm", "mv", "checkout", "restore"]);
+
+// Node fs calls that write the path in their first string argument.
+const NODE_WRITES = /\b(?:writeFileSync|appendFileSync|writeFile|appendFile|rmSync|rm|unlinkSync|unlink|createWriteStream)\s*\(\s*(["'`])([^"'`]+)\1/g;
+
+const unquote = (token) => token.replace(/^(['"])(.*)\1$/, "$2");
+const fileArgs = (args) => args.filter((a) => a && !a.startsWith("-")).map(unquote);
+
+// The paths a shell command may write, from its text: redirect targets, the file arguments of
+// commands that write, and Node's fs write calls. Reads and redirects aimed at other files don't
+// appear, so they can't block. Exported so the tests can pin the parsing.
+export function commandWriteTargets(command) {
+  const targets = [];
+  for (let i = 0; i < command.length; i++) {
+    if (command[i] !== ">") continue;
+    const before = command[i - 1];
+    if (before === "=" || before === "<") continue; // => in code, and <> read-write handles
+    let j = i + 1;
+    if (command[j] === ">") j += 1; // >>
+    while (command[j] === " " || command[j] === "\t") j += 1;
+    const quote = command[j] === '"' || command[j] === "'" ? command[j] : "";
+    if (!quote && (command[j] === undefined || command[j] === "&" || command[j] === "|")) continue; // 2>&1, >|
+    if (quote) j += 1;
+    let target = "";
+    while (j < command.length && (quote ? command[j] !== quote : !/[\s;&|<>]/.test(command[j]))) target += command[j++];
+    if (target) targets.push(target);
+  }
+  for (const segment of command.split(/[;&|\n]/)) {
+    const words = segment.trim().split(/\s+/).filter(Boolean);
+    let k = 0;
+    while (k < words.length && /^[A-Za-z_]\w*=/.test(words[k])) k += 1; // skip VAR=value prefixes
+    const name = (words[k] ?? "").toLowerCase();
+    const args = words.slice(k + 1);
+    if (name === "git") {
+      if (GIT_WRITES.has((args[0] ?? "").toLowerCase())) targets.push(...fileArgs(args.slice(1)));
+    } else if (name === "sed" || name === "perl") {
+      if (args.some((a) => /^-[a-z]*i/.test(a) || a.startsWith("--in-place"))) targets.push(...fileArgs(args));
+    } else if (COPY_COMMANDS.has(name)) {
+      const destination = fileArgs(args).at(-1); // cp reads its sources; only the last argument is the write
+      if (destination) targets.push(destination);
+    } else if (WRITE_COMMANDS.has(name)) {
+      targets.push(...fileArgs(args));
+    }
+  }
+  for (const match of command.matchAll(NODE_WRITES)) targets.push(match[2]);
+  return targets;
+}
+
+// Whether setup has finished. Until it has, the agent writes config.json freely, the same way the
+// Write and Edit tools already may; after, shell edits to it are the human's. A config that can't
+// be read counts as done, so a broken one can't open the door.
+function setupIsDone(project) {
+  try {
+    const file = resolve(project, CONFIG);
+    const config = existsSync(file) ? parseJson(readFileSync(file, "utf8")) : {};
+    return config.setup === "done";
+  } catch {
+    return true;
+  }
+}
+
+function checkCommand(action, project) {
   const command = action.command;
   if (UNINSTALL.test(command)) return { block: true, reason: `Uninstalling Groundwork is the human's call. ${ASK}` };
   if (MODE_SWITCH.test(command)) {
     return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
   }
-  if (/^\s*git\s+(commit|add|status|diff|log|show)\b/.test(command) && !/[;&|]/.test(command)) return { block: false };
-  if (NAMES_HARNESS.test(command) && WRITES.test(command)) {
-    return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };
+  const setupDone = setupIsDone(project);
+  for (const target of commandWriteTargets(command)) {
+    const rel = projectPath(project, target);
+    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel);
+    const configAfterSetup = rel === CONFIG && setupDone; // setup writing its own config isn't the agent changing the harness
+    if (locked || configAfterSetup) {
+      return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };
+    }
   }
   return { block: false };
 }
 
 export function protectHarness(action, project) {
   if (action.kind === "write") return checkWrite(action, project);
-  if (action.kind === "command") return checkCommand(action);
+  if (action.kind === "command") return checkCommand(action, project);
   return { block: false };
 }

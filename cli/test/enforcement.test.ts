@@ -87,9 +87,54 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, bash("git clean -fdx .groundwork/.approvals")).status).toBe(2);
     expect(hook(dir, bash('echo {} > .opencode/plugins/evil.js')).status).toBe(2);
     expect(hook(dir, bash('echo {} > .groundwork/config.json')).status).toBe(2);
+    expect(hook(dir, bash("git diff > .groundwork/config.json")).status).toBe(2);
+    expect(hook(dir, bash("cp config.json.bak .groundwork/config.json")).status).toBe(2);
     expect(hook(dir, bash("npx groundwork-ai uninstall")).status).toBe(2);
     expect(hook(dir, bash("cat .groundwork/config.json")).status).toBe(0);
     expect(hook(dir, bash("node .groundwork/guards/run.mjs claude-code < input.json")).status).toBe(0); // runs it, changes nothing
+  });
+
+  it("lets setup edit config.json from the shell until setup is done, but keeps the locked files locked", async () => {
+    const pending = await project({ setup: "pending" });
+    expect(hook(pending, bash("echo {} > .groundwork/config.json")).status).toBe(0);
+    expect(hook(pending, bash("sed -i 's/a/b/' .groundwork/guards/run.mjs")).status).toBe(2);
+    expect(hook(pending, bash("rm -rf .groundwork/.approvals")).status).toBe(2);
+    expect(hook(pending, bash("rm .claude/settings.local.json")).status).toBe(2);
+    expect(hook(pending, bash('echo {} > .opencode/plugins/evil.js')).status).toBe(2);
+
+    const done = await project();
+    expect(hook(done, bash("echo {} > .groundwork/config.json")).status).toBe(2);
+  });
+
+  it("treats reads of harness files as reads, even with redirects, pipes and arrows around them", async () => {
+    const dir = await project();
+    // The three exact commands the four-arm run lost to false positives (EXPERIMENTS.md finding 2).
+    const reviewer = `cd "C:/Users/rames/AppData/Local/Temp/claude/C--Users-rames-Documents-projects-groundwork/5b677e4c-a49a-4a3e-a610-d68181b8b4b2/scratchpad/exp/a4-gw-eng" && E=.groundwork/evidence/1.5 && npm test > $E/npm-test.txt 2>&1; tail -8 $E/npm-test.txt; npm run build > $E/npm-build.txt 2>&1; tail -8 $E/npm-build.txt; grep -c "it(\\|test(" src/app.edit-filter.test.ts; cat .groundwork/config.json | head -30`;
+    const tester = `cd "C:/Users/rames/AppData/Local/Temp/claude/C--Users-rames-Documents-projects-groundwork/5b677e4c-a49a-4a3e-a610-d68181b8b4b2/scratchpad/exp/a4-gw-eng" && cat src/storage.ts | head -40; ls .groundwork/evidence 2>/dev/null; cat .groundwork/config.json | head -30`;
+    const opencode = `node -e 'import("./.groundwork/guards/lib/cards.mjs").then(m => console.log(JSON.stringify(m.checkCards(process.cwd(), "per-card"), null, 1)))'; git status --short`;
+    expect(hook(dir, bash(reviewer)).status).toBe(0);
+    expect(hook(dir, bash(tester)).status).toBe(0);
+    expect(hook(dir, bash(opencode)).status).toBe(0);
+    expect(hook(dir, bash("cat .groundwork/config.json 2>&1")).status).toBe(0);
+    expect(hook(dir, bash("npm test > out.txt; cat .groundwork/config.json")).status).toBe(0);
+    expect(hook(dir, bash("cp .groundwork/config.json config.json.bak")).status).toBe(0); // the source is read, not written
+  });
+
+  it("parses a command's write targets the same way the hook judges them", async () => {
+    const coreDir = fileURLToPath(new URL("../../core/", import.meta.url));
+    const { commandWriteTargets } = await import(pathToFileURL(join(coreDir, "guards/lib/harness.mjs")).href);
+    expect(commandWriteTargets("npm test > out.txt 2>&1; cat .groundwork/config.json | head -30")).toEqual(["out.txt"]);
+    expect(commandWriteTargets("node -e 'x => y'; git status --short")).toEqual([]);
+    expect(commandWriteTargets("rm -rf .groundwork/.approvals")).toEqual([".groundwork/.approvals"]);
+    expect(commandWriteTargets("cp .groundwork/config.json config.json.bak")).toEqual(["config.json.bak"]);
+    expect(commandWriteTargets(`node -e "require('fs').appendFileSync('.groundwork/config.json', 'x')"`)).toEqual([".groundwork/config.json"]);
+  });
+
+  it("counts writeFileSync and appendFileSync as writes when their target is a harness file", async () => {
+    const dir = await project();
+    expect(hook(dir, bash(`node -e "require('fs').writeFileSync('.groundwork/config.json', '{}')"`)).status).toBe(2);
+    expect(hook(dir, bash(`node -e "require('fs').appendFileSync('.groundwork/.approvals/last-human.json', 'x')"`)).status).toBe(2);
+    expect(hook(dir, bash(`node -e "require('fs').writeFileSync('src/app.ts', 'x')"`)).status).toBe(0);
   });
 
   it("is off when the human turned it off", async () => {
