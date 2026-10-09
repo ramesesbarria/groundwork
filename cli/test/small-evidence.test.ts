@@ -17,4 +17,23 @@ describe("smaller evidence files", () => {
   it("gw-approve still checks that linked evidence files exist", () => {
     expect(core("commands/gw-approve.md")).toMatch(/links to[^\n]*is missing/i);
   });
+
+  it.each(["roles/tester.md", "roles/implementer.md", "roles/reviewer.md"])("%s keeps evidence append-only and links exact files", (path) => {
+    const text = core(path);
+    expect(text).toMatch(/never overwrite/i);
+    expect(text).toMatch(/fresh subfolder/i);
+    expect(text).toMatch(/exact files, not patterns/i);
+  });
+
+  it.each(["roles/tester.md", "roles/reviewer.md"])("%s stops only a server it started, by its PID", (path) => {
+    const text = core(path);
+    expect(text).toMatch(/taskkill/);
+    expect(text).toMatch(/pkill/);
+    expect(text).toMatch(/PID/);
+  });
+
+  it("the card template asks for exact proof files, not patterns", () => {
+    expect(core("templates/card.md")).toMatch(/exact proof files/i);
+    expect(core("templates/card.md")).toMatch(/list each file/i);
+  });
 });

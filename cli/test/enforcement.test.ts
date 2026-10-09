@@ -166,6 +166,20 @@ describe("commit-gate", SLOW, () => {
     expect(result.stderr).toMatch(/Change the card first, then commit as a separate step: the gate reads the card as it is before the command runs\./);
   });
 
+  it("names a pattern evidence link as a pattern, not a missing file", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.1-books.md"),
+      `---\nid: 1.1\ntitle: Books\nphase: 1\nstatus: awaiting-approval\ndepends_on: []\n---\n## Acceptance criteria\n- [x] Lists books\n\n## Evidence\n- \`.groundwork/evidence/1.1/review2-*\`, 5 passed\n\n## History\n- 2026-09-29 implementing → review: passed\n- 2026-09-29 review → awaiting-approval: passed\n`,
+    );
+    const result = hook(dir, commitCard);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/Evidence links to \.groundwork\/evidence\/1\.1\/review2-\*, which is a pattern/);
+    expect(result.stderr).toMatch(/Patterns aren't checked: list each file/);
+    expect(result.stderr).not.toMatch(/doesn't exist/);
+  });
+
   it("in per-card mode, needs a message from the human since the last commit", async () => {
     const dir = await project();
     card(dir, "done");

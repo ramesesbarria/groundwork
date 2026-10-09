@@ -80,7 +80,8 @@ export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
     const evidence = section(md, "Evidence");
     if (evidence === "") problems.push(`it's ${fm.status}, but its Evidence section is empty`);
     for (const link of evidenceLinks(md)) {
-      if (!existsSync(resolve(projectDir, link))) problems.push(`Evidence links to ${link}, which doesn't exist`);
+      if (/[*?]/.test(link)) problems.push(`Evidence links to ${link}, which is a pattern. Patterns aren't checked: list each file.`);
+      else if (!existsSync(resolve(projectDir, link))) problems.push(`Evidence links to ${link}, which doesn't exist`);
     }
   }
 

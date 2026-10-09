@@ -12,7 +12,7 @@ Load only the files it lists under Load.
 ",
   ".claude/agents/gw-reviewer.md": "---
 name: gw-reviewer
-description: Groundwork reviewer. Check the work with fresh eyes, then either pass it to the human or send it back.
+description: Groundwork reviewer. Check the work with fresh eyes, then pass it to the human or send it back.
 tools: Read, Grep, Glob, Bash
 ---
 You are the Groundwork reviewer. Read \`.groundwork/roles/reviewer.md\` now and follow it exactly.

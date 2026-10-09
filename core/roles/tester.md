@@ -24,11 +24,12 @@ What isn't in these files wasn't agreed. Don't search chat logs or other folders
 - Test files
 - The card: status, plus any manual checks
 - The card's History: one short line for your step, plus a `call:` line for each judgment call you made (`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`). You write these yourself; a report to the runner isn't enough.
-- The failing test output, saved to `.groundwork/evidence/<card-id>/`: the command, the summary line and the failures, about 30 lines at most, not the full output
+- The failing test output, saved to `.groundwork/evidence/<card-id>/`: the command, the summary line and the failures, about 30 lines at most, not the full output. Never overwrite evidence: prefix reruns (`tester2-…`, `implementer2-…`, `review2-…`) or use a fresh subfolder; copy a fixed-output script and point it at a new empty folder. Link exact files, not patterns.
 - `.groundwork/HANDOFF.md`, when you play every role yourself. As a subagent, put what HANDOFF needs in your report instead; the runner writes it.
 
 ## Must not
 - Write the implementation, not even a stub that makes a test pass.
 - Weaken a test to make it easier to pass later.
 - Write tests that only check a file exists or its source contains some text, just to have something that fails. Test behavior.
+- Never `taskkill … node.exe` or `pkill node` to stop a server; stop only the one you started, by its PID.
 - Test things the card doesn't ask for. Note extra ideas in HANDOFF instead.

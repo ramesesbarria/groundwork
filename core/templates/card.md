@@ -18,9 +18,9 @@ depends_on: []
      to see the change working, in plain words. Shown at the approval stop. -->
 
 ## Evidence
-<!-- Links to proof in ../evidence/{{id}}/ (test output, screenshots) and the reviewer's verdict.
-     One short line per link: the file, the command and its summary line. Details belong in the file.
-     Approval is refused while this section is empty. -->
+<!-- Links to exact proof files in ../evidence/{{id}}/ (test output, screenshots) and the reviewer's verdict.
+     Never patterns like review-*; list each file. One short line per link: the file, the command and
+     its summary line. Details belong in the file. Approval is refused while this section is empty. -->
 
 ## History
 <!-- One short line per event: date, what happened, and why. Every role rereads this card, so keep

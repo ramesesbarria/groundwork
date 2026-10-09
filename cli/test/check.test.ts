@@ -73,6 +73,20 @@ describe("groundwork check", () => {
     expect(output).toMatch(/links to \.groundwork\/evidence\/1\.2\/tests\.txt, which doesn't exist/);
   });
 
+  it.each([
+    "`.groundwork/evidence/1.2/review2-*`",
+    "`../evidence/1.2/review2-*`",
+    "[round 2](../evidence/1.2/review2-*)",
+  ])("tells the pattern link %s apart from a missing file", async (link) => {
+    const dir = await project();
+    card(dir, "1.2", "awaiting-approval", { evidence: `- ${link}` });
+    const { code, output } = await check(dir, "1.2");
+    expect(code).toBe(1);
+    expect(output).toMatch(/review2-\*, which is a pattern/);
+    expect(output).toMatch(/Patterns aren't checked: list each file/);
+    expect(output).not.toMatch(/doesn't exist/);
+  });
+
   it("passes a complete card approved by the human", async () => {
     const dir = await project();
     evidence(dir, "1.1");
