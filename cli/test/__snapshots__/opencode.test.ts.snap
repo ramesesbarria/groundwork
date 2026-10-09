@@ -144,8 +144,13 @@ export default {
       const recorder = join(project, ".groundwork", "hooks", "user-prompt.mjs");
       const { recordHuman } = existsSync(recorder) ? await import(pathToFileURL(recorder).href) : {};
       if (typeof recordHuman === "function") {
-        await context.session.hook("prompt", (event) => {
+        await context.session.hook("prompt", async (event) => {
           try {
+            // The task tool delivers subagent instructions as prompts in child sessions; only the
+            // human's own messages arrive in a top-level one. Without this, anything that can spawn
+            // a subagent could forge an approval.
+            const session = await context.session.get({ sessionID: event?.sessionID });
+            if (session?.parentID) return;
             recordHuman(project, event?.prompt?.text ?? "");
             const approvals = join(project, ".groundwork", ".approvals");
             mkdirSync(approvals, { recursive: true });

@@ -62,10 +62,11 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, edit(".groundwork/config.json", '"per-card"', '"per-phase"')).status).toBe(0);
   });
 
-  it("blocks changing guard and hook files, but allows creating a new guard", async () => {
+  it("blocks changing guard and hook files, and any plugin file, but allows creating a new guard", async () => {
     const dir = await project();
     expect(hook(dir, edit(".groundwork/guards/run.mjs", "a", "b")).status).toBe(2);
     expect(hook(dir, write(".groundwork/hooks/session-start.mjs", "")).status).toBe(2);
+    expect(hook(dir, write(".opencode/plugins/evil.js", "export default {}")).status).toBe(2);
     expect(hook(dir, write(".groundwork/guards/no-secrets.mjs", "export function check() { return { block: false }; }")).status).toBe(0);
     expect(hook(dir, write("src/app.ts", "export {}")).status).toBe(0);
   });
@@ -84,6 +85,7 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, write(".groundwork/.approvals/last-human.json", "{}")).status).toBe(2);
     expect(hook(dir, bash("sed -i 's/a/b/' .groundwork/guards/run.mjs")).status).toBe(2);
     expect(hook(dir, bash("git clean -fdx .groundwork/.approvals")).status).toBe(2);
+    expect(hook(dir, bash('echo {} > .opencode/plugins/evil.js')).status).toBe(2);
     expect(hook(dir, bash('echo {} > .groundwork/config.json')).status).toBe(2);
     expect(hook(dir, bash("npx groundwork-ai uninstall")).status).toBe(2);
     expect(hook(dir, bash("cat .groundwork/config.json")).status).toBe(0);

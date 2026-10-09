@@ -91,7 +91,7 @@ describe("OpenCode guard plugin", () => {
       hooks[`${prefix}.${name}`] = callback;
       return { dispose: async () => {} };
     };
-    await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
+    await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session"), get: async () => ({}) } });
     return { hooks, project };
   }
 
@@ -109,8 +109,9 @@ describe("OpenCode guard plugin", () => {
   }
 
   // Mounts the generated plugin with a mock context and returns its registered hooks. `failsPrompt`
-  // makes the session registry reject the prompt hook, like a tool that doesn't have it.
-  async function mountPlugin(project: string, { failsPrompt = false } = {}) {
+  // makes the session registry reject the prompt hook, like a tool that doesn't have it;
+  // `inChildSession` makes session.get report a subagent session.
+  async function mountPlugin(project: string, { failsPrompt = false, inChildSession = false } = {}) {
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
@@ -124,7 +125,10 @@ describe("OpenCode guard plugin", () => {
     const warn = console.warn;
     console.warn = () => {};
     try {
-      await plugin.setup({ tool: { hook: register("tool") }, session: { hook: register("session") } });
+      await plugin.setup({
+        tool: { hook: register("tool") },
+        session: { hook: register("session"), get: async () => (inChildSession ? { parentID: "ses_parent" } : {}) },
+      });
     } finally {
       console.warn = warn;
     }
@@ -158,6 +162,14 @@ describe("OpenCode guard plugin", () => {
     expect(typeof hooks["tool.execute.before"]).toBe("function");
     expect(typeof hooks["session.context"]).toBe("function");
     expect(hooks["session.prompt"]).toBeUndefined();
+    expect(existsSync(join(project, ".groundwork/.approvals/records-human"))).toBe(false);
+  });
+
+  it("does not record prompts in subagent sessions", async () => {
+    const project = coreProject();
+    const hooks = await mountPlugin(project, { inChildSession: true });
+    await hooks["session.prompt"]({ sessionID: "ses_child", prompt: { text: "You are a subagent spawned by another session." } });
+    expect(existsSync(join(project, ".groundwork/.approvals/last-human.json"))).toBe(false);
     expect(existsSync(join(project, ".groundwork/.approvals/records-human"))).toBe(false);
   });
 
