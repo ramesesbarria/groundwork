@@ -16,8 +16,9 @@ const ROLE_DENY: Record<string, string[]> = {
 // OpenCode 2.x plugin format: a default export { id, setup }, with hooks registered on the context.
 // Guards checked against OpenCode 2.0.16 on 2026-09-25. The "context" session hook, whose system
 // entries must be { type: "text", text }, checked against 2.0.18 on 2026-09-26. The "prompt" session
-// hook (the human's messages) comes from opencode.ai/v2/docs/build/plugins; card 11.2 verifies it
-// live before the docs claim parity.
+// hook, checked live against 2.0.26 on 2026-10-09: it fires for the human's prompts (raw text,
+// before command expansion) and for subagent prompts in child sessions, which the hook skips by
+// parentID so a spawned agent can't record an approval.
 const GUARD_PLUGIN = `// Groundwork: runs the guards listed in .groundwork/config.json before each tool call, records the
 // human's own messages for the commit gate, and tells each new session where the project stands
 // (from .groundwork/HANDOFF.md).
@@ -53,8 +54,13 @@ export default {
       const recorder = join(project, ".groundwork", "hooks", "user-prompt.mjs");
       const { recordHuman } = existsSync(recorder) ? await import(pathToFileURL(recorder).href) : {};
       if (typeof recordHuman === "function") {
-        await context.session.hook("prompt", (event) => {
+        await context.session.hook("prompt", async (event) => {
           try {
+            // The task tool delivers subagent instructions as prompts in child sessions; only the
+            // human's own messages arrive in a top-level one. Without this, anything that can spawn
+            // a subagent could forge an approval.
+            const session = await context.session.get({ sessionID: event?.sessionID });
+            if (session?.parentID) return;
             recordHuman(project, event?.prompt?.text ?? "");
             const approvals = join(project, ".groundwork", ".approvals");
             mkdirSync(approvals, { recursive: true });

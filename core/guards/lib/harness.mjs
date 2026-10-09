@@ -14,13 +14,16 @@ import { relative, resolve, sep } from "node:path";
 const parseJson = (text) => JSON.parse(text.replace(/^﻿/, ""));
 
 // Files an agent may not change once they exist.
-const LOCKED = [/^\.groundwork\/guards\//, /^\.groundwork\/hooks\//, /^\.opencode\/plugins\/groundwork-guards\.js$/];
+const LOCKED = [/^\.groundwork\/guards\//, /^\.groundwork\/hooks\//];
+// The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
+// can see what it does.
+const PLUGINS = /^\.opencode\/plugins\//;
 const APPROVALS = /^\.groundwork\/\.approvals\//;
 const SETTINGS = /^\.claude\/settings(\.local)?\.json$/;
 const CONFIG = ".groundwork/config.json";
 
 // Shell commands that name one of these files and change or delete something.
-const NAMES_HARNESS = /\.groundwork[\\/](guards|hooks|\.approvals|config\.json)|\.claude[\\/]settings|\.opencode[\\/]plugins[\\/]groundwork/;
+const NAMES_HARNESS = /\.groundwork[\\/](guards|hooks|\.approvals|config\.json)|\.claude[\\/]settings|\.opencode[\\/]plugins/;
 const WRITES = /(>|\brm\b|\bmv\b|\bcp\b|\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|Rename-Item|writeFile|rmSync|unlink|\bgit\s+(checkout|restore|rm|clean)\b)/;
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
@@ -120,6 +123,9 @@ function checkWrite(action, project) {
     const abs = resolve(project, path);
     if (APPROVALS.test(rel)) {
       return { block: true, reason: "Approvals are recorded from the human's own messages, never written by the agent." };
+    }
+    if (PLUGINS.test(rel)) {
+      return { block: true, reason: `${rel} is inside Groundwork's OpenCode plugin folder, which runs outside the guards. ${ASK}` };
     }
     if (LOCKED.some((re) => re.test(rel)) && existsSync(abs)) {
       return { block: true, reason: `${rel} is part of Groundwork's guards and hooks. ${ASK}` };
