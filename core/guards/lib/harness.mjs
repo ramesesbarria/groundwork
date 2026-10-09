@@ -21,7 +21,7 @@ const CONFIG = ".groundwork/config.json";
 
 // Shell commands that name one of these files and change or delete something.
 const NAMES_HARNESS = /\.groundwork[\\/](guards|hooks|\.approvals|config\.json)|\.claude[\\/]settings|\.opencode[\\/]plugins[\\/]groundwork/;
-const WRITES = /(>|\brm\b|\bmv\b|\bcp\b|\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|Rename-Item|writeFile|rmSync|unlink|\bgit\s+(checkout|restore|rm)\b)/;
+const WRITES = /(>|\brm\b|\bmv\b|\bcp\b|\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|Rename-Item|writeFile|rmSync|unlink|\bgit\s+(checkout|restore|rm|clean)\b)/;
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
 const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;

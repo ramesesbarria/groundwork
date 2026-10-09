@@ -6,10 +6,10 @@
 // also be committed, as a checkpoint before the end review. Commits that don't name a card (setup,
 // plan, quick, the end approval) aren't gated.
 //
-// Where the tool tells Groundwork about the human's own messages (Claude Code's UserPromptSubmit hook
-// writes .groundwork/.approvals/last-human.json), per-card commits also need a human message since
-// the last commit, so an agent can't approve its own work. Tools without that signal get the card
-// checks only.
+// Where the tool tells Groundwork about the human's own messages (Claude Code's UserPromptSubmit
+// hook, OpenCode's plugin prompt hook; both write .groundwork/.approvals/last-human.json), per-card
+// commits also need a human message since the last commit, so an agent can't approve its own work.
+// Tools without that signal get the card checks only.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -18,8 +18,15 @@ import { checkCard, frontmatter } from "./cards.mjs";
 
 export const HUMAN_MARKER = ".groundwork/.approvals/last-human.json";
 
-// Tools whose hooks record the human's messages.
+// Tools whose hooks record the human's messages. Claude Code always has its UserPromptSubmit hook.
+// OpenCode's plugin writes RECORDER when its prompt hook first fires; a version without that hook
+// never writes it, and those projects keep the card checks only rather than blocking every commit.
 export const RECORDS_HUMAN = new Set(["claude-code"]);
+export const RECORDER = ".groundwork/.approvals/records-human";
+
+export function toolRecordsHuman(tool, project) {
+  return RECORDS_HUMAN.has(tool) || (tool === "opencode" && existsSync(join(project, RECORDER)));
+}
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -95,7 +102,7 @@ export function commitGate(action, { project, config, tool }) {
     return { block: true, reason: `Card ${id} isn't ready to commit: ${problems.join("; ")}. ${WHEN[approvalMode] ?? WHEN["per-card"]}` };
   }
 
-  if (!checkpoint && approvalMode !== "per-phase" && RECORDS_HUMAN.has(tool)) {
+  if (!checkpoint && approvalMode !== "per-phase" && toolRecordsHuman(tool, project)) {
     const path = join(project, HUMAN_MARKER);
     let marker;
     try {
