@@ -24,16 +24,15 @@ Then open your AI tool in the project and type `/gw`.
   <Card title="What it costs" href="/docs/concepts/cost" description="Where the tokens go, and when it pays off." />
 </Cards>
 
-## New in 0.8.0
+## New in 0.8.1
 
-The rules are enforced in code now, not only asked for in the prompts:
-
-- **A commit gate.** A card is committed only once it's done and has its evidence; in Claude Code,
-  per-card commits also need a message from you. [Evidence and approval →](/docs/concepts/evidence-and-approval#what-approval-refuses)
-- **The agent can't switch the checks off.** It can't remove guards, loosen approval or strip
-  Groundwork's hooks; you still can. [Configuration →](/docs/reference/configuration#enforce)
-- **Build straight through** with `at-end` mode when there's a deadline: every card built and
-  committed as a checkpoint, one review, one approval. [Approval modes →](/docs/getting-started/approval-modes#building-straight-through-at-end)
-- **Upgrades keep your edits**, and each role gets a rules file upgrades never touch. [CLI →](/docs/reference/cli#upgrade)
-- **New commands:** `check`, `mode` and `uninstall`. [CLI →](/docs/reference/cli)
-- **Secrets stay out of committed files**, in a git-ignored `.groundwork/private/`. [Project files →](/docs/reference/project-files)
+- **OpenCode gets the commit gate's human check.** In the default mode, a card commit on OpenCode
+  now needs a message from you since the last commit, like Claude Code: the plugin records your
+  prompts and ignores subagent ones, so the agent can't approve its own work. Older OpenCode builds
+  without the prompt hook keep the card checks alone.
+  [OpenCode →](/docs/adapters/opencode#human-only-commands)
+- **Tighter harness protection.** The agent can no longer create or edit files in
+  `.opencode/plugins/` — plugins run outside the guards — and `git clean` no longer slips past
+  protect-harness. [Configuration →](/docs/reference/configuration#enforce)
+- From [0.8.0](/docs/concepts/evidence-and-approval): the commit gate, protected setup, fail-safe
+  guards, `at-end` mode, and upgrades that keep your edits.
