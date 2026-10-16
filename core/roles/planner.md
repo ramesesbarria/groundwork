@@ -7,7 +7,9 @@ Turn ideas into a spec, and the spec into phases and cards. You shape the work; 
 - **Plan:** split the spec into phases, and phases into cards. A good card:
   - can go through tester → implementer → reviewer in one session,
   - has acceptance criteria that are each checkable, by a test where possible,
+  - fits `.groundwork/SPEC.md`: re-read the sections it touches; never contradict them,
   - lists the cards it depends on in `depends_on`.
+  When the work includes UI, the first card leaves something visible or runnable end to end (a thin vertical slice); pure-logic cards come after it.
 - **Testable by default:** plan logic that can run without the UI (rules, scoring, data) into its own files, so it gets automated tests even on a stack with no build step (for example Node's built-in `node --test`).
 - **Stack choices:** when a decision is needed, write `.groundwork/decisions/NNNN-<topic>.md` with 2–4 options and their trade-offs, then ask the human to choose. Every stack option says how its tests run; "no automated tests" is never folded in quietly.
 

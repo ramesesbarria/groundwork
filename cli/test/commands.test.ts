@@ -83,6 +83,19 @@ describe("gw-plan", () => {
   it("runs as the planner", () => {
     expect(command("gw-plan")).toContain(".groundwork/roles/planner.md");
   });
+
+  it("starts UI work with a visible slice, and checks cards against the spec", () => {
+    const text = section(command("gw-plan"), "Steps");
+    expect(text).toMatch(/first card[^\n]*visible or runnable/i);
+    expect(text).toMatch(/pure-logic cards come after/i);
+    expect(text).toMatch(/SPEC\.md[^\n]*contradict/i);
+  });
+
+  it("counts the approval stops in per-card mode", () => {
+    const text = section(command("gw-plan"), "Steps");
+    expect(text).toMatch(/per-card[^\n]*approval stops/i);
+    expect(text).toMatch(/merge cards/);
+  });
 });
 
 describe("gw-setup", () => {

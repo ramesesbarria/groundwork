@@ -9,13 +9,16 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
 
 ## Steps
 1. Read the spec, `.groundwork/decisions/` and HANDOFF. If HANDOFF doesn't say the spec was confirmed, ask once: "The spec hasn't been confirmed. Plan from it as it is?"
-2. **Decisions first.** For each choice the build needs that hasn't been made (framework, database, hosting, auth…), follow `.groundwork/commands/gw-decide.md`. It updates HANDOFF before waiting for the human, and fills in the commands once the stack is chosen, including `run`: how to start the app so someone can use it. Check each command works on this machine (run it, or confirm its tools are installed) before writing it down, so roles work from facts, not guesses.
+2. **Decisions first.** For each choice the build needs that hasn't been made (framework, database, hosting, auth…), follow `.groundwork/commands/gw-decide.md`. It updates HANDOFF before waiting for the human, and fills in the commands once the stack is chosen, including `run`: how to start the app so someone can use it. Check each command works on this machine (run it, or confirm its tools are installed) before writing it down, so roles work from facts.
 3. Split the work into **phases**. Each phase should leave something working, or unlock the next phase. On an existing project, plan one change at a time: only the `open` entry under Changes, then mark it `planned`.
 4. Split each phase into **cards**. Each card:
    - is small enough for tester → implementer → reviewer in one session,
    - has acceptance criteria that can each be checked, by a test where possible (logic that can run without the UI goes in its own files, so it can be tested),
+   - fits `.groundwork/SPEC.md`: re-read the sections it touches; no criterion may contradict it,
    - lists the cards it needs first in `depends_on`.
-5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes. Say in one line how the work gets saved: each card is committed when the approval mode allows. If they'd rather commit themselves, set `autoCommit` to `false`. If they'd rather skip the per-card loop (a deadline, say), `at-end` mode builds straight through with one review at the end: give them `npx groundwork-ai mode at-end` to run.
+
+   When the work includes UI, the **first card** leaves something visible or runnable end to end (a thin vertical slice); pure-logic cards come after it.
+5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes. In `per-card` mode, say how many approval stops that means (one per card) and offer to merge cards if too many. Say in one line how the work gets saved: each card is committed when the approval mode allows. If they'd rather commit themselves, set `autoCommit` to `false`. If they'd rather skip the per-card loop (a deadline, say), `at-end` mode builds straight through with one review at the end: give them `npx groundwork-ai mode at-end` to run.
 6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md` without its `<!-- -->` comments (every role rereads the card), with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md.
 7. Update HANDOFF: phase 1, next step is `gw-next`.
 

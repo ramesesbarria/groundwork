@@ -57,6 +57,13 @@ describe("role files", () => {
     expect(section(role("reviewer"), "Writes")).toMatch(/lesson IDs?/i);
   });
 
+  it("planner starts UI work with a visible first card and checks it against the spec", () => {
+    const job = section(role("planner"), "Job");
+    expect(job).toMatch(/first card[^\n]*visible or runnable/i);
+    expect(job).toMatch(/pure-logic cards come after/i);
+    expect(job).toMatch(/never contradict/i);
+  });
+
   it.each([
     ["planner", /code/i],
     ["tester", /implementation/i],
