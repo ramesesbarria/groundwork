@@ -50,3 +50,37 @@ the product, so run `npm test` after editing docs too.
 
 - `npm test` passes. CI runs it on Windows and Linux, with Node.js 22 and 24.
 - User-facing changes come with a docs update.
+
+## Commit and release style
+
+Commit subjects follow Conventional Commits:
+
+- `type(scope): summary` — for example `fix(cli): never overwrite a project's instruction files`.
+- Types: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`, `perf`, `ci`, `build`, `revert`.
+- Scopes: `cli`, `core`, `opencode`, `claude-code`, `docs`, `ci`; omit the scope when a change spans several areas.
+- Keep the subject under 72 characters, imperative, and describe what actually changed.
+- Work that comes from a card ends with the card ID in parentheses: `feat(cli): add the status command (9.4)`.
+  `groundwork retro` reads these IDs to link fixes back to cards.
+- Bodies are optional. Use one only for a non-obvious constraint, compatibility note or measurement — never to narrate the session.
+- Groundwork does not credit AI tools in commits (rule L-001): no AI-attribution trailers.
+
+Release notes use this shape, omitting empty sections:
+
+```markdown
+# vX.Y.Z
+
+### Added
+### Changed
+### Fixed
+### Upgrade Notes
+```
+
+Describe what changed for the user and its practical effect. No development narrative, no internal task references, no test stories.
+
+### Releasing
+
+1. Bump the version in `cli/package.json` (and `package-lock.json`); `npm test` must pass.
+2. Commit `chore: release X.Y.Z`.
+3. Tag `vX.Y.Z` and push the branch and tag.
+4. Create the GitHub release with the drafted notes (`gh release create vX.Y.Z --notes-file …`).
+5. `npm publish -w groundwork-ai`.
