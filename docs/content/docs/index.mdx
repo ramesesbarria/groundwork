@@ -24,15 +24,17 @@ Then open your AI tool in the project and type `/gw`.
   <Card title="What it costs" href="/docs/concepts/cost" description="Where the tokens go, and when it pays off." />
 </Cards>
 
-## New in 0.8.1
+## New in 0.9.0
 
-- **OpenCode gets the commit gate's human check.** In the default mode, a card commit on OpenCode
-  now needs a message from you since the last commit, like Claude Code: the plugin records your
-  prompts and ignores subagent ones, so the agent can't approve its own work. Older OpenCode builds
-  without the prompt hook keep the card checks alone.
-  [OpenCode →](/docs/adapters/opencode#human-only-commands)
-- **Tighter harness protection.** The agent can no longer create or edit files in
-  `.opencode/plugins/` — plugins run outside the guards — and `git clean` no longer slips past
-  protect-harness. [Configuration →](/docs/reference/configuration#enforce)
-- From [0.8.0](/docs/concepts/evidence-and-approval): the commit gate, protected setup, fail-safe
-  guards, `at-end` mode, and upgrades that keep your edits.
+- **Human checks on cards.** Criteria only a person can judge (a Tab walk, a focus ring, narrow
+  layouts) become a `## Human checks` section: `status` and `check` list them, and approval asks you
+  to confirm or waive each. They never block a commit.
+  [Cards →](/docs/concepts/cards-and-phases)
+- **A tighter harness.** `protect-harness` judges shell commands by the files they write, so reads
+  no longer block; the commit gate refuses cards over 1,500 tokens until trimmed; evidence links
+  that look like patterns (`review-*`) get a clear message.
+  [Configuration →](/docs/reference/configuration#enforce)
+- **Retro catches every send-back**, including `implementing → testing` and `built → implementing`.
+  [Lessons ledger →](/docs/concepts/lessons-ledger)
+- From [0.8.1](/docs/adapters/opencode#human-only-commands): OpenCode's commit gate needs a message
+  from you since the last commit; subagent prompts don't count.
