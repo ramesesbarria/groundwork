@@ -8,7 +8,7 @@ description: Use when a phase ends, or the same mistakes keep happening. Propose
 Turn repeated mistakes into lessons that stick. A lesson moves up the ladder each time its mistake comes back: **NOTE** (recorded in LESSONS) → **RULE** (in AGENTS.md or a role's rules file, always in context) → **GUARD** (a script that blocks the action). Run it at the end of a phase, or when something keeps going wrong.
 
 ## Steps
-1. Run `groundwork retro` (or `npx groundwork-ai retro`). It writes `.groundwork/retro.md`: reverts, fix commits soon after a card, rejections, reviewer send-backs, and counts per lesson cited. Without the CLI, read the History sections of the cards instead.
+1. Run `groundwork retro` (or `npx groundwork-ai retro`). It writes `.groundwork/retro.md`: reverts, fix commits soon after a card, rejections, send-backs, and counts per lesson cited. Without the CLI, read the History sections of the cards instead.
 2. Read `.groundwork/retro.md` and `.groundwork/LESSONS.md`.
 3. Group signals that describe the same mistake, even if worded differently. Ignore one-off signals.
 4. Propose one change per repeated mistake:
@@ -22,7 +22,7 @@ Turn repeated mistakes into lessons that stick. A lesson moves up the ladder eac
 
 ## Writes
 - `.groundwork/LESSONS.md`
-- `AGENTS.md` or a file in `.groundwork/roles/`, for accepted rules
+- `AGENTS.md` or a file in `.groundwork/rules/`, for accepted rules
 - A new card, for an accepted guard
 - `.groundwork/HANDOFF.md`
 

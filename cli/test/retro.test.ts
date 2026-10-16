@@ -95,8 +95,32 @@ describe("groundwork retro", () => {
     const { output } = await run(["retro"], { cwd: fixture(), ask: noQuestions });
     expect(output).toMatch(/Rejections \(1\)/);
     expect(output).toMatch(/1\.1[^\n]*which field was wrong/);
-    expect(output).toMatch(/Sent back by review \(2\)/);
+    expect(output).toMatch(/Sent back for rework \(2\)/);
     expect(output).toMatch(/1\.2[^\n]*forgot to update HANDOFF/);
+  });
+
+  it("counts every backward move as a send-back", async () => {
+    const dir = tempDir();
+    mkdirSync(join(dir, ".groundwork/cards"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/config.json"), "{}");
+    writeFileSync(
+      join(dir, ".groundwork/cards/2.1-x.md"),
+      card("2.1", "X", [
+        "2026-09-20 implementing → testing: the first test run failed",
+        "2026-09-21 testing → implementing: fixed the test setup",
+        "2026-09-22 built → implementing: the end review sent it back",
+        "2026-09-23 rejected -> implementing: picked back up after a rejection",
+        "2026-09-24 review → implementing: reviewer found a gap",
+        "2026-09-26 call: almost moved review → implementing — not needed — low",
+      ]),
+    );
+    const { output } = await run(["retro"], { cwd: dir, ask: noQuestions });
+    expect(output).toMatch(/Sent back for rework \(4\)/);
+    for (const why of ["the first test run failed", "the end review sent it back", "picked back up after a rejection", "reviewer found a gap"]) {
+      expect(output).toContain(why);
+    }
+    expect(output).not.toContain("fixed the test setup"); // a forward move (testing → implementing is the fix, not the send-back)
+    expect(output).not.toContain("almost moved"); // prose that mentions a backward move isn't one
   });
 
   it("groups signals by the lesson they cite, with counts", async () => {

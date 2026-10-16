@@ -50,7 +50,7 @@ describe("History formats", () => {
     writeFileSync(join(dir, ".groundwork/cards/1.1-example.md"), cardFrom("done", examples()));
     const { output } = await run(["retro"], { cwd: dir, ask: noQuestions });
     expect(output).toMatch(/Rejections \(1\)/);
-    expect(output).toMatch(/Sent back by review \(1\)/);
+    expect(output).toMatch(/Sent back for rework \(1\)/);
   });
 
   it("ignores the examples in a card that still has the template's comment", async () => {

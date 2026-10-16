@@ -83,6 +83,9 @@ function gitSignals(commits: Commit[], format: string): Signal[] {
   return signals;
 }
 
+// Moves that mean work went back for rework rather than forward.
+const SEND_BACKS = new Set(["review → implementing", "implementing → testing", "built → implementing", "rejected → implementing"]);
+
 function cardSignals(groundwork: string): Signal[] {
   const dir = join(groundwork, "cards");
   if (!existsSync(dir)) return [];
@@ -102,8 +105,10 @@ function cardSignals(groundwork: string): Signal[] {
           signals.push({ kind: "call-rejected", text: `card ${card.id}: call "${what}", then rejected: ${rejected[1].trim()}` });
         }
       }
-      const sentBack = line.match(/review → implementing:?\s*(.+)$/i);
-      if (sentBack) signals.push({ kind: "send-back", text: `card ${card.id}: ${sentBack[1].trim()}` });
+      const move = line.match(/^\s*-?\s*\d{4}-\d{2}-\d{2}\s+([\w-]+) (?:→|->) ([\w-]+):\s*(.+)$/i);
+      if (move && SEND_BACKS.has(`${move[1].toLowerCase()} → ${move[2].toLowerCase()}`)) {
+        signals.push({ kind: "send-back", text: `card ${card.id}: ${move[3].trim()}` });
+      }
     }
   }
   return signals;
@@ -113,7 +118,7 @@ const SECTIONS: [Signal["kind"], string][] = [
   ["revert", "Reverts"],
   ["fix-after-card", "Fixes soon after a card"],
   ["rejection", "Rejections"],
-  ["send-back", "Sent back by review"],
+  ["send-back", "Sent back for rework"],
   ["call-rejected", "Calls later rejected"],
 ];
 
