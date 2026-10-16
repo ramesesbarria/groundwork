@@ -12,11 +12,13 @@ export interface CardCheck {
   file: string;
   id: string;
   problems: string[];
+  openHumanChecks: string[];
 }
 
 interface CardRules {
   checkCards(projectDir: string, approvalMode: string): CardCheck[];
   checkCard(md: string, options: { projectDir: string; approvalMode?: string }): string[];
+  humanChecks(md: string): { text: string; checked: boolean }[];
   STATUSES: string[];
   TRANSITIONS: [string, string][];
 }
@@ -41,7 +43,17 @@ export async function check(args: string[], io: Pick<Io, "cwd">): Promise<RunRes
   if (cards.length === 0) return { code: 0, output: "No cards yet." };
 
   const bad = cards.filter((c) => c.problems.length > 0);
-  const lines = bad.flatMap((c) => [`Card ${c.id} (${c.file}):`, ...c.problems.map((p) => `  ✗ ${p}`)]);
+  const lines = cards.flatMap((c) => {
+    const rows: string[] = [];
+    if (c.problems.length > 0 || c.openHumanChecks.length > 0) rows.push(`Card ${c.id} (${c.file}):`);
+    for (const problem of c.problems) rows.push(`  ✗ ${problem}`);
+    if (c.openHumanChecks.length > 0) {
+      const n = c.openHumanChecks.length;
+      rows.push(`  ${n} open human check${n === 1 ? "" : "s"} (confirm or waive at approval):`);
+      for (const check of c.openHumanChecks) rows.push(`  ○ ${check}`);
+    }
+    return rows;
+  });
   const summary =
     bad.length === 0
       ? `${cards.length} card${cards.length === 1 ? "" : "s"} checked. No problems found.`

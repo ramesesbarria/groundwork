@@ -22,7 +22,7 @@ async function project(approvalMode = "per-card"): Promise<string> {
   return dir;
 }
 
-function card(dir: string, id: string, status: string, body: { criteria?: string; evidence?: string; history?: string }) {
+function card(dir: string, id: string, status: string, body: { criteria?: string; evidence?: string; history?: string; human?: string }) {
   const text = [
     "---",
     `id: ${id}`,
@@ -40,6 +40,7 @@ function card(dir: string, id: string, status: string, body: { criteria?: string
     "## Evidence",
     body.evidence ?? "",
     "",
+    ...(body.human ? ["## Human checks", body.human, ""] : []),
     "## History",
     body.history ?? "- 2026-09-29 started",
     "",
@@ -107,6 +108,22 @@ describe("groundwork check", () => {
     expect((await check(dir)).code).toBe(0);
   });
 
+  it("lists open human checks without failing, and ignores confirmed ones", async () => {
+    const dir = await project();
+    evidence(dir, "1.2");
+    card(dir, "1.2", "awaiting-approval", {
+      criteria: "- [x] Lists books\n- [ ] Tab walk shows a focus ring — needs a human check",
+      evidence: "- `.groundwork/evidence/1.2/tests.txt`",
+      human: "- [ ] Press Tab from the address bar; the ring is visible\n- [x] No sideways scroll at 320px — 2026-10-01",
+    });
+    const { code, output } = await check(dir, "1.2");
+    expect(code).toBe(0);
+    expect(output).toMatch(/1 open human check \(confirm or waive at approval\)/);
+    expect(output).toContain("○ Press Tab from the address bar; the ring is visible");
+    expect(output).not.toContain("sideways scroll");
+    expect(output).toMatch(/No problems found/);
+  });
+
   it("fails a status move the workflow doesn't allow", async () => {
     const dir = await project();
     card(dir, "1.1", "implementing", { history: "- 2026-09-29 todo → awaiting-approval: skipped ahead" });
@@ -136,5 +153,13 @@ describe("the shared card rules", () => {
     const rules = await cardRules();
     expect(rules.STATUSES).toEqual([...CARD_STATUSES]);
     expect(rules.TRANSITIONS).toEqual(TRANSITIONS.map(([a, b]) => [a, b]));
+  });
+
+  it("parse Human checks, open and confirmed", async () => {
+    const rules = await cardRules();
+    expect(rules.humanChecks("## Human checks\n- [ ] Tab walk\n- [x] Widths at 320px — 2026-10-01\n")).toEqual([
+      { text: "Tab walk", checked: false },
+      { text: "Widths at 320px — 2026-10-01", checked: true },
+    ]);
   });
 });

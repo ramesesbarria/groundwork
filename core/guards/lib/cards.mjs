@@ -61,6 +61,18 @@ export function evidenceLinks(md) {
   return [...new Set(links.map((m) => `.groundwork/evidence/${m[2].replace(/[.,;:]+$/, "")}`))];
 }
 
+// Human checks: things only a person can see or judge (a Tab walk, a focus ring, narrow widths). The
+// reviewer writes them as "- [ ] <what to open, do and see>"; confirmed ones are ticked with the
+// date. Open items never block a commit or fail `groundwork check`: per-phase and at-end commit cards
+// before the human has seen them.
+export function humanChecks(md) {
+  return section(md, "Human checks")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^- \[[ xX]\]\s*\S/.test(line))
+    .map((line) => ({ text: line.replace(/^- \[[ xX]\]\s*/, "").trim(), checked: /^- \[[xX]\]/.test(line) }));
+}
+
 // Problems with one card, as plain sentences. `projectDir` is the folder that holds .groundwork/.
 export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
   const fm = frontmatter(md);
@@ -104,7 +116,7 @@ export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
   return problems;
 }
 
-// Every card in the project: [{ file, id, problems }].
+// Every card in the project: [{ file, id, problems, openHumanChecks }].
 export function checkCards(projectDir, approvalMode) {
   const dir = join(projectDir, ".groundwork", "cards");
   if (!existsSync(dir)) return [];
@@ -113,7 +125,12 @@ export function checkCards(projectDir, approvalMode) {
     .sort()
     .map((name) => {
       const md = readFileSync(join(dir, name), "utf8");
-      return { file: name, id: frontmatter(md).id ?? name, problems: checkCard(md, { projectDir, approvalMode }) };
+      return {
+        file: name,
+        id: frontmatter(md).id ?? name,
+        problems: checkCard(md, { projectDir, approvalMode }),
+        openHumanChecks: humanChecks(md).filter((check) => !check.checked).map((check) => check.text),
+      };
     });
 }
 

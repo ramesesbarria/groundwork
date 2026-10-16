@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { blocked, nextReady, readCards } from "./cards.js";
+import { checkProject } from "./check.js";
 import { CARD_STATUSES, statusLabel } from "./schema.js";
 import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
@@ -13,7 +14,7 @@ function handoffField(handoff: string, field: string): string | undefined {
   return handoff.match(new RegExp(`^- \\*\\*${field}:\\*\\*\\s*(.*)$`, "m"))?.[1]?.trim();
 }
 
-export function status(io: Pick<Io, "cwd">): RunResult {
+export async function status(io: Pick<Io, "cwd">): Promise<RunResult> {
   const dir = join(io.cwd, ".groundwork");
   if (!existsSync(dir)) return { code: 1, output: NOT_INSTALLED };
 
@@ -55,6 +56,17 @@ export function status(io: Pick<Io, "cwd">): RunResult {
   if (waiting.length > 0) {
     lines.push("Blocked:");
     for (const { card, waitingOn } of waiting) lines.push(`  ${card.id} ${card.title}  ← waiting on ${waitingOn.join(", ")}`);
+  }
+
+  // Open human checks wait for the human; they never fail anything, they're listed so they don't hide.
+  const open = (await checkProject(io.cwd)).filter((card) => card.openHumanChecks.length > 0);
+  if (open.length > 0) {
+    lines.push("");
+    lines.push("Human checks (open; confirm or waive at approval):");
+    for (const card of open) {
+      lines.push(`  ${card.id}:`);
+      for (const check of card.openHumanChecks) lines.push(`    - ${check}`);
+    }
   }
   return { code: 0, output: lines.join("\n") };
 }

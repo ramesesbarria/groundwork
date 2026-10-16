@@ -83,6 +83,20 @@ describe("groundwork status", () => {
     expect(code).toBe(0);
     expect(output).toMatch(/no cards yet/i);
   });
+
+  it("lists open human checks per card without failing", async () => {
+    const dir = await installed();
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.4-export.md"),
+      `---\nid: 1.4\ntitle: Export dialog\nphase: 1\nstatus: awaiting-approval\ndepends_on: []\n---\n## Human checks\n- [ ] Tab through the dialog; the focus ring is visible\n- [x] No sideways scroll at 320px — 2026-10-01\n`,
+    );
+    const { code, output } = await run(["status"], { cwd: dir });
+    expect(code).toBe(0);
+    expect(output).toMatch(/Human checks \(open; confirm or waive at approval\)/);
+    expect(output).toContain("1.4:");
+    expect(output).toContain("Tab through the dialog; the focus ring is visible");
+    expect(output).not.toContain("sideways scroll");
+  });
 });
 
 describe("groundwork adapter add", () => {

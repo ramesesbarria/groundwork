@@ -134,6 +134,10 @@ describe("gw-next", () => {
   it("tells the runner to change the card first and commit as a separate step", () => {
     expect(steps()).toMatch(/card first[^\n]*separate step/i);
   });
+
+  it("shows open human checks in the stop summary", () => {
+    expect(steps()).toMatch(/open \*\*Human checks\*\*/);
+  });
 });
 
 describe("gw-approve", () => {
@@ -162,6 +166,10 @@ describe("gw-approve", () => {
 
   it("tells the approver the card change and the commit are separate steps", () => {
     expect(command("gw-approve")).toMatch(/separate steps[^\n]*gate reads the card/i);
+  });
+
+  it("asks the human to confirm or waive open human checks", () => {
+    expect(command("gw-approve")).toMatch(/human checks confirmed: <n>; waived: <n>/);
   });
 });
 
@@ -224,5 +232,9 @@ describe("gw (resuming a card)", () => {
   it("continues with the role that matches the card's status", () => {
     const text = steps();
     for (const status of ["`testing`", "`implementing`", "`review`"]) expect(text).toContain(status);
+  });
+
+  it("carries open human checks into the approval stop", () => {
+    expect(steps()).toMatch(/open human checks/);
   });
 });

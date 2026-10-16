@@ -9,9 +9,13 @@ depends_on: []
 <!-- One or two sentences: what's true when this card is done. -->
 
 ## Acceptance criteria
-<!-- Checkable statements. The tester turns each one into a test. The reviewer ticks each one met ([x]),
-     or leaves it unticked with the reason after it: "- [ ] <criterion> — <why>". -->
+<!-- Checkable statements. The tester turns each one into a test. The reviewer ticks one met ([x]) or
+     leaves it unticked with the reason: "- [ ] <criterion> — <why>". -->
 - [ ]
+
+## Human checks
+<!-- Optional: what only a person can see or judge (a Tab walk, a focus ring). One "- [ ] <what to
+     open, do and see>" per criterion the reviewer can't prove; ticked with the date when confirmed. -->
 
 ## How to check
 <!-- Optional. Written by the reviewer for the human: a URL to open, a command to run, or a thing to click
@@ -20,7 +24,7 @@ depends_on: []
 ## Evidence
 <!-- Links to exact proof files in ../evidence/{{id}}/ (test output, screenshots) and the reviewer's verdict.
      Never patterns like review-*; list each file. One short line per link: the file, the command and
-     its summary line. Details belong in the file. Approval is refused while this section is empty. -->
+     its summary line. Details belong in the file. Approval needs this section. -->
 
 ## History
 <!-- One short line per event: date, what happened, and why. Every role rereads this card, so keep

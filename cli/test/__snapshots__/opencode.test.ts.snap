@@ -10,7 +10,7 @@ You are the Groundwork implementer. Read \`.groundwork/roles/implementer.md\` no
 Load only the files it lists under Load.
 ",
   ".opencode/agents/gw-reviewer.md": "---
-description: Groundwork reviewer. Check the work with fresh eyes, then pass it to the human or send it back.
+description: Groundwork reviewer. Check the work with fresh eyes, then pass or send it back.
 mode: subagent
 permission:
   edit: deny

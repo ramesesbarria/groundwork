@@ -144,12 +144,12 @@ describe("protect-harness", SLOW, () => {
 });
 
 describe("commit-gate", SLOW, () => {
-  function card(dir: string, status: string, history = "- 2026-09-29 approved by human") {
+  function card(dir: string, status: string, history = "- 2026-09-29 approved by human", human = "") {
     mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), "5 passed\n");
     writeFileSync(
       join(dir, ".groundwork/cards/1.1-books.md"),
-      `---\nid: 1.1\ntitle: Books\nphase: 1\nstatus: ${status}\ndepends_on: []\n---\n## Acceptance criteria\n- [x] Lists books\n\n## Evidence\n- \`.groundwork/evidence/1.1/tests.txt\`, 5 passed\n\n## History\n${history}\n`,
+      `---\nid: 1.1\ntitle: Books\nphase: 1\nstatus: ${status}\ndepends_on: []\n---\n## Acceptance criteria\n- [x] Lists books\n\n## Evidence\n- \`.groundwork/evidence/1.1/tests.txt\`, 5 passed\n\n${human ? `## Human checks\n${human}\n\n` : ""}## History\n${history}\n`,
     );
   }
   const humanSpeaks = (dir: string, prompt = "/gw-approve") =>
@@ -232,6 +232,12 @@ describe("commit-gate", SLOW, () => {
   it("in per-phase mode, commits a reviewed card without an approval", async () => {
     const dir = await project({ approvalMode: "per-phase" });
     card(dir, "done", "- 2026-09-29 review → done: passed");
+    expect(hook(dir, commitCard).status).toBe(0);
+  });
+
+  it("in per-phase mode, open human checks don't block the commit", async () => {
+    const dir = await project({ approvalMode: "per-phase" });
+    card(dir, "done", "- 2026-09-29 review → done: passed", "- [ ] Tab walk shows a focus ring\n- [x] No sideways scroll at 320px — 2026-10-01");
     expect(hook(dir, commitCard).status).toBe(0);
   });
 
