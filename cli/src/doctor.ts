@@ -80,7 +80,9 @@ async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ 
 }
 
 // Every role rereads the card, so a long History or Evidence section is paid for again and again.
-const CARD_TOKEN_LIMIT = 1500;
+// The same limit as CARD_TOKEN_LIMIT in core/guards/lib/cards.mjs, which the commit gate enforces;
+// a test ties the two together.
+export const CARD_TOKEN_LIMIT = 1500;
 
 interface CardFile {
   name: string;
@@ -321,10 +323,10 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkModels(groundwork, f);
   const cardText = checkCards(cards, f);
   checkUnreviewed(cards, f);
-  for (const card of await checkProject(io.cwd)) {
+  for (const card of await checkProject(io.cwd, { cardSize: false })) {
     for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
   }
-  checkCardSize(cards, f);
+  checkCardSize(cards, f); // reports size itself, with its own wording
   checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 

@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
 import { cardRules } from "../src/check.js";
+import { CARD_TOKEN_LIMIT } from "../src/doctor.js";
 import { CARD_STATUSES, TRANSITIONS } from "../src/schema.js";
+import { estimateTokens } from "../src/tokens.js";
 
 const temps: string[] = [];
 afterEach(() => {
@@ -161,5 +163,32 @@ describe("the shared card rules", () => {
       { text: "Tab walk", checked: false },
       { text: "Widths at 320px — 2026-10-01", checked: true },
     ]);
+  });
+
+  it("ties the card size limit to the CLI's estimate, and flags only cards over it", async () => {
+    const rules = await cardRules();
+    expect(rules.CARD_TOKEN_LIMIT).toBe(CARD_TOKEN_LIMIT); // the gate's limit and doctor's can't drift
+    for (const sample of ["", "abcde", "x".repeat(999)]) {
+      expect(rules.estimateCardTokens(sample)).toBe(estimateTokens(sample));
+    }
+    const projectDir = mkdtempSync(join(tmpdir(), "groundwork-size-"));
+    temps.push(projectDir);
+    const head = "---\nid: 9.9\ntitle: Big\nphase: 9\nstatus: todo\ndepends_on: []\n---\n## Goal\n";
+    const cardOf = (length: number) => head + "x".repeat(length - head.length);
+    const limit = rules.CARD_TOKEN_LIMIT;
+    expect(estimateTokens(cardOf(limit * 4))).toBe(limit);
+    expect(rules.checkCard(cardOf(limit * 4), { projectDir }).some((p) => p.includes("over 1500"))).toBe(false);
+    const over = rules.checkCard(cardOf(limit * 4 + 1), { projectDir });
+    expect(over.some((p) => p.includes("over 1500"))).toBe(true);
+    expect(over.join(" ")).toMatch(/details belong in the evidence files/);
+  });
+
+  it("keeps the size limit out of check, since the commit gate enforces it", async () => {
+    const dir = await project();
+    const head = "---\nid: 9.9\ntitle: Big\nphase: 9\nstatus: todo\ndepends_on: []\n---\n## Goal\n";
+    writeFileSync(join(dir, ".groundwork/cards/9.9-big.md"), head + "x".repeat(6001 - head.length));
+    const { code, output } = await check(dir, "9.9");
+    expect(code).toBe(0);
+    expect(output).not.toMatch(/over 1500/);
   });
 });

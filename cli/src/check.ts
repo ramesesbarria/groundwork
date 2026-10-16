@@ -16,9 +16,11 @@ export interface CardCheck {
 }
 
 interface CardRules {
-  checkCards(projectDir: string, approvalMode: string): CardCheck[];
-  checkCard(md: string, options: { projectDir: string; approvalMode?: string }): string[];
+  checkCards(projectDir: string, approvalMode: string, options?: { cardSize?: boolean }): CardCheck[];
+  checkCard(md: string, options: { projectDir: string; approvalMode?: string; cardSize?: boolean }): string[];
   humanChecks(md: string): { text: string; checked: boolean }[];
+  estimateCardTokens(md: string): number;
+  CARD_TOKEN_LIMIT: number;
   STATUSES: string[];
   TRANSITIONS: [string, string][];
 }
@@ -26,16 +28,16 @@ interface CardRules {
 export const cardRules = async (): Promise<CardRules> =>
   (await import(pathToFileURL(join(locateCore(), "guards", "lib", "cards.mjs")).href)) as CardRules;
 
-export async function checkProject(cwd: string): Promise<CardCheck[]> {
+export async function checkProject(cwd: string, options?: { cardSize?: boolean }): Promise<CardCheck[]> {
   const mode = String(readProjectConfig(join(cwd, ".groundwork")).approvalMode ?? "per-card");
-  return (await cardRules()).checkCards(cwd, mode);
+  return (await cardRules()).checkCards(cwd, mode, options);
 }
 
 export async function check(args: string[], io: Pick<Io, "cwd">): Promise<RunResult> {
   if (!existsSync(join(io.cwd, ".groundwork"))) {
     return { code: 1, output: "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first." };
   }
-  const all = await checkProject(io.cwd);
+  const all = await checkProject(io.cwd, { cardSize: false });
   const wanted = args.filter((a) => !a.startsWith("-"));
   const missing = wanted.filter((id) => !all.some((c) => c.id === id));
   if (missing.length > 0) return { code: 1, output: `No card with id ${missing.join(", ")} in .groundwork/cards/.` };

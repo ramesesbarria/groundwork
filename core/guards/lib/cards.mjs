@@ -7,6 +7,11 @@ import { join, resolve } from "node:path";
 
 export const STATUSES = ["todo", "testing", "implementing", "built", "review", "awaiting-approval", "done", "rejected"];
 
+// Cards are reread by every role, so they have a size budget. About four characters per token, the
+// same estimate `groundwork doctor` uses; a test ties the two together so they can't drift.
+export const CARD_TOKEN_LIMIT = 1500;
+export const estimateCardTokens = (md) => Math.ceil(md.length / 4);
+
 // The allowed status changes; .groundwork/reference/statuses.md documents each one.
 export const TRANSITIONS = [
   ["todo", "testing"],
@@ -74,11 +79,19 @@ export function humanChecks(md) {
 }
 
 // Problems with one card, as plain sentences. `projectDir` is the folder that holds .groundwork/.
-export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
+// `cardSize: false` skips the size problem when the caller checks size itself (`groundwork doctor`).
+export function checkCard(md, { projectDir, approvalMode = "per-card", cardSize = true } = {}) {
   const fm = frontmatter(md);
   if (!fm.id) return ["it has no id in its frontmatter"];
   const problems = [];
   if (!STATUSES.includes(fm.status)) problems.push(`its status "${fm.status ?? ""}" isn't one of ${STATUSES.join(", ")}`);
+
+  const tokens = estimateCardTokens(md);
+  if (cardSize && tokens > CARD_TOKEN_LIMIT) {
+    problems.push(
+      `it's ≈${tokens} tokens, over ${CARD_TOKEN_LIMIT}: every role rereads it, so trim the Goal, criteria and History to what's needed; the details belong in the evidence files`,
+    );
+  }
 
   for (const [from, to] of historyMoves(md)) {
     if (!TRANSITIONS.some(([f, t]) => f === from && t === to)) {
@@ -117,7 +130,7 @@ export function checkCard(md, { projectDir, approvalMode = "per-card" }) {
 }
 
 // Every card in the project: [{ file, id, problems, openHumanChecks }].
-export function checkCards(projectDir, approvalMode) {
+export function checkCards(projectDir, approvalMode, options = {}) {
   const dir = join(projectDir, ".groundwork", "cards");
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
@@ -128,7 +141,7 @@ export function checkCards(projectDir, approvalMode) {
       return {
         file: name,
         id: frontmatter(md).id ?? name,
-        problems: checkCard(md, { projectDir, approvalMode }),
+        problems: checkCard(md, { projectDir, approvalMode, ...options }),
         openHumanChecks: humanChecks(md).filter((check) => !check.checked).map((check) => check.text),
       };
     });

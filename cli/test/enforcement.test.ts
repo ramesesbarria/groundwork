@@ -241,6 +241,22 @@ describe("commit-gate", SLOW, () => {
     expect(hook(dir, commitCard).status).toBe(0);
   });
 
+  it("blocks an oversized card at the gate, and passes one just under the limit", async () => {
+    const dir = await project({ approvalMode: "per-phase" });
+    mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), "5 passed\n");
+    const head =
+      "---\nid: 1.1\ntitle: Books\nphase: 1\nstatus: done\ndepends_on: []\n---\n## Acceptance criteria\n- [x] Lists books\n\n## Evidence\n- `.groundwork/evidence/1.1/tests.txt`, 5 passed\n\n## History\n- 2026-09-29 review → done: passed\n";
+    const cardPath = join(dir, ".groundwork/cards/1.1-books.md");
+    writeFileSync(cardPath, head + "x".repeat(6000 - head.length)); // exactly 1500 tokens
+    expect(hook(dir, commitCard).status).toBe(0);
+    writeFileSync(cardPath, head + "x".repeat(6001 - head.length)); // 1501 tokens
+    const blocked = hook(dir, commitCard);
+    expect(blocked.status).toBe(2);
+    expect(blocked.stderr).toMatch(/≈1501 tokens, over 1500/);
+    expect(blocked.stderr).toMatch(/details belong in the evidence files/);
+  });
+
   it("doesn't gate commits that don't name a card", async () => {
     const dir = await project();
     expect(hook(dir, bash('git commit -m "Plan phase 1"')).status).toBe(0);

@@ -59,7 +59,7 @@ export async function status(io: Pick<Io, "cwd">): Promise<RunResult> {
   }
 
   // Open human checks wait for the human; they never fail anything, they're listed so they don't hide.
-  const open = (await checkProject(io.cwd)).filter((card) => card.openHumanChecks.length > 0);
+  const open = (await checkProject(io.cwd, { cardSize: false })).filter((card) => card.openHumanChecks.length > 0);
   if (open.length > 0) {
     lines.push("");
     lines.push("Human checks (open; confirm or waive at approval):");

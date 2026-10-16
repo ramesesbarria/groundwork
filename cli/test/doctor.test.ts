@@ -168,6 +168,7 @@ describe("groundwork doctor", () => {
     const { code, output } = await doctor(dir);
     expect(code).toBe(1);
     expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, over 1500, and every role rereads it/);
+    expect(output.match(/over 1500/g)).toHaveLength(1); // reported once, not again through checkProject
   });
 
   it("suggests moving detail out of a History or Evidence line over 200 characters", async () => {
