@@ -2,7 +2,7 @@
 // Used by `groundwork check`, `groundwork doctor` and the commit gate in run.mjs. Plain JavaScript
 // with no imports beyond Node, because it runs inside a project's .groundwork/guards/ too.
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 export const STATUSES = ["todo", "testing", "implementing", "built", "review", "awaiting-approval", "done", "rejected"];
@@ -107,6 +107,8 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", cardSize 
     for (const link of evidenceLinks(md)) {
       if (/[*?]/.test(link)) problems.push(`Evidence links to ${link}, which is a pattern. Patterns aren't checked: list each file.`);
       else if (!existsSync(resolve(projectDir, link))) problems.push(`Evidence links to ${link}, which doesn't exist`);
+      else if (statSync(resolve(projectDir, link)).isFile() && statSync(resolve(projectDir, link)).size === 0)
+        problems.push(`Evidence file ${link} is empty`);
     }
   }
 

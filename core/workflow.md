@@ -61,7 +61,7 @@ Every call is shown at approval, so nothing is decided out of sight.
 
 ## HANDOFF
 
-`.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. Update it:
+`.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. On branch `gw/<id>`, the current state is `.groundwork/work/<id>/HANDOFF.md` instead, so parallel tasks keep separate records. Update it:
 - at **every role change**,
 - after every approval or rejection,
 - **before you stop** for any reason, including when you're running out of context or usage.

@@ -17,7 +17,8 @@ npx groundwork-ai <command>
 | [`adapter add`](#adapter-add) | Add or refresh an AI tool adapter |
 | [`status`](#status) | Show the phase, cards by status, what's ready and what's blocked |
 | [`doctor`](#doctor) | Check harness health and the context budget |
-| [`check`](#check) | Check cards against the workflow's rules |
+| [`check`](#check) | Check cards against the workflow's rules and task context |
+| [`reassess`](#reassess) | Record the context versions a task has just been checked against |
 | [`mode`](#mode) | Show or change when you approve the work |
 | [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
@@ -127,19 +128,43 @@ in CI). It reports:
 ## check
 
 ```bash
-npx groundwork-ai check          # every card
-npx groundwork-ai check 1.2      # one card
+npx groundwork-ai check                       # every card
+npx groundwork-ai check 1.2                   # one card
+npx groundwork-ai check --task 1.2 --base origin/main   # team context check
 ```
 
 Checks cards against the workflow's rules and **exits 1 when one breaks them**, so `/gw-approve`,
 the commit gate and CI can all rely on it:
 
 - the status is a real one, and every status change recorded in History is one the workflow allows
-- a card waiting for approval or done has Evidence, every file it links to exists, and every
-  acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
+- a card waiting for approval or done has Evidence, every file it links to exists and is not empty,
+  and every acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
 - in `per-card` mode, a done card's History has the "approved by human" line
 
-`doctor` runs the same checks and lists what it finds as problems.
+When a task has `.groundwork/work/<id>/context.json`, `--base <ref>` also reports branch freshness
+and declared context changes separately. The current `gw/<id>` task, or `--task <id>`, is checked
+even when it is `done`; unchanged historical done cards are out of scope. `check` is read-only.
+
+`check` validates that linked evidence exists and is not empty, and that declared context files match
+their recorded hashes. It does not prove evidence is authentic or that tests were run; the project's
+test command does that separately.
+
+`doctor` runs the same card checks and lists what it finds as problems.
+
+## reassess
+
+```bash
+npx groundwork-ai reassess 1.2 --target origin/main
+npx groundwork-ai reassess 1.2 --target origin/main --dep decision:0001
+```
+
+Records the local content and the upstream version a task has been checked against in
+`.groundwork/work/<id>/context.json`. Use it after reading a changed decision or specification and
+reconciling the code and card — not just to clear a warning. It does not run tests, and recording an
+acknowledgment does not prove the change was understood.
+
+The first run needs at least one `--dep`; later runs update the recorded snapshots. The original base
+commit is preserved.
 
 ## mode
 

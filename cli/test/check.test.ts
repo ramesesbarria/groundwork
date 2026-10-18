@@ -76,6 +76,16 @@ describe("groundwork check", () => {
     expect(output).toMatch(/links to \.groundwork\/evidence\/1\.2\/tests\.txt, which doesn't exist/);
   });
 
+  it("fails an empty evidence file", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, ".groundwork/evidence/1.2"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.2/tests.txt"), "");
+    card(dir, "1.2", "awaiting-approval", { evidence: "- Tests: [tests.txt](../evidence/1.2/tests.txt), 0 passed" });
+    const { code, output } = await check(dir, "1.2");
+    expect(code).toBe(1);
+    expect(output).toMatch(/Evidence file \.groundwork\/evidence\/1\.2\/tests\.txt is empty/);
+  });
+
   it.each([
     "`.groundwork/evidence/1.2/review2-*`",
     "`../evidence/1.2/review2-*`",

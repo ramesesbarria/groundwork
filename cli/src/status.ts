@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { blocked, nextReady, readCards } from "./cards.js";
 import { checkProject } from "./check.js";
+import { handoffPath as currentHandoffPath } from "./context.js";
 import { CARD_STATUSES, statusLabel } from "./schema.js";
 import { readProjectConfig } from "./config.js";
 import type { Io, RunResult } from "./index.js";
@@ -18,8 +19,8 @@ export async function status(io: Pick<Io, "cwd">): Promise<RunResult> {
   const dir = join(io.cwd, ".groundwork");
   if (!existsSync(dir)) return { code: 1, output: NOT_INSTALLED };
 
-  const handoffPath = join(dir, "HANDOFF.md");
-  const handoff = existsSync(handoffPath) ? readFileSync(handoffPath, "utf8") : "";
+  const path = currentHandoffPath(io.cwd);
+  const handoff = existsSync(path) ? readFileSync(path, "utf8") : "";
   const lines = [
     `Phase:         ${handoffField(handoff, "Phase") ?? "—"}`,
     `Current card:  ${handoffField(handoff, "Current card") ?? "—"}`,

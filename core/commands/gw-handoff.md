@@ -9,7 +9,7 @@ Save where things stand, so work survives a closed session, a usage limit, or a 
 
 ## Steps
 1. Read the current card's status and History, and run the project's test command if a card is in progress.
-2. **Overwrite** `.groundwork/HANDOFF.md` (don't append; it's the current state, not a log) with these fields:
+2. Choose the handoff file. On branch `gw/<id>`, write `.groundwork/work/<id>/HANDOFF.md` (create the folder). Otherwise write `.groundwork/HANDOFF.md`. **Overwrite** the chosen file (don't append; it's the current state, not a log) with these fields:
    - **Phase:** the phase number and name, and the approval mode if it isn't the default
    - **Current card:** ID and title, or "none"
    - **Status:** the card's status, which also says which role is working on it
@@ -20,7 +20,7 @@ Save where things stand, so work survives a closed session, a usage limit, or a 
 3. Keep it short, under 300 words. Link to files instead of copying them.
 
 ## Writes
-- `.groundwork/HANDOFF.md`
+- `.groundwork/work/<id>/HANDOFF.md` on branch `gw/<id>`, otherwise `.groundwork/HANDOFF.md`
 
 ## Must not
 - Claim a step is finished if it wasn't. Say "partly done" and what's left.

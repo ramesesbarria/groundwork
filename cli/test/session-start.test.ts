@@ -69,6 +69,20 @@ describe("orientation text", () => {
     expect(orientation(tempDir())).toBe("");
   });
 
+  it("reads the per-task handoff on branch gw/<id>", () => {
+    const dir = projectWith(SAMPLE);
+    mkdirSync(join(dir, ".groundwork/work/1.4"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.4/HANDOFF.md"),
+      handoff({ Phase: "1", "Current card": "1.4 Profile", Status: "review", "Next step": "approve profile" }),
+    );
+    spawnSync("git", ["init", "-q"], { cwd: dir });
+    spawnSync("git", ["switch", "-q", "-c", "gw/1.4"], { cwd: dir });
+    const text: string = orientation(dir);
+    expect(text).toContain("1.4 Profile");
+    expect(text).toContain("approve profile");
+  });
+
   it("stays under about 80 tokens, even with long fields", () => {
     const long = "x".repeat(2000);
     expect(estimateTokens(orientation(projectWith(SAMPLE)))).toBeLessThan(80);

@@ -1,8 +1,9 @@
 // `groundwork status` and `groundwork adapter add`.
 import { afterEach, describe, expect, it } from "vitest";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { run } from "../src/index.js";
 import { compareCardIds } from "../src/cards.js";
 
@@ -82,6 +83,21 @@ describe("groundwork status", () => {
     const { code, output } = await run(["status"], { cwd: await installed() });
     expect(code).toBe(0);
     expect(output).toMatch(/no cards yet/i);
+  });
+
+  it("reads the per-task handoff on branch gw/<id>", async () => {
+    const dir = await installed();
+    mkdirSync(join(dir, ".groundwork/work/1.2"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.2/HANDOFF.md"),
+      "# Handoff\n\n- **Phase:** 1\n- **Current card:** 1.2 Profile\n- **Status:** review\n- **Next step:** approve profile\n",
+    );
+    spawnSync("git", ["init", "-q"], { cwd: dir });
+    spawnSync("git", ["switch", "-q", "-c", "gw/1.2"], { cwd: dir });
+    const { code, output } = await run(["status"], { cwd: dir });
+    expect(code).toBe(0);
+    expect(output).toContain("1.2 Profile");
+    expect(output).toContain("approve profile");
   });
 
   it("lists open human checks per card without failing", async () => {

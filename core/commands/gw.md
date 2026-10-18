@@ -8,7 +8,7 @@ description: Use when a session starts, or the human asks where things stand or 
 The one command to remember. Work out where the project is, tell the human, then do the next step, or ask when the next step is theirs.
 
 ## Steps
-1. Read **only** `.groundwork/HANDOFF.md` and the current card it names, if any. Don't scan the rest of the repo yet.
+1. Read **only** the handoff and the current card it names, if any. On branch `gw/<id>`, the handoff is `.groundwork/work/<id>/HANDOFF.md`; otherwise it is `.groundwork/HANDOFF.md`. Don't scan the rest of the repo yet.
 2. Say where things stand in one or two plain sentences, e.g. "Card 1.3 *Login flow* is being built: the tests are written, the code isn't yet." With no card in progress, describe the state as it is instead, e.g. "Groundwork is installed but not set up yet." Don't mention a card that doesn't exist.
 3. Take the **first** row that matches, and only that one:
 
@@ -31,9 +31,13 @@ The one command to remember. Work out where the project is, tell the human, then
 4. Don't redo steps that HANDOFF or the card's History shows as finished. If one looks wrong, say so and ask before redoing it.
 5. From there, follow `gw-next` as usual, updating HANDOFF at every role change.
 
+## Team prototype
+
+If `.groundwork/work/<id>/context.json` exists, follow `.groundwork/guides/team.md` before starting or resuming.
+
 ## Writes
 - Whatever the command or role it runs writes
-- `.groundwork/HANDOFF.md`
+- `.groundwork/work/<id>/HANDOFF.md` on branch `gw/<id>`, otherwise `.groundwork/HANDOFF.md`
 
 ## Must not
 - Run `gw-approve` or `gw-reject`. Only the human does.
