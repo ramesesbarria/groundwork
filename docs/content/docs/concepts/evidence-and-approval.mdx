@@ -38,9 +38,20 @@ The agent is told not to fill the gap itself to get past the gate. Either the wo
 evidence gets made first.
 
 This isn't only an instruction. The **commit gate** in the guard runner refuses any commit that names
-a card unless that card is done and passes the same check, and in Claude Code and OpenCode it also
-needs a message from you since the last commit. See [Claude Code](/docs/adapters/claude-code#hooks)
-and [OpenCode](/docs/adapters/opencode#human-only-commands) for the details.
+a card unless that card is done, passes the same check, and matches an explicit `/gw-approve <id>`
+record from you. Ordinary conversation, `/gw-reject`, and an agent-written card line do not count.
+The record is bound to the reviewed HEAD, code diff, card content and linked evidence; a later change
+to any of them needs a new approval. See [Claude Code](/docs/adapters/claude-code#hooks) and
+[OpenCode](/docs/adapters/opencode#human-only-commands) for the details.
+
+## What evidence checks can and cannot prove
+
+`groundwork check` verifies that linked evidence exists and is not empty, and that declared context
+dependencies match their recorded hashes. The solo commit gate also refuses evidence that changed
+after the human approved it. These checks do not prove that a test command ran, that the output is
+authentic, or that the software is correct. A fabricated but non-empty file can still be linked;
+review and the project's test execution are what judge it. This is a deliberate trust limit, not a
+promise to detect every fabricated output.
 
 ## Baselines
 

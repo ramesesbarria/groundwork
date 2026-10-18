@@ -3,6 +3,7 @@
 // with no imports beyond Node, because it runs inside a project's .groundwork/guards/ too.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 
 export const STATUSES = ["todo", "testing", "implementing", "built", "review", "awaiting-approval", "done", "rejected"];
@@ -45,6 +46,23 @@ export function frontmatter(md) {
 
 const withoutComments = (md) => md.replace(/<!--[\s\S]*?-->/g, "");
 
+// A one-time migration record for cards that predate the approval rule. The hash is a snapshot of
+// the card at migration time, so later edits lose the exemption. New cards are never exempt.
+export const LEGACY = ".groundwork/.legacy-cards.json";
+export const legacyFingerprint = (md) =>
+  createHash("sha256").update(md.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n")).digest("hex");
+
+export function readLegacy(projectDir) {
+  const path = resolve(projectDir, LEGACY);
+  if (!existsSync(path)) return {};
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf8"));
+    return parsed && parsed.version === 1 && parsed.cards && typeof parsed.cards === "object" ? parsed.cards : {};
+  } catch {
+    return {};
+  }
+}
+
 export function section(md, heading) {
   const start = md.search(new RegExp(`^## ${heading}\\s*$`, "m"));
   if (start === -1) return "";
@@ -80,7 +98,7 @@ export function humanChecks(md) {
 
 // Problems with one card, as plain sentences. `projectDir` is the folder that holds .groundwork/.
 // `cardSize: false` skips the size problem when the caller checks size itself (`groundwork doctor`).
-export function checkCard(md, { projectDir, approvalMode = "per-card", integration = "local", cardSize = true } = {}) {
+export function checkCard(md, { projectDir, approvalMode = "per-card", integration = "local", cardSize = true, legacy = false } = {}) {
   const fm = frontmatter(md);
   if (!fm.id) return ["it has no id in its frontmatter"];
   const problems = [];
@@ -126,7 +144,7 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", integrati
 
   // per-card and at-end both end with the human approving each card (at-end: all at once).
   // In a team project, PR review is the approval, so the local card line is not required.
-  if (fm.status === "done" && approvalMode !== "per-phase" && integration !== "pr" && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
+  if (fm.status === "done" && approvalMode !== "per-phase" && integration !== "pr" && !legacy && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
     problems.push('it\'s done, but History has no "approved by human" line');
   }
   return problems;
@@ -136,15 +154,22 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", integrati
 export function checkCards(projectDir, approvalMode, options = {}) {
   const dir = join(projectDir, ".groundwork", "cards");
   if (!existsSync(dir)) return [];
+  const legacy = readLegacy(projectDir);
   return readdirSync(dir)
     .filter((name) => name.endsWith(".md"))
     .sort()
     .map((name) => {
       const md = readFileSync(join(dir, name), "utf8");
+      const id = frontmatter(md).id ?? name;
       return {
         file: name,
-        id: frontmatter(md).id ?? name,
-        problems: checkCard(md, { projectDir, approvalMode, ...options }),
+        id,
+        problems: checkCard(md, {
+          projectDir,
+          approvalMode,
+          ...options,
+          legacy: legacy[id] === legacyFingerprint(md),
+        }),
         openHumanChecks: humanChecks(md).filter((check) => !check.checked).map((check) => check.text),
       };
     });

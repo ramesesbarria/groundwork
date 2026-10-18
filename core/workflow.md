@@ -31,7 +31,9 @@ A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-a
 
 **What to save:** the command you ran, its summary line (e.g. "42 passed, 3 failed"), and the failures, about the last 30 lines at most. Not the full output: evidence is committed, so keep each file short enough to read. Write evidence with your file-write tool or `node -e`, never shell redirection (`>`, `Out-File`): Windows PowerShell 5.1 writes UTF-16, which git treats as binary.
 
-**After approval** the runner sets the card to `done`, updates HANDOFF, and commits the card's changes as `[<card-id>] <card title>` (or the config's `commitFormat`) with a short body, then moves on. Only the runner commits, never a role, and never before approval (or before review passes, in `per-phase` mode; or as an unreviewed checkpoint, in `at-end` mode). If `autoCommit` is `false`, it never commits: it tells the human what to commit. The commit gate refuses a card commit while the card isn't `done` or fails `groundwork check`.
+**After approval** the runner sets the card to `done`, updates HANDOFF, and commits the card's changes as `[<card-id>] <card title>` (or the config's `commitFormat`). Only the runner commits, never a role, and never before approval. If `autoCommit` is `false`, it says what to commit. The commit gate refuses a card commit that isn't `done` or fails `groundwork check`, or whose approval no longer matches the code, card and evidence.
+
+A commit that is not card work uses `[no-card] <reason>`, `[quick]`, `[setup]`, `[plan]` or `[docs]`; a bare commit is blocked.
 
 ## Experience
 `experience` in `.groundwork/config.json` sets how much you explain. Read it each time (nothing else stores it), so it can change mid-project.

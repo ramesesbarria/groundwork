@@ -66,6 +66,7 @@ describe("protect-harness", SLOW, () => {
     const dir = await project();
     expect(hook(dir, edit(".groundwork/guards/run.mjs", "a", "b")).status).toBe(2);
     expect(hook(dir, write(".groundwork/hooks/session-start.mjs", "")).status).toBe(2);
+    expect(hook(dir, write(".groundwork/.legacy-cards.json", '{"version":1,"cards":{}}')).status).toBe(2);
     expect(hook(dir, write(".opencode/plugins/evil.js", "export default {}")).status).toBe(2);
     expect(hook(dir, write(".groundwork/guards/no-secrets.mjs", "export function check() { return { block: false }; }")).status).toBe(0);
     expect(hook(dir, write("src/app.ts", "export {}")).status).toBe(0);
@@ -86,6 +87,7 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, bash("sed -i 's/a/b/' .groundwork/guards/run.mjs")).status).toBe(2);
     expect(hook(dir, bash("git clean -fdx .groundwork/.approvals")).status).toBe(2);
     expect(hook(dir, bash('echo {} > .opencode/plugins/evil.js')).status).toBe(2);
+    expect(hook(dir, bash('echo {} > .groundwork/.legacy-cards.json')).status).toBe(2);
     expect(hook(dir, bash('echo {} > .groundwork/config.json')).status).toBe(2);
     expect(hook(dir, bash("git diff > .groundwork/config.json")).status).toBe(2);
     expect(hook(dir, bash("cp config.json.bak .groundwork/config.json")).status).toBe(2);
@@ -180,22 +182,26 @@ describe("commit-gate", SLOW, () => {
     expect(result.stderr).not.toMatch(/doesn't exist/);
   });
 
-  it("in per-card mode, needs a message from the human since the last commit", async () => {
+  it("in per-card mode, needs an explicit approval from the human for the card", async () => {
     const dir = await project();
+    card(dir, "awaiting-approval");
+    humanSpeaks(dir, "looks good to me");
     card(dir, "done");
     const before = hook(dir, commitCard);
     expect(before.status).toBe(2);
-    expect(before.stderr).toMatch(/No message from the human since the last commit/);
-    expect(before.stderr).not.toMatch(/separate step/); // the two-step rule is for the card problems, not the human-marker check
+    expect(before.stderr).toMatch(/no explicit human approval recorded|last human approval/);
+    expect(before.stderr).not.toMatch(/separate step/); // the two-step rule is for the card problems, not the approval check
 
+    card(dir, "awaiting-approval");
     const spoke = humanSpeaks(dir);
     expect(spoke.status).toBe(0);
     expect(spoke.stdout).toBe("");
+    card(dir, "done");
     expect(hook(dir, commitCard).status).toBe(0);
 
     git(dir, "add", "-A");
     git(dir, "commit", "-q", "-m", "[1.1] Books");
-    expect(hook(dir, commitCard).status).toBe(2); // that message was used up by the commit
+    expect(hook(dir, commitCard).status).toBe(2); // that approval was used up by the commit
   });
 
   it("checks the card without asking for a human message when the tool records none", async () => {
@@ -209,6 +215,32 @@ describe("commit-gate", SLOW, () => {
     expect(bad.stderr).toMatch(/no "approved by human" line/);
   });
 
+  it("ties approval to the reviewed code, card and evidence; conversation and rejection do not count", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    humanSpeaks(dir, "looks good to me");
+    card(dir, "done");
+    expect(hook(dir, commitCard).stderr).toMatch(/no explicit human approval recorded|last human approval/);
+
+    humanSpeaks(dir, "/gw-approve 1.1");
+    expect(hook(dir, commitCard).status).toBe(0);
+
+    writeFileSync(join(dir, "src.ts"), "changed after approval\n");
+    expect(hook(dir, commitCard).stderr).toMatch(/code changed since the approval/);
+    rmSync(join(dir, "src.ts"));
+
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), "6 passed\n");
+    expect(hook(dir, commitCard).stderr).toMatch(/linked evidence changed since the approval/);
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/tests.txt"), "5 passed\n");
+
+    const cardPath = join(dir, ".groundwork/cards/1.1-books.md");
+    writeFileSync(cardPath, readFileSync(cardPath, "utf8").replace("- [x] Lists books", "- [x] Lists books\n- [x] Extra scope after approval"));
+    expect(hook(dir, commitCard).stderr).toMatch(/card changed since the approval/);
+
+    humanSpeaks(dir, "/gw-reject 1.1");
+    expect(hook(dir, commitCard).stderr).toMatch(/no explicit human approval recorded|last human approval/);
+  });
+
   it("on OpenCode, needs the human's message once the plugin says its prompt hook is live", async () => {
     const dir = await project();
     card(dir, "done");
@@ -220,13 +252,15 @@ describe("commit-gate", SLOW, () => {
     writeFileSync(join(dir, ".groundwork/.approvals/records-human"), "{}\n");
     const before = hook(dir, opencode, "opencode");
     expect(before.status).toBe(2);
-    expect(before.stderr).toMatch(/No message from the human since the last commit/);
+    expect(before.stderr).toMatch(/no explicit human approval recorded/);
 
+    card(dir, "awaiting-approval");
     humanSpeaks(dir);
+    card(dir, "done");
     expect(hook(dir, opencode, "opencode").status).toBe(0);
     git(dir, "add", "-A");
     git(dir, "commit", "-q", "-m", "[1.1] Books");
-    expect(hook(dir, opencode, "opencode").status).toBe(2); // that message was used up by the commit
+    expect(hook(dir, opencode, "opencode").status).toBe(2); // that approval was used up by the commit
   });
 
   it("in per-phase mode, commits a reviewed card without an approval", async () => {
@@ -257,10 +291,17 @@ describe("commit-gate", SLOW, () => {
     expect(blocked.stderr).toMatch(/details belong in the evidence files/);
   });
 
-  it("doesn't gate commits that don't name a card", async () => {
+  it("blocks a commit that omits a card id, but allows explicit non-card tags", async () => {
     const dir = await project();
-    expect(hook(dir, bash('git commit -m "Plan phase 1"')).status).toBe(0);
+    const plain = hook(dir, bash('git commit -m "Plan phase 1"'));
+    expect(plain.status).toBe(2);
+    expect(plain.stderr).toMatch(/names no card/);
+    expect(hook(dir, bash('git commit -m "[plan] Plan phase 1"')).status).toBe(0);
     expect(hook(dir, bash('git commit -m "[quick] Fix typo"')).status).toBe(0);
+    expect(hook(dir, bash('git commit -m "[no-card] Housekeeping"')).status).toBe(0);
+    const unknown = hook(dir, bash('git commit -m "[9.9] Missing card"'));
+    expect(unknown.status).toBe(2);
+    expect(unknown.stderr).toMatch(/no card file has that id/);
   });
 
   it("in PR integration, local checkpoint commits naming a card are allowed", async () => {

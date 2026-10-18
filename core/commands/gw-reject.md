@@ -5,7 +5,7 @@ description: Use when the human says to reject the waiting card, with a reason. 
 # gw-reject
 
 ## Purpose
-Record the human's rejection and send the card back into the loop. The reason is kept on the card, where the implementer reads it and `retro` counts it later. Only the human runs this.
+Record the human's rejection and send the card back into the loop. The reason is kept on the card, where the implementer reads it and `retro` counts it later. Only the human runs this. A rejection clears any pending approval; an earlier `/gw-approve` cannot be reused.
 
 ## Steps
 If the human didn't ask for this in their own words, stop and ask them to approve or reject.

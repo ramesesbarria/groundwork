@@ -1,20 +1,20 @@
-// Built-in check: a card is committed only when the workflow says it's finished.
+// Built-in check: a card is committed only when the workflow says it's finished and the human has
+// explicitly approved the work they were shown.
 //
-// A commit whose message names a card (per commitFormat) is blocked unless that card is `done` and
-// passes `groundwork check`: evidence saved and linked, criteria ticked or explained, and in per-card
-// and at-end mode an "approved by human" line. In at-end mode a `built` card with its test output may
-// also be committed, as a checkpoint before the end review. Commits that don't name a card (setup,
-// plan, quick, the end approval) aren't gated.
+// A card commit names its card in the configured format and must be `done`, pass `groundwork check`,
+// and match a human approval record for that card. The record is bound to the reviewed HEAD, code
+// diff, card content and evidence files. A commit with no card ID is blocked unless it uses an
+// explicit non-card tag (`[no-card]`, `[quick]`, `[setup]`, `[plan]`, `[docs]`). Omitting the ID is
+// therefore not a way around the gate.
 //
-// Where the tool tells Groundwork about the human's own messages (Claude Code's UserPromptSubmit
-// hook, OpenCode's plugin prompt hook; both write .groundwork/.approvals/last-human.json), per-card
-// commits also need a human message since the last commit, so an agent can't approve its own work.
-// Tools without that signal get the card checks only.
+// In at-end mode a `built` card may be committed as a checkpoint before the end review. Team projects
+// (`integration: "pr"`) use PR review and required checks instead; local commits are checkpoints.
+// Tools that do not record the human's own messages get the card checks only.
 
-import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkCard, frontmatter } from "./cards.mjs";
+import { approvalMatches } from "./approval.mjs";
 
 export const HUMAN_MARKER = ".groundwork/.approvals/last-human.json";
 
@@ -60,13 +60,7 @@ export function commitText(command, cwd) {
   return `${command}\n${message}`;
 }
 
-function head(project) {
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: project, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  } catch {
-    return ""; // no commits yet
-  }
-}
+const NON_CARD = /\[(?:no-card|quick|setup|plan|docs)\]/i;
 
 function findCard(project, id) {
   const dir = join(project, ".groundwork", "cards");
@@ -88,14 +82,24 @@ const WHEN = {
 // runs, so the status edit and the commit can't share one shell command.
 const TWO_STEP = "Change the card first, then commit as a separate step: the gate reads the card as it is before the command runs.";
 
+const NO_CARD =
+  "This commit names no card. Use the card format, or an explicit non-card tag such as [no-card] <reason> " +
+  "or [quick]. Omitting the card ID must not bypass the approval gate.";
+
 export function commitGate(action, { project, config, tool }) {
   // Team projects use PR review and required checks for integration. Local task-branch commits are
   // checkpoints, so the card gate does not run here; only the general guards do.
   if (config.integration === "pr") return { block: false };
-  const id = cardIdIn(commitText(action.command, project), config.commitFormat);
-  if (!id) return { block: false };
+
+  const text = commitText(action.command, project);
+  const id = cardIdIn(text, config.commitFormat);
+  if (!id) {
+    if (NON_CARD.test(text)) return { block: false };
+    return { block: true, reason: NO_CARD };
+  }
+
   const md = findCard(project, id);
-  if (!md) return { block: false }; // names no card we know; nothing to check against
+  if (!md) return { block: true, reason: `This commit names card ${id}, but no card file has that id.` };
 
   const approvalMode = config.approvalMode ?? "per-card";
   const status = frontmatter(md).status;
@@ -110,19 +114,13 @@ export function commitGate(action, { project, config, tool }) {
   }
 
   if (!checkpoint && approvalMode !== "per-phase" && toolRecordsHuman(tool, project)) {
-    const path = join(project, HUMAN_MARKER);
-    let marker;
-    try {
-      marker = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : undefined;
-    } catch {
-      marker = undefined;
-    }
-    if (!marker || marker.head !== head(project)) {
+    const match = approvalMatches(project, id, md);
+    if (!match.ok) {
       return {
         block: true,
         reason:
-          `No message from the human since the last commit, so card ${id} can't have been approved by them. ` +
-          "Stop and ask the human to approve it (/gw-approve) or reject it.",
+          `Card ${id} is ready, but ${match.reason}. Ordinary conversation, a rejection, or an agent-written ` +
+          "card line does not count. Ask the human to run /gw-approve for this card.",
       };
     }
   }

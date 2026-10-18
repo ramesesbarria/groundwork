@@ -1,39 +1,62 @@
 #!/usr/bin/env node
 // Runs each time the human sends a message; adapters wire it to their tool's user-prompt hook, which
-// the agent's own actions never trigger. It records that the human spoke, and where the project's
-// history stood, in .groundwork/.approvals/last-human.json. The commit gate reads it: in per-card
-// mode a card commit needs a human message since the last commit.
+// the agent's own actions never trigger. A bare approval phrase is not enough: only the explicit
+// `/gw-approve` command records approval, and the record is bound to the reviewed card, HEAD, code,
+// card content and evidence. `/gw-reject` records a rejection and clears approval. Any other human
+// message clears approval as well, so an ordinary "looks good" or "go ahead" cannot be used later.
 //
 //   node .groundwork/hooks/user-prompt.mjs <project-dir>   (hook input as JSON on stdin)
 //
 // Adapters without a separate hook process import recordHuman instead. It prints nothing
 // (a tool may add a hook's output to the conversation) and never fails the prompt.
 
-import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  approvalPath,
+  approvalTarget,
+  cardFingerprint,
+  evidenceFingerprints,
+  head,
+  workFingerprint,
+} from "../guards/lib/approval.mjs";
 
-function head(project) {
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: project, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  } catch {
-    return ""; // no commits yet
-  }
+function writeRecord(project, record) {
+  const dir = join(project, ".groundwork", ".approvals");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(approvalPath(project), JSON.stringify(record, null, 2) + "\n");
 }
 
-// Records one human message. Best effort: the gate then asks for a fresh message from the human.
+// Records one human message. Best effort: on any failure the gate asks for a fresh explicit approval.
 export function recordHuman(project, prompt) {
+  const text = String(prompt ?? "");
+  const approve = text.match(/^\s*\/gw-approve\b\s*([\d.]*)/);
+  const reject = text.match(/^\s*\/gw-reject\b\s*([\d.]*)/);
+  const base = { head: head(project), at: new Date().toISOString(), approves: null };
   try {
-    const dir = join(project, ".groundwork", ".approvals");
-    mkdirSync(dir, { recursive: true });
-    const approve = String(prompt ?? "").match(/^\s*\/gw-approve\b\s*([\d.]*)/);
-    writeFileSync(
-      join(dir, "last-human.json"),
-      JSON.stringify({ head: head(project), at: new Date().toISOString(), approves: approve ? approve[1] || "current" : null }, null, 2) + "\n",
-    );
+    if (approve) {
+      const target = approvalTarget(project, approve[1] || undefined);
+      if (!target) {
+        writeRecord(project, { ...base, error: "No single awaiting-approval card was found for /gw-approve." });
+        return;
+      }
+      writeRecord(project, {
+        ...base,
+        approves: target.id,
+        card: cardFingerprint(target.md),
+        work: workFingerprint(project),
+        evidence: evidenceFingerprints(project, target.md),
+      });
+      return;
+    }
+    if (reject) {
+      writeRecord(project, { ...base, rejects: reject[1] || "current" });
+      return;
+    }
+    writeRecord(project, base);
   } catch {
-    // Recording is best effort; the gate then asks for a fresh message from the human.
+    // Recording is best effort; the gate then asks for a fresh explicit approval.
   }
 }
 
@@ -44,7 +67,7 @@ function main() {
     const input = JSON.parse(readFileSync(0, "utf8").replace(/^﻿/, "") || "{}");
     prompt = String(input.prompt ?? "");
   } catch {
-    // no input we understand: still record that the human spoke
+    // no input we understand: still record that the human spoke, which clears approval
   }
   recordHuman(project, prompt);
 }

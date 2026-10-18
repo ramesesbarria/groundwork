@@ -20,7 +20,7 @@ Turn the installed templates into this project's own AGENTS.md and config, witho
 4. If they mention anything private (a password, a key, a surprise), keep it in `.groundwork/private/` (git-ignored) and write only "kept private" in other files: `.groundwork/` is committed. Fill in the `{{...}}` placeholders in `AGENTS.md` and `.groundwork/SPEC.md`, and write `.groundwork/config.json` with `setup` set to `done`.
 5. Show the human the finished AGENTS.md and ask if anything is wrong.
 6. Update HANDOFF: next step is `gw-spec` (new project). For an existing project, ask "What do you want to change or add first?", then `gw-spec` for that change, or `gw-quick` if it's small.
-7. Suggest committing the setup now (e.g. `Set up Groundwork`), so the first card's commit only holds that card's work.
+7. Suggest committing the setup now with `[setup] Set up Groundwork`, so the first card's commit only holds that card's work.
 
 ## Writes
 - `AGENTS.md`

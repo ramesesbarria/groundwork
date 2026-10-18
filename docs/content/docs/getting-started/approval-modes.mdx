@@ -67,6 +67,17 @@ screenshot, the reviewer's verdict, all linked from the card. When a UI criterio
 verified live, the reviewer must flag it *not verified live* and list it as the first caveat, so
 you know exactly what you're taking on trust.
 
+## What counts as approval
+
+Only your explicit `/gw-approve <card-id>` prompt records approval. A normal “looks good”, a
+`/gw-reject`, and an agent-written “approved by human” line do not. The record is bound to the
+reviewed HEAD commit, the code diff, the card content (excluding status and History), and the
+linked evidence files. If any of those changes after approval, the commit gate refuses the commit
+and asks you to approve again.
+
+The approval file is local and gitignored. In a team project, PR review is the approval instead;
+see [team approval](/docs/reference/cli#check) and the repository's branch protection rules.
+
 ## Rejecting
 
 `/gw-reject` needs a reason, in your own words. It's recorded on the card and sends the work back

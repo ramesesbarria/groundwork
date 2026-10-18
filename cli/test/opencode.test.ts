@@ -97,7 +97,7 @@ describe("OpenCode guard plugin", () => {
 
   const installedPlugin = async (guards: string[]) => (await loadPlugin(guards)).hooks["tool.execute.before"];
 
-  const trailerCommit = "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'";
+  const trailerCommit = "git commit -m '[no-card] x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'";
 
   // A project with the core installed, for the mounts that need to tweak files first.
   function coreProject(): string {
@@ -138,7 +138,7 @@ describe("OpenCode guard plugin", () => {
   it("throws to block a commit with an AI trailer when the guard is on", async () => {
     const before = await installedPlugin(["no-ai-trailers"]);
     await expect(before({ tool: "shell", input: { command: trailerCommit } })).rejects.toThrow(/attribution/i);
-    await expect(before({ tool: "shell", input: { command: "git commit -m 'Fix'" } })).resolves.toBeUndefined();
+    await expect(before({ tool: "shell", input: { command: "git commit -m '[quick] Fix'" } })).resolves.toBeUndefined();
   });
 
   it("does nothing when no guards are on", async () => {
@@ -148,6 +148,11 @@ describe("OpenCode guard plugin", () => {
 
   it("records the human's messages for the commit gate, and advertises the hook on the first one", async () => {
     const { hooks, project } = await loadPlugin([]);
+    mkdirSync(join(project, ".groundwork/cards"), { recursive: true });
+    writeFileSync(
+      join(project, ".groundwork/cards/1.2-login.md"),
+      "---\nid: 1.2\ntitle: Login\nphase: 1\nstatus: awaiting-approval\ndepends_on: []\n---\n## Goal\nLogin.\n",
+    );
     const records = join(project, ".groundwork/.approvals/records-human");
     expect(existsSync(records)).toBe(false); // nothing is advertised before a real message
     await hooks["session.prompt"]({ prompt: { text: "/gw-approve 1.2" } });

@@ -19,6 +19,7 @@ npx groundwork-ai <command>
 | [`doctor`](#doctor) | Check harness health and the context budget |
 | [`check`](#check) | Check cards against the workflow's rules and task context |
 | [`reassess`](#reassess) | Record the context versions a task has just been checked against |
+| [`migrate`](#migrate) | Record pre-approval done cards for the one-time legacy migration |
 | [`mode`](#mode) | Show or change when you approve the work |
 | [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
@@ -172,6 +173,18 @@ The first run needs at least one `--dep`; later runs update the recorded snapsho
 commit is preserved. If a dependency is missing locally, `reassess` refuses unless `--drop` removes
 it from the task's dependency list intentionally. A stored path is not rename tracking: `--dep`
 re-resolves the reference to its current path.
+
+## migrate
+
+```bash
+npx groundwork-ai migrate legacy --dry-run
+npx groundwork-ai migrate legacy --yes
+```
+
+Records a one-time snapshot of done cards that predate the approval rule in
+`.groundwork/.legacy-cards.json`. It does not add an approval line or evidence, and it does not
+exempt new cards. A recorded card loses the exemption if its content changes. The manifest is
+locked against agent writes.
 
 ## mode
 

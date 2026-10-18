@@ -110,12 +110,12 @@ describe("guard runner", () => {
 
     const blocked = hook({
       tool_name: "Bash",
-      tool_input: { command: "git commit -m 'x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" },
+      tool_input: { command: "git commit -m '[no-card] x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" },
     });
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toMatch(/attribution/i);
 
-    expect(hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } }).status).toBe(0);
+    expect(hook({ tool_name: "Bash", tool_input: { command: "git commit -m '[quick] Fix bug'" } }).status).toBe(0);
   });
 
   it("maps NotebookEdit and OpenCode patches to writes", async () => {
@@ -136,7 +136,7 @@ describe("guard runner", () => {
 });
 
 describe("guard runner fails safe", () => {
-  const trailer = { tool_name: "Bash", tool_input: { command: "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } };
+  const trailer = { tool_name: "Bash", tool_input: { command: "git commit -m '[no-card] x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } };
   const listing = { tool_name: "Bash", tool_input: { command: "ls" } };
 
   function project(config: string, extraGuards: Record<string, string> = {}) {
@@ -175,7 +175,7 @@ describe("guard runner fails safe", () => {
     const blocked = hook(trailer);
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toMatch(/attribution/i);
-    const clean = hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } });
+    const clean = hook({ tool_name: "Bash", tool_input: { command: "git commit -m '[quick] Fix bug'" } });
     expect(clean.status).toBe(2);
     expect(clean.stderr).toContain('"broken"');
     expect(hook(listing).status).toBe(0);

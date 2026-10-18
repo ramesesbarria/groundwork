@@ -17,7 +17,7 @@ The human chose to review once, at the end: usually a deadline. You build every 
 3. **Stop for the human** with one summary for the whole build: what changed, how to try it, caveats, any open human checks, and every `call:` line. Ask them to run `gw-approve` (all cards at once) or `gw-reject` with the cards and reasons.
 
 ## Approving (`gw-approve`)
-Every card waiting for approval gets `gw-approve` steps 2 and 4 at once; list any that fail the check, and approve the rest only if the human says so. Confirm or waive every open human check across the cards in one pass. Then one commit with the approved cards' files and HANDOFF, message `Approve cards <first>–<last>` (no card ID: each card already has its checkpoint commit), and one recap per phase in JOURNAL.
+Every card waiting for approval gets `gw-approve` steps 2 and 4 at once; list any that fail the check, and approve the rest only if the human says so. Confirm or waive every open human check across the cards in one pass. Then one commit with the approved cards' files and HANDOFF, message `[no-card] Approve cards <first>-<last>` (each card already has its checkpoint commit), and one recap per phase in JOURNAL.
 
 ## Must not
 - Mark a card `done`, or tick its criteria, before the review and the human's approval.

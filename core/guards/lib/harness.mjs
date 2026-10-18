@@ -15,6 +15,7 @@ const parseJson = (text) => JSON.parse(text.replace(/^﻿/, ""));
 
 // Files an agent may not change once they exist.
 const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/];
+const LEGACY_MANIFEST = /^\.groundwork\/\.legacy-cards\.json$/;
 // The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
 // can see what it does.
 const PLUGINS = /^\.opencode\/plugins(\/|$)/;
@@ -127,6 +128,9 @@ function checkWrite(action, project) {
     if (LOCKED.some((re) => re.test(rel)) && existsSync(abs)) {
       return { block: true, reason: `${rel} is part of Groundwork's guards and hooks. ${ASK}` };
     }
+    if (LEGACY_MANIFEST.test(rel)) {
+      return { block: true, reason: `The legacy-card migration record is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
+    }
     const one = action.paths && action.paths.length > 1 ? { kind: "write", path } : action;
     const result = rel === CONFIG ? checkConfig(one, abs) : SETTINGS.test(rel) ? checkSettings(one, abs, rel) : { block: false };
     if (result.block) return result;
@@ -209,7 +213,7 @@ function checkCommand(action, project) {
   const setupDone = setupIsDone(project);
   for (const target of commandWriteTargets(command)) {
     const rel = projectPath(project, target);
-    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel);
+    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel) || LEGACY_MANIFEST.test(rel);
     const configAfterSetup = rel === CONFIG && setupDone; // setup writing its own config isn't the agent changing the harness
     if (locked || configAfterSetup) {
       return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };

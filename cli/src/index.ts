@@ -7,6 +7,7 @@ import { check } from "./check.js";
 import { mode } from "./mode.js";
 import { retro } from "./retro.js";
 import { reassess } from "./reassess.js";
+import { migrate } from "./migrate.js";
 import { upgrade } from "./upgrade.js";
 import { uninstall } from "./uninstall.js";
 import { VERSION } from "./version.js";
@@ -43,6 +44,7 @@ const COMMANDS: Record<string, string> = {
   mode: "Show or change when you approve: per-card, per-phase or at-end (mode [mode])",
   check: "Check cards against the workflow: evidence, criteria, status moves, approval, and task context (check [card-id...] [--base <ref>] [--task <id>]; exits 1 on problems)",
   reassess: "Record the local and upstream context versions a task has just been checked against (reassess <id> --target <ref> [--dep <ref>] [--drop <ref>])",
+  migrate: "Record pre-approval done cards for the one-time legacy migration; new cards stay checked (migrate legacy [--dry-run] [--yes])",
   retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
   uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };
@@ -80,6 +82,7 @@ export async function run(argv: string[], io: Partial<Io> = {}): Promise<RunResu
   if (cmd === "doctor") return doctor(fullIo);
   if (cmd === "check") return check(args, fullIo);
   if (cmd === "reassess") return reassess(args, fullIo);
+  if (cmd === "migrate") return migrate(args, fullIo);
   if (cmd === "mode") return mode(args, fullIo);
   if (cmd === "retro") return retro(fullIo);
   if (cmd === "uninstall") return uninstall(args, fullIo);

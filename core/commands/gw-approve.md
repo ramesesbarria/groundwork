@@ -5,7 +5,9 @@ description: Use when the human says to approve the waiting card, or a phase in 
 # gw-approve
 
 ## Purpose
-Record the human's approval of a card and commit it. Only the human runs this.
+Record the human's approval of a card and commit it.
+
+Only the human runs this; the `/gw-approve <id>` prompt counts.
 
 ## Steps
 If the human didn't ask for this in their own words, stop and ask them to approve or reject.
@@ -16,7 +18,7 @@ If the human didn't ask for this in their own words, stop and ask them to approv
    - any file it links to in `.groundwork/evidence/<card-id>/` is missing, or
    - any acceptance criterion is unchecked with no reason after it (`- [ ] <criterion> — <why>`).
    When you refuse, say what's missing; don't fill it in yourself.
-3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, caveats, and open human checks. It's the last look before the commit. Follow `experience`: `new` always gets How to check; `experienced` a short summary.
+3. **Show the summary** from `gw-next` step 7: what changed, how to check it yourself, caveats, and open human checks. Follow `experience`: `new` always gets How to check; `experienced` a short summary.
 4. Set the card status to `done` and add a History line: date, "approved by human". Confirm or waive each open human check with the human: tick confirmed ones with the date, waived ones `— waived <date> (<why>)`, and add one line: `human checks confirmed: <n>; waived: <n> — <why>`.
 5. Update `.groundwork/HANDOFF.md`: card done, next step. If this was the last card of its phase, add its recap (below) and say "phase <n> approved" in HANDOFF.
 6. Commit the card's changes with the message `[<card-id>] <card title>` (or the config's `commitFormat`). Stage only this card. Keep the status change and this commit as separate steps: the gate reads the card before the command runs. With `autoCommit` off, say what to commit instead.
