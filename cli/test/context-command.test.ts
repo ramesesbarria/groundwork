@@ -2,7 +2,7 @@
 // and the current task stays checked even when it is marked done.
 import { afterEach, describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
@@ -124,5 +124,32 @@ describe("shared-context CLI", () => {
     const { code, output } = await run(["check", "--task", "1.1", "--base", "main"], { cwd: dir, ask: noQuestions });
     expect(code).toBe(1);
     expect(output).toMatch(/invalid context metadata|isn't valid JSON/);
+  });
+
+  it("requires --drop for an intentional deletion, not a silent missing snapshot", async () => {
+    const dir = await repo();
+    git(dir, "switch", "-q", "-c", "gw/1.1");
+    git(dir, "rm", "-q", ".groundwork/decisions/0001-session-storage.md");
+    git(dir, "commit", "-qm", "remove dependency");
+    const refused = await run(["reassess", "1.1", "--target", "main"], { cwd: dir, ask: noQuestions });
+    expect(refused.code).toBe(1);
+    expect(refused.output).toMatch(/--drop/);
+    const dropped = await run(["reassess", "1.1", "--target", "main", "--drop", "decision:0001"], { cwd: dir, ask: noQuestions });
+    expect(dropped.code).toBe(0);
+    expect((await run(["check", "--base", "main"], { cwd: dir, ask: noQuestions })).code).toBe(0);
+  });
+
+  it("does not follow a rename by stored path, but --dep re-resolves it", async () => {
+    const dir = await repo();
+    git(dir, "mv", ".groundwork/decisions/0001-session-storage.md", ".groundwork/decisions/0001-session-store.md");
+    git(dir, "commit", "-qm", "rename decision");
+    const stored = await run(["reassess", "1.1", "--target", "main"], { cwd: dir, ask: noQuestions });
+    expect(stored.code).toBe(1);
+    expect(stored.output).toMatch(/--drop/);
+    const resolved = await run(["reassess", "1.1", "--target", "main", "--dep", "decision:0001"], { cwd: dir, ask: noQuestions });
+    expect(resolved.code).toBe(0);
+    const context = JSON.parse(readFileSync(join(dir, ".groundwork/work/1.1/context.json"), "utf8")) as { deps: { path?: string }[] };
+    expect(context.deps[0]?.path).toBe(".groundwork/decisions/0001-session-store.md");
+    expect((await run(["check", "--base", "main"], { cwd: dir, ask: noQuestions })).code).toBe(0);
   });
 });

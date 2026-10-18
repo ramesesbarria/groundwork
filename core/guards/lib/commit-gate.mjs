@@ -89,6 +89,9 @@ const WHEN = {
 const TWO_STEP = "Change the card first, then commit as a separate step: the gate reads the card as it is before the command runs.";
 
 export function commitGate(action, { project, config, tool }) {
+  // Team projects use PR review and required checks for integration. Local task-branch commits are
+  // checkpoints, so the card gate does not run here; only the general guards do.
+  if (config.integration === "pr") return { block: false };
   const id = cardIdIn(commitText(action.command, project), config.commitFormat);
   if (!id) return { block: false };
   const md = findCard(project, id);

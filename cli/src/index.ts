@@ -42,7 +42,7 @@ const COMMANDS: Record<string, string> = {
   doctor: "Check harness health and the context token budget (exits 1 on problems)",
   mode: "Show or change when you approve: per-card, per-phase or at-end (mode [mode])",
   check: "Check cards against the workflow: evidence, criteria, status moves, approval, and task context (check [card-id...] [--base <ref>] [--task <id>]; exits 1 on problems)",
-  reassess: "Record the local and upstream context versions a task has just been checked against (reassess <id> --target <ref> [--dep <ref>])",
+  reassess: "Record the local and upstream context versions a task has just been checked against (reassess <id> --target <ref> [--dep <ref>] [--drop <ref>])",
   retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
   uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };

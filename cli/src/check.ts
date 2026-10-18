@@ -18,8 +18,8 @@ export interface CardCheck {
 }
 
 interface CardRules {
-  checkCards(projectDir: string, approvalMode: string, options?: { cardSize?: boolean }): CardCheck[];
-  checkCard(md: string, options: { projectDir: string; approvalMode?: string; cardSize?: boolean }): string[];
+  checkCards(projectDir: string, approvalMode: string, options?: { cardSize?: boolean; integration?: string }): CardCheck[];
+  checkCard(md: string, options: { projectDir: string; approvalMode?: string; integration?: string; cardSize?: boolean }): string[];
   humanChecks(md: string): { text: string; checked: boolean }[];
   estimateCardTokens(md: string): number;
   CARD_TOKEN_LIMIT: number;
@@ -31,8 +31,10 @@ export const cardRules = async (): Promise<CardRules> =>
   (await import(pathToFileURL(join(locateCore(), "guards", "lib", "cards.mjs")).href)) as CardRules;
 
 export async function checkProject(cwd: string, options?: { cardSize?: boolean }): Promise<CardCheck[]> {
-  const mode = String(readProjectConfig(join(cwd, ".groundwork")).approvalMode ?? "per-card");
-  return (await cardRules()).checkCards(cwd, mode, options);
+  const config = readProjectConfig(join(cwd, ".groundwork"));
+  const mode = String(config.approvalMode ?? "per-card");
+  const integration = String(config.integration ?? "local");
+  return (await cardRules()).checkCards(cwd, mode, { ...options, integration });
 }
 
 function parse(args: string[]): { wanted: string[]; base?: string; task?: string; error?: string } {

@@ -80,7 +80,7 @@ export function humanChecks(md) {
 
 // Problems with one card, as plain sentences. `projectDir` is the folder that holds .groundwork/.
 // `cardSize: false` skips the size problem when the caller checks size itself (`groundwork doctor`).
-export function checkCard(md, { projectDir, approvalMode = "per-card", cardSize = true } = {}) {
+export function checkCard(md, { projectDir, approvalMode = "per-card", integration = "local", cardSize = true } = {}) {
   const fm = frontmatter(md);
   if (!fm.id) return ["it has no id in its frontmatter"];
   const problems = [];
@@ -125,7 +125,8 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", cardSize 
   }
 
   // per-card and at-end both end with the human approving each card (at-end: all at once).
-  if (fm.status === "done" && approvalMode !== "per-phase" && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
+  // In a team project, PR review is the approval, so the local card line is not required.
+  if (fm.status === "done" && approvalMode !== "per-phase" && integration !== "pr" && !/^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(section(md, "History"))) {
     problems.push('it\'s done, but History has no "approved by human" line');
   }
   return problems;

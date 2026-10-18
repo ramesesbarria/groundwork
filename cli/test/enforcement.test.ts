@@ -263,6 +263,12 @@ describe("commit-gate", SLOW, () => {
     expect(hook(dir, bash('git commit -m "[quick] Fix typo"')).status).toBe(0);
   });
 
+  it("in PR integration, local checkpoint commits naming a card are allowed", async () => {
+    const dir = await project({ integration: "pr" });
+    card(dir, "testing", "- 2026-09-29 implementing → testing: checkpoint");
+    expect(hook(dir, commitCard).status).toBe(0);
+  });
+
   it("importing the user-prompt hook records nothing until a message arrives", async () => {
     const dir = await project();
     const module = await import(pathToFileURL(join(dir, ".groundwork/hooks/user-prompt.mjs")).href);

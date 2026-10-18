@@ -145,6 +145,10 @@ When a task has `.groundwork/work/<id>/context.json`, `--base <ref>` also report
 and declared context changes separately. The current `gw/<id>` task, or `--task <id>`, is checked
 even when it is `done`; unchanged historical done cards are out of scope. `check` is read-only.
 
+With `integration: "pr"` in `config.json`, a done card does not need a local “approved by human”
+line; PR review and required checks are the approval. The local commit gate becomes checkpoint-only.
+Groundwork checks the card, context, and evidence; the repository enforces the approving review.
+
 `check` validates that linked evidence exists and is not empty, and that declared context files match
 their recorded hashes. It does not prove evidence is authentic or that tests were run; the project's
 test command does that separately.
@@ -156,6 +160,7 @@ test command does that separately.
 ```bash
 npx groundwork-ai reassess 1.2 --target origin/main
 npx groundwork-ai reassess 1.2 --target origin/main --dep decision:0001
+npx groundwork-ai reassess 1.2 --target origin/main --drop decision:0001
 ```
 
 Records the local content and the upstream version a task has been checked against in
@@ -164,7 +169,9 @@ reconciling the code and card — not just to clear a warning. It does not run t
 acknowledgment does not prove the change was understood.
 
 The first run needs at least one `--dep`; later runs update the recorded snapshots. The original base
-commit is preserved.
+commit is preserved. If a dependency is missing locally, `reassess` refuses unless `--drop` removes
+it from the task's dependency list intentionally. A stored path is not rename tracking: `--dep`
+re-resolves the reference to its current path.
 
 ## mode
 

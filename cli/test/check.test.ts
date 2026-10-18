@@ -120,6 +120,14 @@ describe("groundwork check", () => {
     expect((await check(dir)).code).toBe(0);
   });
 
+  it("in PR integration, a done card needs no local approval line", async () => {
+    const dir = await project();
+    writeFileSync(join(dir, ".groundwork/config.json"), JSON.stringify({ approvalMode: "per-card", integration: "pr", guards: [] }));
+    evidence(dir, "1.1");
+    card(dir, "1.1", "done", { evidence: "- `.groundwork/evidence/1.1/tests.txt`" });
+    expect((await check(dir)).code).toBe(0);
+  });
+
   it("lists open human checks without failing, and ignores confirmed ones", async () => {
     const dir = await project();
     evidence(dir, "1.2");

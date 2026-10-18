@@ -25,6 +25,7 @@ git remote add origin "$ROOT/origin.git"
 "${GW[@]}" --version
 if [ -n "${GW_ROOT:-}" ]; then git -C "$GW_ROOT" rev-parse --short HEAD; fi
 "${GW[@]}" init --adapter none >/dev/null 2>&1
+node -e "const fs=require('fs'); const p='.groundwork/config.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.integration='pr'; fs.writeFileSync(p, JSON.stringify(c,null,2)+'\n');"
 
 mkdir -p .groundwork/decisions .groundwork/cards .groundwork/evidence
 cat > .groundwork/decisions/0001-session-storage.md <<'EOF'
@@ -265,4 +266,54 @@ grep -q "decision:0001:.*verdict=reassess" <<<"$OUT"
 
 "${GW[@]}" reassess 1.2 --target origin/main >/dev/null
 "${GW[@]}" check --base origin/main
+cat > .groundwork/work/1.2/HANDOFF.md <<'EOF'
+# Handoff
+- **Phase:** 1
+- **Current card:** 1.2 Profile
+- **Status:** ready for PR review
+- **Next step:** merge PR #2 after review
+EOF
+git add -A
+git commit -qm "[1.2] ready for review"
+git push -q origin gw/1.2
+git push -q origin gw/1.2:refs/pull/2/head
+
+# Advance main with an unrelated change, then create the simulated merge ref.
+cd ../repo
+echo unrelated > unrelated.txt
+git add -A
+git commit -qm "unrelated main change (simulated)"
+git push -q origin main
+git merge --no-ff gw/1.2 -m "Merge PR #2 (simulated reviewed merge)"
+git push -q origin main
+git push -q origin "$(git rev-parse HEAD):refs/pull/2/merge"
+
+# A fresh clone must resume from tracked records, not ignored local state.
+cd "$ROOT"
+git clone -q origin.git fresh
+cd fresh
+git fetch -q origin refs/pull/2/head:refs/remotes/origin/pr-head refs/pull/2/merge:refs/remotes/origin/pr-merge
+[ -f .groundwork/cards/1.2.md ]
+[ -f .groundwork/decisions/0001-session-storage.md ]
+[ -f .groundwork/work/1.2/context.json ]
+[ -f .groundwork/work/1.2/HANDOFF.md ]
+[ -f .groundwork/evidence/1.2/test-integration.txt ]
+git ls-files --error-unmatch .groundwork/work/1.2/context.json .groundwork/work/1.2/HANDOFF.md >/dev/null
+[ ! -e .groundwork/.approvals ]
+git switch -q gw/1.2
+"${GW[@]}" status | grep -q "1.2 Profile"
+
+# Head checks the PR head; merge checks and tests the simulated merge result.
+git switch -q --detach origin/pr-head
+set +e
+OUT=$("${GW[@]}" check --task 1.2 --base origin/main 2>&1); CODE=$?
+set -e
+echo "$OUT"
+[ "$CODE" -ne 0 ]
+grep -q "freshness: behind target" <<<"$OUT"
+grep -q "decision:0001:.*verdict=ok" <<<"$OUT"
+
+git switch -q --detach origin/pr-merge
+"${GW[@]}" check --task 1.2 --base origin/main
+./test-integration.sh
 echo "DEMO PASS"

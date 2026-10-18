@@ -44,6 +44,11 @@
       "type": "boolean",
       "default": true
     },
+    "integration": {
+      "description": "local: card commits are gated by the local approval rules. pr: local task-branch commits are checkpoints; pull-request review and required checks govern integration. In pr mode the local commit gate does not demand a human approval line, and check does not require one for done cards.",
+      "enum": ["local", "pr"],
+      "default": "local"
+    },
     "experience": {
       "description": "How much the agent explains. new: one sentence per step, How to check at every approval stop, a labeled recommendation for stack choices. experienced: terse, a short approval summary, options only unless asked. Read fresh each time, so it can change mid-project.",
       "enum": [

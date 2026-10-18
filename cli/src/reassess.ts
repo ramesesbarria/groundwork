@@ -1,6 +1,6 @@
-// `groundwork reassess <task> --target <ref> [--dep <ref>]...`: record the context snapshots a
-// developer or agent has just inspected. It does not run checks or judge the change; it only records
-// the local content and the upstream version that was acknowledged. `check` stays read-only.
+// `groundwork reassess <task> --target <ref> [--dep <ref>]... [--drop <ref>]...`: record the context
+// snapshots a developer or agent has just inspected. It does not run checks or judge the change; it
+// only records the local content and the upstream version that was acknowledged. `check` stays read-only.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,28 +18,33 @@ import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
 
-function parse(args: string[]): { task?: string; target?: string; deps: string[]; error?: string } {
+function parse(args: string[]): { task?: string; target?: string; deps: string[]; drops: string[]; error?: string } {
   const deps: string[] = [];
+  const drops: string[] = [];
   let task: string | undefined;
   let target: string | undefined;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--target") {
       target = args[++i];
-      if (!target) return { deps, error: "--target needs a revision, e.g. --target origin/main" };
+      if (!target) return { deps, drops, error: "--target needs a revision, e.g. --target origin/main" };
     } else if (arg === "--dep") {
       const dep = args[++i];
-      if (!dep) return { deps, error: "--dep needs a reference, e.g. --dep decision:0001" };
+      if (!dep) return { deps, drops, error: "--dep needs a reference, e.g. --dep decision:0001" };
       deps.push(dep);
+    } else if (arg === "--drop") {
+      const dep = args[++i];
+      if (!dep) return { deps, drops, error: "--drop needs a reference, e.g. --drop decision:0001" };
+      drops.push(dep);
     } else if (arg.startsWith("-")) {
-      return { deps, error: `Unknown option: ${arg}` };
+      return { deps, drops, error: `Unknown option: ${arg}` };
     } else if (task === undefined) {
       task = arg;
     } else {
-      return { deps, error: `Unexpected argument: ${arg}` };
+      return { deps, drops, error: `Unexpected argument: ${arg}` };
     }
   }
-  return { task, target, deps };
+  return { task, target, deps, drops };
 }
 
 function localHash(abs: string): string | null {
@@ -58,7 +63,7 @@ function targetHash(project: string, sha: string, rel: string): string | null {
 export function reassess(args: string[], io: Pick<Io, "cwd">): RunResult {
   const project = io.cwd;
   if (!existsSync(join(project, ".groundwork"))) return { code: 1, output: NOT_INSTALLED };
-  const { task, target, deps: requested, error } = parse(args);
+  const { task, target, deps: requested, drops, error } = parse(args);
   if (error) return { code: 1, output: error };
   if (!task) return { code: 1, output: "Name the task, e.g. `groundwork reassess 1.2 --target origin/main`." };
 
@@ -93,20 +98,32 @@ export function reassess(args: string[], io: Pick<Io, "cwd">): RunResult {
   }
 
   const byRef = new Map<string, ContextDep>((context?.deps ?? []).map((dep) => [dep.ref, dep]));
-  const refs = requested.length > 0 ? requested : [...byRef.keys()];
+  const explicit = new Set(requested);
+  const refs = requested.length === 0 && drops.length === 0 ? [...byRef.keys()] : [...new Set([...requested, ...drops])];
   const lines: string[] = [];
   for (const ref of refs) {
     const existing = byRef.get(ref);
+    if (drops.includes(ref) && !explicit.has(ref)) {
+      if (!existing) {
+        return { code: 1, output: `${ref} isn't recorded for task ${task}, so it can't be dropped.` };
+      }
+      byRef.delete(ref);
+      lines.push(`dropped ${ref}: no longer checked for task ${task} (target ${targetRef}@${targetSha.slice(0, 12)})`);
+      continue;
+    }
     let resolved: { rel: string; abs: string };
     try {
-      resolved = dependencyPath(project, ref, existing?.path);
+      resolved = dependencyPath(project, ref, explicit.has(ref) ? undefined : existing?.path);
     } catch (e) {
       return { code: 1, output: `${(e as Error).message}. Reassessment was not recorded.` };
     }
     const local = localHash(resolved.abs);
     const upstream = targetHash(project, targetSha, resolved.rel);
-    if (local === null && upstream === null && !existing) {
-      return { code: 1, output: `${ref} doesn't exist locally or at ${targetRef}. Reassessment was not recorded.` };
+    if (local === null) {
+      return {
+        code: 1,
+        output: `${ref} is missing locally. Use --drop ${ref} to remove it from this task's dependencies. Reassessment was not recorded.`,
+      };
     }
     byRef.set(ref, { ref, path: resolved.rel, recorded: local, acknowledged: upstream });
     lines.push(`recorded ${ref}: local=${short(local)} acknowledged=${short(upstream)} target=${targetRef}@${targetSha.slice(0, 12)}`);
