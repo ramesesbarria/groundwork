@@ -62,7 +62,8 @@ async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ 
   for (const name of ["AGENTS.md", "CLAUDE.md"]) if (existsSync(join(cwd, name))) parts.push([name, estimateTokens(read(join(cwd, name)))]);
   parts.push(["skill list", listingTokens(join(cwd, ".claude/skills"), /^gw/)]);
   parts.push(["subagent list", listingTokens(join(cwd, ".claude/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".opencode/agents"), /^gw-.*\.md$/)]);
-  parts.push(["command list", listingTokens(join(cwd, ".opencode/commands"), /^gw.*\.md$/)]);
+  // OpenCode's custom command descriptions aren't counted: a 2,000-token description left the model's
+  // prompt unchanged on OpenCode 2.0.32 (checked 2026-10-19), so they're a menu for the human.
   // Session-start lines reach a session only through an adapter's hook or plugin.
   const wired = read(join(cwd, ".claude/settings.json")).includes("session-start") || existsSync(join(cwd, ".opencode/plugins/groundwork-guards.js"));
   if (wired) parts.push(["session start", await sessionStartTokens(join(cwd, ".groundwork"))]);

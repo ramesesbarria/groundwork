@@ -215,4 +215,16 @@ describe("groundwork doctor", () => {
     writeFileSync(join(dir, ".groundwork/evidence/1.1/report.xml"), Buffer.from("﻿<ok/>", "utf16le"));
     expect((await doctor(dir)).output).toMatch(/1 evidence file is UTF-16/);
   });
+
+  it("doesn't count OpenCode's command descriptions as always loaded: they don't reach the model", async () => {
+    const { output } = await doctor(await installed("opencode"));
+    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\): AGENTS\.md \d+, subagent list \d+, session start \d+$/m);
+    expect(output).not.toMatch(/command list/);
+  });
+
+  it("checks an installed OpenCode adapter, which it used to skip", async () => {
+    const dir = await installed("opencode");
+    writeFileSync(join(dir, ".opencode/agents/gw-tester.md"), "changed\n");
+    expect((await doctor(dir)).output).toMatch(/\.opencode\/agents\/gw-tester\.md differs from what Groundwork would generate/);
+  });
 });
