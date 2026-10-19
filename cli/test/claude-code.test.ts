@@ -114,3 +114,42 @@ describe("Claude Code adapter", () => {
     expect(out).toMatchSnapshot();
   });
 });
+
+// Ownership of CLAUDE.md comes from its known generated content: upgrade refreshes it and uninstall
+// removes it only when every line is one Groundwork writes.
+describe("generated CLAUDE.md", () => {
+  // What 0.5.0 to 0.9.0 wrote: twelve skills and four subagents, before the default surface shrank.
+  const V090 = [
+    "@AGENTS.md",
+    "",
+    "## Claude Code",
+    "Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.",
+    "The others: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.",
+    "When a command says to run a role, use its subagent: gw-implementer, gw-planner, gw-reviewer, gw-tester.",
+    "",
+  ].join("\n");
+
+  it("recognizes this version's output, with or without model hints", async () => {
+    const { isGeneratedClaudeMd } = await import("../src/upgrade.js");
+    expect(isGeneratedClaudeMd(generateClaudeCode(core)["CLAUDE.md"])).toBe(true);
+    expect(isGeneratedClaudeMd(generateClaudeCode(core, { tester: "haiku" })["CLAUDE.md"])).toBe(true);
+  });
+
+  it("recognizes what earlier versions wrote, including with Windows line endings", async () => {
+    const { isGeneratedClaudeMd } = await import("../src/upgrade.js");
+    expect(isGeneratedClaudeMd(V090)).toBe(true);
+    expect(isGeneratedClaudeMd(V090.replace(/\n/g, "\r\n"))).toBe(true);
+    const v030 = "@AGENTS.md\n\n## Claude Code\nGroundwork commands are skills: /gw-next, /gw-resume.\nWhen a command says to run a role, use its subagent: gw-tester.\n";
+    expect(isGeneratedClaudeMd(v030)).toBe(true);
+  });
+
+  it("treats any added or changed line as the user's", async () => {
+    const { isGeneratedClaudeMd } = await import("../src/upgrade.js");
+    const generated = generateClaudeCode(core)["CLAUDE.md"];
+    expect(isGeneratedClaudeMd(`${generated}Use tabs.\n`)).toBe(false);
+    expect(isGeneratedClaudeMd(generated.replace("/gw-reject.", "/gw-reject. Also /lint."))).toBe(false);
+    expect(isGeneratedClaudeMd(generated.replace("## Claude Code", "## Claude Code\nUse tabs."))).toBe(false);
+    expect(isGeneratedClaudeMd("@AGENTS.md\n\n# Mine\n")).toBe(false);
+    expect(isGeneratedClaudeMd(V090.replace("gw-tester.", "gw-tester. Ask before deleting files."))).toBe(false);
+  });
+});

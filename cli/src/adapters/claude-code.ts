@@ -13,6 +13,17 @@ const ROLE_TOOLS: Record<string, string[]> = {
 // while `/gw-approve` still works (code.claude.com/docs/en/skills, checked 2026-09-24).
 const HUMAN_ONLY = new Set(["gw-approve", "gw-reject"]);
 
+// Every line Groundwork writes under "## Claude Code" in CLAUDE.md, now or in an earlier version. A
+// CLAUDE.md made only of these is Groundwork's own: upgrade refreshes it and uninstall removes it.
+// Add the pattern here when the generator below gains a line.
+export const CLAUDE_MD_LINES: RegExp[] = [
+  /^Groundwork commands are skills: \/[\w-]+(?:, \/[\w-]+)*\.$/, // 0.3
+  /^Groundwork commands are skills\. Start with \/gw: it says where things stand and runs the next step\.$/,
+  /^The others: \/[\w-]+(?:, \/[\w-]+)*\.$/,
+  /^Other helpers live in \.groundwork\/commands\/; \/gw reads the one it needs\.$/,
+  /^When a command says to run a role, use its subagent: gw-[\w-]+(?:, gw-[\w-]+)*\.$/,
+];
+
 // Pure: core files in, Claude Code files out. Generated files point to the core instead of
 // copying it, so .groundwork/ stays the single source of truth.
 export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {

@@ -9,6 +9,7 @@ import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import { ADAPTERS, GITATTRIBUTES, isManaged, isProjectFile, locateCore, planAdapter, planInit, stampVersion, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
+import { CLAUDE_MD_LINES } from "./adapters/claude-code.js";
 import { parseJson, readProjectConfig } from "./config.js";
 import { editState, readManifest, recordFiles } from "./manifest.js";
 import type { Io, RunResult } from "./index.js";
@@ -29,11 +30,18 @@ const RETIRED_AGENTS: [string, string][] = [
   [".opencode/agents/gw-planner.md", "You are the Groundwork planner."],
 ];
 
-// A CLAUDE.md made entirely of lines Groundwork generates, so replacing it loses nothing of the user's.
+// A CLAUDE.md made entirely of lines Groundwork generates, each once, so replacing or removing it loses
+// nothing of the user's.
 export function isGeneratedClaudeMd(text: string): boolean {
   const lines = text.trim().split(/\r?\n/);
   if (lines[0] !== "@AGENTS.md" || lines[1] !== "" || lines[2] !== "## Claude Code") return false;
-  return lines.slice(3).every((line) => /^(Groundwork commands are skills|The others:|When a command says to run a role)/.test(line));
+  const used = new Set<RegExp>();
+  return lines.slice(3).every((line) => {
+    const pattern = CLAUDE_MD_LINES.find((re) => re.test(line));
+    if (!pattern || used.has(pattern)) return false;
+    used.add(pattern);
+    return true;
+  });
 }
 
 type Commands = { commands?: Record<string, string> };
