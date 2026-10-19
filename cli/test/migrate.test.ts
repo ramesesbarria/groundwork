@@ -1,6 +1,7 @@
 // The legacy migration records pre-approval cards without inventing approval or evidence.
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
@@ -30,6 +31,8 @@ function card(dir: string, id: string, title: string, status = "done", approval 
 }
 
 const check = (dir: string) => run(["check"], { cwd: dir, ask: noQuestions });
+const git = (dir: string, ...args: string[]) =>
+  execFileSync("git", ["-c", "user.name=Test", "-c", "user.email=test@example.com", ...args], { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 
 describe("migrate legacy", () => {
   it("exempts only the recorded pre-approval card, and does not touch evidence", async () => {
@@ -52,6 +55,71 @@ describe("migrate legacy", () => {
 
     writeFileSync(legacy, `${readFileSync(legacy, "utf8")}\n`);
     expect((await check(dir)).code).toBe(1);
+  });
+
+  it("exempts only the approval line, never missing evidence", async () => {
+    const dir = await project();
+    card(dir, "1.1", "Old card");
+    const evidence = join(dir, ".groundwork/evidence/1.1/tests.txt");
+    rmSync(evidence);
+    expect((await check(dir)).output).toMatch(/doesn't exist/);
+    expect((await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions })).code).toBe(0);
+    const migrated = await check(dir);
+    expect(migrated.code).toBe(1);
+    expect(migrated.output).toMatch(/doesn't exist/);
+    expect(migrated.output).not.toMatch(/approved by human/);
+    writeFileSync(evidence, "5 passed\n");
+    expect((await check(dir)).code).toBe(0);
+  });
+
+  it("does not exempt an active card, and ignores approval words outside History on a done card", async () => {
+    const dir = await project();
+    const active = card(dir, "1.1", "Active card", "implementing");
+    writeFileSync(active, readFileSync(active, "utf8").replace("## Goal\nActive card.", "## Goal\nActive card, approved by human."));
+    const migrated = await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions });
+    expect(migrated.output).toMatch(/No legacy cards/);
+    expect(existsSync(join(dir, ".groundwork/.legacy-cards.json"))).toBe(false);
+
+    const donePath = card(dir, "1.2", "Done card", "done");
+    writeFileSync(donePath, readFileSync(donePath, "utf8").replace("## Goal\nDone card.", "## Goal\nDone card, approved by human."));
+    const recorded = await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions });
+    expect(recorded.output).toMatch(/record\s+1\.2/);
+    expect((await check(dir)).code).toBe(0); // the real approval line is exempted, but not invented
+  });
+
+  it("keeps applicable context failures for a migrated card", async () => {
+    const dir = await project();
+    git(dir, "init", "-q", "--initial-branch=main");
+    mkdirSync(join(dir, ".groundwork/decisions"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/decisions/0001-storage.md"),
+      "---\nid: 0001\ntitle: Storage\nstatus: accepted\n---\nUse SQLite.\n",
+    );
+    git(dir, "add", "-A");
+    git(dir, "commit", "-qm", "baseline");
+    const base = git(dir, "rev-parse", "HEAD");
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.1/context.json"),
+      JSON.stringify(
+        {
+          version: 1,
+          base,
+          deps: [{ ref: "decision:0001", path: ".groundwork/decisions/0001-storage.md", recorded: "0".repeat(64) }],
+        },
+        null,
+        2,
+      ),
+    );
+    card(dir, "1.1", "Old card");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-qm", "old card");
+    expect((await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions })).code).toBe(0);
+
+    const result = await run(["check", "--task", "1.1", "--base", "main"], { cwd: dir, ask: noQuestions });
+    expect(result.code).toBe(1);
+    expect(result.output).toMatch(/decision:0001:.*verdict=reassess/);
+    expect(result.output).not.toMatch(/approved by human/);
   });
 
   it("leaves PR-integration projects alone", async () => {

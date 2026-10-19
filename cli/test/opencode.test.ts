@@ -1,5 +1,5 @@
 // The OpenCode adapter. Formats checked against opencode.ai/docs (commands, agents, tools, rules)
-// on 2026-09-24; the plugin format against OpenCode 2.0.16 on 2026-09-25.
+// on 2026-09-24; the V2 plugin format against OpenCode 2.0.32 on 2026-10-19.
 import { afterEach, describe, expect, it } from "vitest";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -29,6 +29,15 @@ function tempDir(): string {
 
 function frontmatter(md: string): string {
   return md.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? "";
+}
+
+// OpenCode supplies @opencode/plugin at runtime. The test project needs a resolvable stand-in so
+// the generated file can be imported and mounted outside OpenCode.
+function installPluginStub(project: string): void {
+  const dir = join(project, "node_modules/@opencode/plugin");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "@opencode/plugin", type: "module", exports: "./index.js" }));
+  writeFileSync(join(dir, "index.js"), "export const Plugin = { define: (definition) => definition };\n");
 }
 
 describe("OpenCode adapter", () => {
@@ -64,6 +73,13 @@ describe("OpenCode adapter", () => {
     expect(fm("implementer")).not.toContain("deny");
   });
 
+  it("uses OpenCode 2's Plugin.define wrapper, not the V1 default object", () => {
+    const plugin = out[".opencode/plugins/groundwork-guards.js"];
+    expect(plugin).toContain('import { Plugin } from "@opencode/plugin"');
+    expect(plugin).toContain("export default Plugin.define({");
+    expect(plugin).not.toMatch(/export default \{\s*\n\s*id:/);
+  });
+
   it("is pure and matches the snapshot", () => {
     expect(generateOpenCode(Object.freeze({ ...core }))).toEqual(out);
     expect(out).toMatchSnapshot();
@@ -80,6 +96,7 @@ describe("OpenCode guard plugin", () => {
     writeFileSync(join(project, ".groundwork/config.json"), JSON.stringify({ guards }));
     if (handoff !== undefined) writeFileSync(join(project, ".groundwork/HANDOFF.md"), handoff);
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
+    installPluginStub(project);
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
     const { default: plugin } = await import(pathToFileURL(file).href);
@@ -113,6 +130,7 @@ describe("OpenCode guard plugin", () => {
   // `inChildSession` makes session.get report a subagent session.
   async function mountPlugin(project: string, { failsPrompt = false, inChildSession = false } = {}) {
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
+    installPluginStub(project);
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
     const { default: plugin } = await import(pathToFileURL(file).href);
@@ -186,11 +204,23 @@ describe("OpenCode guard plugin", () => {
     expect(existsSync(join(project, ".groundwork/.approvals/records-human"))).toBe(false);
   });
 
+  it("blocks commits when the guard runner can't load, but lets other calls through", async () => {
+    const project = coreProject();
+    rmSync(join(project, ".groundwork/guards/run.mjs"));
+    const hooks = await mountPlugin(project);
+    const before = hooks["tool.execute.before"];
+    await expect(before({ tool: "read", input: { path: "a.ts" } })).resolves.toBeUndefined();
+    await expect(before({ tool: "shell", input: { command: "git commit -m '[quick] x'" } })).rejects.toThrow(/guards couldn't load/);
+    await expect(before({ tool: "write", input: { path: ".groundwork/config.json", content: "{}" } })).rejects.toThrow(/writes are blocked/);
+    await expect(before({ tool: "shell", input: { command: "npx groundwork-ai migrate legacy --yes" } })).rejects.toThrow(/this call is blocked/);
+  });
+
   it("with a broken config, blocks commits only instead of every tool call", async () => {
     const project = tempDir();
     cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
     writeFileSync(join(project, ".groundwork/config.json"), '{ "guards": ["no-ai-trailers"], }');
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
+    installPluginStub(project);
     const file = join(project, ".opencode/plugins/groundwork-guards.js");
     writeFileSync(file, out[".opencode/plugins/groundwork-guards.js"]);
     const { default: plugin } = await import(pathToFileURL(file).href);

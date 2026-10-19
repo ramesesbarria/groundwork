@@ -40,9 +40,16 @@ evidence gets made first.
 This isn't only an instruction. The **commit gate** in the guard runner refuses any commit that names
 a card unless that card is done, passes the same check, and matches an explicit `/gw-approve <id>`
 record from you. Ordinary conversation, `/gw-reject`, and an agent-written card line do not count.
-The record is bound to the reviewed HEAD, code diff, card content and linked evidence; a later change
-to any of them needs a new approval. See [Claude Code](/docs/adapters/claude-code#hooks) and
+The record is bound to the reviewed HEAD, code diff, card content, linked evidence, and the project
+knowledge the card depends on (`SPEC.md`, decisions, and declared context files); a later change to
+any of them needs a new approval. See [Claude Code](/docs/adapters/claude-code#hooks) and
 [OpenCode](/docs/adapters/opencode#human-only-commands) for the details.
+
+Commits that aren't card work have their own tags: `[plan]`, `[docs]`, `[setup]`, `[quick]` and
+`[no-card] <reason>`. Each only covers the kind of change it names: `[plan]` can change planning
+records but not evidence or a done card; `[setup]` can't carry card or evidence work; `[quick]` can't
+change a card, evidence, `SPEC.md`, a decision or context. Relabelling card work does not bypass the
+gate.
 
 ## What evidence checks can and cannot prove
 

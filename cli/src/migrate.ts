@@ -20,7 +20,9 @@ const rules = async (): Promise<Rules> =>
   (await import(pathToFileURL(join(locateCore(), "guards", "lib", "cards.mjs")).href)) as Rules;
 
 function approved(md: string): boolean {
-  return /^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(md);
+  // Only History counts. A card with the words in its Goal, criteria or a comment hasn't been approved.
+  const history = (md.match(/\n## History\s*\r?\n([\s\S]*?)(?=\n## |\s*$)/)?.[1] ?? "").replace(/<!--[\s\S]*?-->/g, "");
+  return /^- ?\d{4}-\d{2}-\d{2} approved by human\b/im.test(history);
 }
 
 export async function migrate(args: string[], io: Pick<Io, "cwd">): Promise<RunResult> {

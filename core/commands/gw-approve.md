@@ -26,7 +26,7 @@ If the human didn't ask for this in their own words, stop and ask them to approv
 
 **Approving a phase (`per-phase` mode).** The cards are already committed. Check every card is `done` and passes step 2's check; list any that don't. Show one summary (step 3) with every `call:` line from the phase and all the phase's open human checks; ask the human to confirm or waive them together, ticking the cards the same way. If all pass, write "phase <n> approved" and the date in HANDOFF. Push only if asked.
 
-**`at-end` mode:** approve the whole build at once, as "Approving" in `.groundwork/guides/at-end.md` says.
+**`at-end` mode:** `/gw-approve all` records the batch; follow "Approving" in `.groundwork/guides/at-end.md`.
 
 **Fresh session per phase.** When a phase closes, tell the human the next phase is cheaper in a new session: HANDOFF carries everything; `gw` picks it up.
 

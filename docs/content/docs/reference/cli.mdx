@@ -182,9 +182,11 @@ npx groundwork-ai migrate legacy --yes
 ```
 
 Records a one-time snapshot of done cards that predate the approval rule in
-`.groundwork/.legacy-cards.json`. It does not add an approval line or evidence, and it does not
-exempt new cards. A recorded card loses the exemption if its content changes. The manifest is
-locked against agent writes.
+`.groundwork/.legacy-cards.json`. It exempts only the historical “approved by human” requirement: a
+recorded card still fails on missing or empty evidence, invalid records, or stale context. It does
+not add an approval line or evidence, it does not record active cards, and it does not exempt new
+cards. A recorded card loses the exemption if its content changes. The manifest is locked against
+agent writes.
 
 ## mode
 

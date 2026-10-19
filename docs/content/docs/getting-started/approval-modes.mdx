@@ -36,8 +36,9 @@ When time is short, the full loop per card can be more than you want. In `at-end
   *built but not reviewed*.
 - **One review at the end.** When every card is built, a reviewer with fresh context goes over
   all of them, reruns the checks, and sends back anything that doesn't hold up.
-- **You approve once**, for the whole build. The commit gate still refuses a card without its
-  evidence.
+- **You approve once**, for the whole build: `/gw-approve all` records the batch. The commit gate
+  still refuses a card without its evidence and checks that batch record on the final approval
+  commit.
 
 It's less careful than reviewing card by card, and it says so: nothing is marked done until the
 review and you have seen it.
@@ -71,9 +72,10 @@ you know exactly what you're taking on trust.
 
 Only your explicit `/gw-approve <card-id>` prompt records approval. A normal “looks good”, a
 `/gw-reject`, and an agent-written “approved by human” line do not. The record is bound to the
-reviewed HEAD commit, the code diff, the card content (excluding status and History), and the
-linked evidence files. If any of those changes after approval, the commit gate refuses the commit
-and asks you to approve again.
+reviewed HEAD commit, the code diff, the card content (excluding status and History), the linked
+evidence files, and the project knowledge the work rests on: `SPEC.md`, the decision records, and
+the task's declared context and dependency files. If any of those changes after approval, the commit
+gate refuses the commit and asks you to approve again.
 
 The approval file is local and gitignored. In a team project, PR review is the approval instead;
 see [team approval](/docs/reference/cli#check) and the repository's branch protection rules.

@@ -5,7 +5,11 @@ Groundwork's adapter depends on OpenCode's tool names, argument names and plugin
 changed without warning in 2.x. A session inside OpenCode can report what it actually sees; a model's
 memory of OpenCode can't be trusted.
 
-Last run: OpenCode 2.0.16 (2026-09-25). Session start checked on 2.0.18 (2026-09-26).
+Last run: OpenCode 2.0.32 (2026-10-19), Windows 11, Node.js 24.19.0. The V1 plugin object
+(`export default { id, setup }`) no longer runs in 2.0.32; the adapter now generates
+`Plugin.define({ id, setup })` from `@opencode/plugin`. Project plugins also loaded only with
+`opencode run --standalone` in this check; the shared background service did not pick up the
+project's plugin. Session start last checked on 2.0.18 (2026-09-26).
 
 ## Setup
 
@@ -67,7 +71,7 @@ file under .opencode/ or .groundwork/guards/, and do not try to fix anything. Ju
 Finish with a table: Check | Expected | Observed | Pass/Fail.
 ```
 
-## Human-approval marker (checked 2026-10-09, OpenCode 2.0.26)
+## Human-approval marker (checked 2026-10-19, OpenCode 2.0.32)
 
 The commit gate's human check depends on the plugin's `prompt` session hook, so re-check this whenever
 OpenCode changes its plugin API:
@@ -80,10 +84,15 @@ OpenCode changes its plugin API:
    the subagent ran. If a future version drops `parentID` or delivers subagent prompts differently,
    the marker must be reworked before it can be trusted.
 3. `/gw-approve <id>` arrives as the raw command text in a top-level session, before command
-   expansion (observed with `opencode run "/gw-approve 1.1"`).
+   expansion. Observed on 2.0.32 with a scripted prompt: one `/gw-approve 1.1` turn recorded the
+   approval, set the card done, and committed it. A later human message clears the approval by
+   design, so approval and the commit it authorizes belong in the same turn.
 4. End to end: with a `done` card and its evidence committed, ask the agent to make two commits
    naming the card in one run. The first should pass; the second must be refused with
    `[commit-gate] No message from the human since the last commit`.
+5. Stale approval: after `/gw-approve`, change `SPEC.md`, a decision, a declared context file, the
+   card, or the code before committing in that same turn. The gate must refuse it. Observed on
+   2.0.32 for a changed `SPEC.md`.
 
 The event shape observed on 2.0.26: `{ sessionID, messageID, prompt: { text, files, agents,
 skills }, metadata, delivery }`. A temporary probe plugin that appends each event to a log is the

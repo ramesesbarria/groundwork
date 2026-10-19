@@ -233,6 +233,64 @@ describe("groundwork upgrade", () => {
     expect(output).toMatch(/Compare each with its \.new file/);
   });
 
+  it("keeps edited instructions, templates and config, and repeated upgrades do not clobber them", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+
+    const edited: Record<string, string> = {
+      "AGENTS.md": `${read(dir, "AGENTS.md")}\n- RULE: use pnpm only\n`,
+      ".groundwork/templates/card.md": `${read(dir, ".groundwork/templates/card.md")}\n<!-- project card note -->\n`,
+      ".groundwork/templates/AGENTS.md": `${read(dir, ".groundwork/templates/AGENTS.md")}\n<!-- project agents note -->\n`,
+      ".groundwork/workflow.md": `${read(dir, ".groundwork/workflow.md")}\nProject workflow note.\n`,
+    };
+    for (const [path, text] of Object.entries(edited)) write(dir, path, text);
+
+    const records: Record<string, string> = {
+      ".groundwork/SPEC.md": "# Spec\nA customized project.\n",
+      ".groundwork/HANDOFF.md": "# Handoff\n- **Current card:** 2.1 Custom\n",
+      ".groundwork/LESSONS.md": "# Lessons\n### L-001 · Mine\n",
+      ".groundwork/cards/2.1-custom.md": "---\nid: 2.1\ntitle: Custom\nphase: 2\nstatus: todo\ndepends_on: []\n---\n",
+      ".groundwork/decisions/0001-custom.md": "---\nid: 0001\ntitle: Custom\nstatus: accepted\n---\n",
+      ".groundwork/evidence/2.1/tests.txt": "7 passed\n",
+      ".groundwork/rules/reviewer.md": "- RULE: never mock the database\n",
+    };
+    for (const [path, text] of Object.entries(records)) write(dir, path, text);
+    const cfg = config(dir);
+    cfg.version = "0.0.1";
+    cfg.approvalMode = "per-phase";
+    cfg.experience = "experienced";
+    cfg.commands.test = "npm run my-test";
+    cfg.projectKey = { keep: true };
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+
+    const dry = await run(["upgrade", "--dry-run"], { cwd: dir, ask: answers().ask });
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/templates\/card\.md/);
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/templates\/AGENTS\.md/);
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/workflow\.md/);
+    expect(config(dir).version).toBe("0.0.1");
+
+    const { code } = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(code).toBe(0);
+    for (const [path, text] of Object.entries(edited)) expect(read(dir, path), path).toBe(text);
+    for (const [path, text] of Object.entries(records)) expect(read(dir, path), path).toBe(text);
+    expect(read(dir, ".groundwork/templates/card.md.new")).toBe(core["templates/card.md"]);
+    expect(read(dir, ".groundwork/templates/AGENTS.md.new")).toBe(core["templates/AGENTS.md"]);
+    expect(read(dir, ".groundwork/workflow.md.new")).toBe(core["workflow.md"]);
+    const upgraded = config(dir);
+    expect(upgraded.version).toBe(VERSION);
+    expect(upgraded.approvalMode).toBe("per-phase");
+    expect(upgraded.experience).toBe("experienced");
+    expect(upgraded.commands.test).toBe("npm run my-test");
+    expect(upgraded.projectKey).toEqual({ keep: true });
+
+    const again = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(again.code).toBe(0);
+    for (const [path, text] of Object.entries(edited)) expect(read(dir, path), path).toBe(text);
+    for (const [path, text] of Object.entries(records)) expect(read(dir, path), path).toBe(text);
+    expect(read(dir, ".groundwork/templates/card.md.new")).toBe(core["templates/card.md"]);
+    expect(existsSync(join(dir, ".groundwork/templates/card.md.new.new"))).toBe(false);
+  });
+
   it("gives each role a rules file that upgrades never touch", async () => {
     const dir = await v03Project();
     rmSync(join(dir, ".groundwork/rules"), { recursive: true });

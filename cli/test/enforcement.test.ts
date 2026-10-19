@@ -92,6 +92,11 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, bash("git diff > .groundwork/config.json")).status).toBe(2);
     expect(hook(dir, bash("cp config.json.bak .groundwork/config.json")).status).toBe(2);
     expect(hook(dir, bash("npx groundwork-ai uninstall")).status).toBe(2);
+    expect(hook(dir, bash("npx groundwork-ai migrate legacy --yes")).status).toBe(2);
+    expect(hook(dir, bash("node ./cli/dist/bin.js migrate legacy --yes")).status).toBe(2);
+    expect(hook(dir, bash("node .groundwork/hooks/user-prompt.mjs .")).status).toBe(2);
+    expect(hook(dir, write(".GROUNDWORK/.approvals/last-human.json", "{}")).status).toBe(2);
+    expect(hook(dir, bash("echo {} > .GROUNDWORK/config.json")).status).toBe(2);
     expect(hook(dir, bash("cat .groundwork/config.json")).status).toBe(0);
     expect(hook(dir, bash("node .groundwork/guards/run.mjs claude-code < input.json")).status).toBe(0); // runs it, changes nothing
   });
@@ -241,6 +246,75 @@ describe("commit-gate", SLOW, () => {
     expect(hook(dir, commitCard).stderr).toMatch(/no explicit human approval recorded|last human approval/);
   });
 
+  it("invalidates approval when the spec, a decision, or the declared context changes", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    humanSpeaks(dir);
+    card(dir, "done");
+    expect(hook(dir, commitCard).status).toBe(0);
+
+    const spec = join(dir, ".groundwork/SPEC.md");
+    const originalSpec = readFileSync(spec, "utf8");
+    writeFileSync(spec, `${originalSpec}\nA new promise after approval.\n`);
+    expect(hook(dir, commitCard).stderr).toMatch(/spec, a decision, or the task's declared context changed/);
+    writeFileSync(spec, originalSpec);
+
+    const decision = join(dir, ".groundwork/decisions/0001-storage.md");
+    writeFileSync(decision, "---\nid: 0001\ntitle: Storage\nstatus: accepted\n---\nUse SQLite.\n");
+    expect(hook(dir, commitCard).stderr).toMatch(/spec, a decision, or the task's declared context changed/);
+    rmSync(decision);
+
+    const context = join(dir, ".groundwork/work/1.1/context.json");
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(context, JSON.stringify({ version: 1, base: "0123456", deps: [] }, null, 2));
+    expect(hook(dir, commitCard).stderr).toMatch(/spec, a decision, or the task's declared context changed/);
+    rmSync(context);
+
+    expect(hook(dir, commitCard).status).toBe(0); // restoring the reviewed knowledge restores the match
+  });
+
+  it("binds a declared context file, not just the context record, to the approval", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    const dependency = join(dir, ".groundwork/architecture.md");
+    writeFileSync(dependency, "Use one process.\n");
+    writeFileSync(
+      join(dir, ".groundwork/work/1.1/context.json"),
+      JSON.stringify({ version: 1, base: "0123456", deps: [{ ref: "spec:architecture.md", path: ".groundwork/architecture.md", recorded: "a".repeat(64) }] }, null, 2),
+    );
+    humanSpeaks(dir);
+    card(dir, "done");
+    expect(hook(dir, commitCard).status).toBe(0);
+    writeFileSync(dependency, "Use two processes after all.\n");
+    expect(hook(dir, commitCard).stderr).toMatch(/declared context changed/);
+  });
+
+  it("accepts an approval command wrapped in shell quotes", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    humanSpeaks(dir, '"/gw-approve 1.1"');
+    card(dir, "done");
+    expect(hook(dir, commitCard).status).toBe(0);
+  });
+
+  it("binds a decision dependency that has no stored path", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    const decision = join(dir, ".groundwork/decisions/0001-storage.md");
+    writeFileSync(decision, "---\nid: 0001\ntitle: Storage\nstatus: accepted\n---\nUse SQLite.\n");
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.1/context.json"),
+      JSON.stringify({ version: 1, base: "0123456", deps: [{ ref: "decision:0001", recorded: "a".repeat(64) }] }, null, 2),
+    );
+    humanSpeaks(dir);
+    card(dir, "done");
+    expect(hook(dir, commitCard).status).toBe(0);
+    writeFileSync(decision, "---\nid: 0001\ntitle: Storage\nstatus: accepted\n---\nUse Postgres.\n");
+    expect(hook(dir, commitCard).stderr).toMatch(/declared context changed/);
+  });
+
   it("on OpenCode, needs the human's message once the plugin says its prompt hook is live", async () => {
     const dir = await project();
     card(dir, "done");
@@ -302,6 +376,222 @@ describe("commit-gate", SLOW, () => {
     const unknown = hook(dir, bash('git commit -m "[9.9] Missing card"'));
     expect(unknown.status).toBe(2);
     expect(unknown.stderr).toMatch(/no card file has that id/);
+  });
+
+  it("only lets each non-card tag cover the kind of change it names", async () => {
+    const dir = await project();
+    writeFileSync(join(dir, "src.ts"), "export {};\n");
+    expect(hook(dir, bash('git commit -m "[quick] Fix the parse bug"')).status).toBe(0);
+    for (const tag of ["docs", "plan", "setup"]) {
+      const result = hook(dir, bash(`git commit -m "[${tag}] Cover the source change"`));
+      expect(result.status, tag).toBe(2);
+      expect(result.stderr).toMatch(new RegExp(`\\[${tag}\\] is for`));
+    }
+    const reason = hook(dir, bash('git commit -m "[no-card]"'));
+    expect(reason.status).toBe(2);
+    expect(reason.stderr).toMatch(/needs a short reason/);
+  });
+
+  it("does not let a non-card tag carry card or evidence work", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    const quick = hook(dir, bash('git commit -m "[quick] Finish the card"'));
+    expect(quick.status).toBe(2);
+    expect(quick.stderr).toMatch(/\[quick\].*changes .*\.groundwork\/cards.*Name the card/);
+    const noCard = hook(dir, bash('git commit -m "[no-card] Finish the card"'));
+    expect(noCard.status).toBe(2);
+    expect(noCard.stderr).toMatch(/\[no-card\] can't change card files/);
+    const docs = hook(dir, bash('git commit -m "[docs] Finish the card"'));
+    expect(docs.status).toBe(2);
+    expect(docs.stderr).toMatch(/\[docs\] is for documentation/);
+  });
+
+  it("does not let [plan] commit a done card, or [setup] commit card/evidence work", async () => {
+    const dir = await project();
+    const todo = join(dir, ".groundwork/cards/1.2-todo.md");
+    writeFileSync(todo, "---\nid: 1.2\ntitle: Todo\nphase: 1\nstatus: todo\ndepends_on: []\n---\n");
+    expect(hook(dir, bash('git commit -m "[plan] Add card 1.2"')).status).toBe(0);
+
+    writeFileSync(join(dir, ".groundwork/cards/1.3-done.md"), "---\nid: 1.3\ntitle: Done\nphase: 1\nstatus: done\ndepends_on: []\n---\n");
+    const plan = hook(dir, bash('git commit -m "[plan] Touch a done card"'));
+    expect(plan.status).toBe(2);
+    expect(plan.stderr).toMatch(/\[plan\] can't change a done card/);
+
+    mkdirSync(join(dir, ".groundwork/evidence/1.3"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.3/tests.txt"), "1 passed\n");
+    const setup = hook(dir, bash('git commit -m "[setup] Touch card work"'));
+    expect(setup.status).toBe(2);
+    expect(setup.stderr).toMatch(/\[setup\] is for setup files, not card, evidence or context work/);
+  });
+
+  it("still names an unknown card id even when a non-card tag is present", async () => {
+    const dir = await project();
+    const result = hook(dir, bash('git commit -m "[9.9] Missing card [quick]"'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/no card file has that id/);
+  });
+
+  it("keeps a card commit to its own card and evidence", async () => {
+    const dir = await project();
+    card(dir, "done");
+    writeFileSync(join(dir, ".groundwork/cards/1.2-other.md"), "---\nid: 1.2\ntitle: Other\nphase: 1\nstatus: done\ndepends_on: []\n---\n");
+    const result = hook(dir, bash('git commit -m "[1.1] Books"'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/only include card 1\.1.*1\.2-other\.md/);
+  });
+
+  it("blocks a staged card that differs from the working tree", async () => {
+    const dir = await project();
+    card(dir, "done");
+    git(dir, "add", "-A");
+    writeFileSync(join(dir, ".groundwork/cards/1.1-books.md"), `${readFileSync(join(dir, ".groundwork/cards/1.1-books.md"), "utf8")}\n`);
+    const result = hook(dir, bash('git commit -m "[1.1] Books"'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/staged copy of .* differs from the working tree/);
+  });
+
+  it("sees both sides of a rename, and blocks private files", async () => {
+    const dir = await project();
+    card(dir, "done");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "[1.1] Books");
+    git(dir, "mv", ".groundwork/cards/1.1-books.md", "PLAN.md");
+    const renamed = hook(dir, bash('git commit -m "[quick] Rename the card"'));
+    expect(renamed.status).toBe(2);
+    expect(renamed.stderr).toMatch(/\[quick\].*\.groundwork\/cards\/1\.1-books\.md/);
+    git(dir, "mv", "PLAN.md", ".groundwork/cards/1.1-books.md");
+
+    mkdirSync(join(dir, ".groundwork/private"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/private/secret.txt"), "secret\n");
+    git(dir, "add", "-f", ".groundwork/private/secret.txt");
+    const secret = hook(dir, bash('git commit -m "[quick] Add a file"'));
+    expect(secret.status).toBe(2);
+    expect(secret.stderr).toMatch(/private files must stay out of git/);
+  });
+
+  it("blocks a plan commit that deletes or flips a done card", async () => {
+    const dir = await project();
+    card(dir, "done");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "[1.1] Books");
+    rmSync(join(dir, ".groundwork/cards/1.1-books.md"));
+    const deleted = hook(dir, bash('git commit -m "[plan] Remove the old card"'));
+    expect(deleted.status).toBe(2);
+    expect(deleted.stderr).toMatch(/\[plan\] can't change a done card/);
+  });
+
+  it("blocks a card or evidence write in the same shell command as the commit", async () => {
+    const dir = await project();
+    card(dir, "done");
+    const writeAndCommit = hook(dir, bash('echo changed > .groundwork/cards/1.1.md; git commit -m "[1.1] Books"'));
+    expect(writeAndCommit.status).toBe(2);
+    expect(writeAndCommit.stderr).toMatch(/can't change card, evidence, knowledge or private files in the same step/);
+  });
+
+  it("blocks Git index flags that would hide a staged change", async () => {
+    const dir = await project();
+    const result = hook(dir, bash("git update-index --assume-unchanged .groundwork/cards/1.1.md"));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/index flags/);
+  });
+
+  it("allows reading the approval hook, but blocks running it directly or a migrate script", async () => {
+    const dir = await project();
+    expect(hook(dir, bash("cat .groundwork/hooks/user-prompt.mjs")).status).toBe(0);
+    expect(hook(dir, bash("cd .groundwork/hooks && node user-prompt.mjs .")).status).toBe(2);
+    expect(hook(dir, bash("npm run migrate")).status).toBe(2);
+  });
+
+  it("reads only the real commit message, not a decoy earlier in the command", async () => {
+    const dir = await project();
+    card(dir, "done");
+    writeFileSync(join(dir, "msg.txt"), "[1.1] Books\n");
+    const result = hook(dir, bash('echo "[quick] not the message"; git commit -F msg.txt'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/no explicit human approval|last human approval/);
+    expect(result.stderr).not.toMatch(/\[quick\] is for small changes/);
+  });
+
+  it("blocks writing the commit message file in the same command", async () => {
+    const dir = await project();
+    const result = hook(dir, bash('printf "[quick] x" > msg.txt; git commit -F msg.txt'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/can't write its own message file/);
+  });
+
+  it("scopes a ref-only spec dependency for quick commits", async () => {
+    const dir = await project();
+    writeFileSync(join(dir, "architecture.md"), "Use one process.\n");
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.1/context.json"),
+      JSON.stringify({ version: 1, base: "0123456", deps: [{ ref: "spec:architecture.md", recorded: "a".repeat(64) }] }),
+    );
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "context");
+    writeFileSync(join(dir, "architecture.md"), "Use two processes.\n");
+    const quick = hook(dir, bash('git commit -m "[quick] Change the architecture"'));
+    expect(quick.status).toBe(2);
+    expect(quick.stderr).toMatch(/architecture\.md/);
+  });
+
+  it("blocks quick and setup from changing a declared dependency file", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/architecture.md"), "Use one process.\n");
+    writeFileSync(
+      join(dir, ".groundwork/work/1.1/context.json"),
+      JSON.stringify({ version: 1, base: "0123456", deps: [{ ref: "spec:architecture.md", path: ".groundwork/architecture.md", recorded: "a".repeat(64) }] }),
+    );
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "context");
+    writeFileSync(join(dir, ".groundwork/architecture.md"), "Use two processes.\n");
+    const quick = hook(dir, bash('git commit -m "[quick] Change the architecture"'));
+    expect(quick.status).toBe(2);
+    expect(quick.stderr).toMatch(/\.groundwork\/architecture\.md/);
+    const setup = hook(dir, bash('git commit -m "[setup] Change the architecture"'));
+    expect(setup.status).toBe(2);
+    expect(setup.stderr).toMatch(/\.groundwork\/architecture\.md/);
+  });
+
+  it("does not let quick or setup carry context changes", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/work/1.1/context.json"), JSON.stringify({ version: 1, base: "0123456", deps: [] }));
+    const quick = hook(dir, bash('git commit -m "[quick] Tidy the context"'));
+    expect(quick.status).toBe(2);
+    expect(quick.stderr).toMatch(/context\.json/);
+    const setup = hook(dir, bash('git commit -m "[setup] Tidy the context"'));
+    expect(setup.status).toBe(2);
+    expect(setup.stderr).toMatch(/context work/);
+  });
+
+  it("scopes paths when Groundwork is installed in a repository subdirectory", async () => {
+    const parent = mkdtempSync(join(tmpdir(), "groundwork-subdir-"));
+    temps.push(parent);
+    git(parent, "init", "-q");
+    const child = join(parent, "app");
+    mkdirSync(child);
+    await run(["init", "--adapter", "claude-code"], { cwd: child, ask: noQuestions });
+    const configPath = join(child, ".groundwork/config.json");
+    writeFileSync(configPath, JSON.stringify({ ...JSON.parse(readFileSync(configPath, "utf8")), setup: "done" }, null, 2));
+    git(parent, "add", "-A");
+    git(parent, "commit", "-q", "-m", "setup");
+    mkdirSync(join(child, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(join(child, ".groundwork/evidence/1.1/tests.txt"), "1 passed\n");
+    writeFileSync(
+      join(child, ".groundwork/cards/1.1-sub.md"),
+      "---\nid: 1.1\ntitle: Sub\nphase: 1\nstatus: done\ndepends_on: []\n---\n## Acceptance criteria\n- [x] It works\n\n## Evidence\n- `.groundwork/evidence/1.1/tests.txt`, 1 passed\n## History\n- 2026-09-29 approved by human\n",
+    );
+    const result = hook(child, bash('git commit -m "[quick] Carry a card"'));
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/\.groundwork\/cards\/1\.1-sub\.md/);
+    git(parent, "add", "-A");
+    git(parent, "commit", "-q", "-m", "card");
+    rmSync(join(child, ".groundwork/cards/1.1-sub.md"));
+    const plan = hook(child, bash('git commit -m "[plan] Remove the card"'));
+    expect(plan.status).toBe(2);
+    expect(plan.stderr).toMatch(/\[plan\] can't change a done card/);
   });
 
   it("in PR integration, local checkpoint commits naming a card are allowed", async () => {

@@ -24,8 +24,14 @@ const SETTINGS = /^\.claude\/settings(\.local)?\.json$/;
 const CONFIG = ".groundwork/config.json";
 
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
+// The legacy migration is a one-time human decision: it exempts old cards from the approval rule.
+const MIGRATE = /\b(?:npm|npx|pnpm|yarn|node|bun|groundwork(?:-ai)?)\b[^\n;&|]*\bmigrate\b/i;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
 const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;
+// Running the prompt hook directly would let an agent write its own approval record.
+const APPROVAL_HOOK = /\b(?:node|bun)\b[^\n;&|]*\buser-prompt\.mjs\b/i;
+const COMMIT = /\bgit\b[\s\S]*\bcommit\b/;
+const PROTECTED_COMMIT_WRITE = /^\.groundwork\/(?:cards|evidence|work|\.approvals|SPEC\.md|decisions)(?:\/|$)|^\.groundwork\/private(?:\/|$)|^\.groundwork\/\.legacy-cards\.json$/;
 
 const ASK = "Only the human changes Groundwork's own setup. Tell them what you wanted to change and why, and ask them to make the change themselves.";
 
@@ -118,21 +124,22 @@ function checkWrite(action, project) {
   for (const path of action.paths ?? [action.path]) {
     if (!path) continue;
     const rel = projectPath(project, path);
+    const key = rel.toLowerCase();
     const abs = resolve(project, path);
-    if (APPROVALS.test(rel)) {
+    if (APPROVALS.test(key)) {
       return { block: true, reason: "Approvals are recorded from the human's own messages, never written by the agent." };
     }
-    if (PLUGINS.test(rel)) {
+    if (PLUGINS.test(key)) {
       return { block: true, reason: `${rel} is inside Groundwork's OpenCode plugin folder, which runs outside the guards. ${ASK}` };
     }
-    if (LOCKED.some((re) => re.test(rel)) && existsSync(abs)) {
+    if (LOCKED.some((re) => re.test(key)) && existsSync(abs)) {
       return { block: true, reason: `${rel} is part of Groundwork's guards and hooks. ${ASK}` };
     }
-    if (LEGACY_MANIFEST.test(rel)) {
+    if (LEGACY_MANIFEST.test(key)) {
       return { block: true, reason: `The legacy-card migration record is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
     }
     const one = action.paths && action.paths.length > 1 ? { kind: "write", path } : action;
-    const result = rel === CONFIG ? checkConfig(one, abs) : SETTINGS.test(rel) ? checkSettings(one, abs, rel) : { block: false };
+    const result = key === CONFIG ? checkConfig(one, abs) : SETTINGS.test(key) ? checkSettings(one, abs, rel) : { block: false };
     if (result.block) return result;
   }
   return { block: false };
@@ -207,12 +214,42 @@ function setupIsDone(project) {
 function checkCommand(action, project) {
   const command = action.command;
   if (UNINSTALL.test(command)) return { block: true, reason: `Uninstalling Groundwork is the human's call. ${ASK}` };
+  if (MIGRATE.test(command)) {
+    return { block: true, reason: `Recording legacy-card exemptions is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
+  }
+  if (APPROVAL_HOOK.test(command)) {
+    return { block: true, reason: "Approvals are recorded from the human's own messages, never by the agent. Ask the human to run /gw-approve." };
+  }
+  if (/\bgit\b[^\n;&|]*\bupdate-index\b/.test(command)) {
+    return { block: true, reason: `Changing Git's index flags would hide a staged change from the commit gate. ${ASK}` };
+  }
+  if (COMMIT.test(command)) {
+    const protectedTarget = commandWriteTargets(command).find((target) => PROTECTED_COMMIT_WRITE.test(projectPath(project, target).toLowerCase()));
+    if (protectedTarget) {
+      return {
+        block: true,
+        reason: `A commit command can't change card, evidence, knowledge or private files in the same step (${protectedTarget}). Change the card first, then commit in a separate step.`,
+      };
+    }
+    const file = command.match(/(?:^|\s)(?:-F|--file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))/);
+    if (file) {
+      const path = (file[1] ?? file[2] ?? file[3]).replace(/\\/g, "/");
+      if (/\bcd\s|[^-]\b-C\b/.test(command)) {
+        return { block: true, reason: "Commit message files must be read from the project folder. Run the commit as a separate step without cd or git -C." };
+      }
+      const written = commandWriteTargets(command).some((target) => target.replace(/\\/g, "/") === path);
+      if (written) return { block: true, reason: "A commit command can't write its own message file in the same step. Write it first, then commit." };
+    }
+  }
+  if (/\bgit\b[^\n;&|]*\badd\b/i.test(command) && /\.groundwork[\\/]private[\\/]/i.test(command)) {
+    return { block: true, reason: "Groundwork's private files must stay out of git. Don't stage them." };
+  }
   if (MODE_SWITCH.test(command)) {
     return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
   }
   const setupDone = setupIsDone(project);
   for (const target of commandWriteTargets(command)) {
-    const rel = projectPath(project, target);
+    const rel = projectPath(project, target).toLowerCase();
     const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel) || LEGACY_MANIFEST.test(rel);
     const configAfterSetup = rel === CONFIG && setupDone; // setup writing its own config isn't the agent changing the harness
     if (locked || configAfterSetup) {

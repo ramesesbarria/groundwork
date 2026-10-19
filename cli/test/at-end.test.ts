@@ -62,6 +62,8 @@ function card(dir: string, id: string, status: string, { evidence = true, deps =
 
 const hook = (dir: string, input: object) =>
   spawnSync(process.execPath, [join(dir, ".groundwork/guards/run.mjs"), "claude-code"], { cwd: dir, input: JSON.stringify(input), encoding: "utf8" });
+const humanSpeaks = (dir: string, prompt = "/gw-approve all") =>
+  spawnSync(process.execPath, [join(dir, ".groundwork/hooks/user-prompt.mjs"), dir], { input: JSON.stringify({ prompt }), encoding: "utf8" });
 const bash = (command: string) => ({ tool_name: "Bash", tool_input: { command } });
 const SLOW = { timeout: 30_000 };
 
@@ -143,8 +145,85 @@ describe("the commit gate in at-end mode", SLOW, () => {
     const dir = await project({ approvalMode: "at-end" });
     card(dir, "1.1", "implementing");
     expect(hook(dir, bash('git commit -m "[1.1] Card 1.1"')).stderr).toMatch(/not built or done/);
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "checkpoint");
     card(dir, "1.2", "built", { evidence: false });
     expect(hook(dir, bash('git commit -m "[1.2] Card 1.2"')).stderr).toMatch(/Evidence section is empty/);
+  });
+
+  it("does not let [no-card] Approve cards self-approve a done card", async () => {
+    const dir = await project({ approvalMode: "at-end" });
+    card(dir, "1.1", "done", {
+      history:
+        "- 2026-09-29 implementing → built: 5 passed\n" +
+        "- 2026-09-29 built → awaiting-approval: reviewed\n" +
+        "- 2026-09-29 awaiting-approval → done: approved\n" +
+        "- 2026-09-29 approved by human",
+    });
+    writeFileSync(join(dir, ".groundwork/cards/1.1-card.md"), readFileSync(join(dir, ".groundwork/cards/1.1-card.md"), "utf8").replace("- [ ] It works", "- [x] It works"));
+    const blocked = hook(dir, bash('git commit -m "[no-card] Approve cards 1.1-1.1"'));
+    expect(blocked.status).toBe(2);
+    expect(blocked.stderr).toMatch(/needs a human batch approval; 1\.1: there is no explicit human approval recorded/);
+  });
+
+  it("lets /gw-approve all authorize the at-end batch commit for every changed card", async () => {
+    const dir = await project({ approvalMode: "at-end" });
+    const cardText = (id: string, status: string, history: string, ticked: boolean) =>
+      [
+        "---",
+        `id: ${id}`,
+        `title: Card ${id}`,
+        "phase: 1",
+        `status: ${status}`,
+        "depends_on: []",
+        "---",
+        "## Acceptance criteria",
+        `- [${ticked ? "x" : " "}] It works`,
+        "",
+        "## Evidence",
+        `- \`.groundwork/evidence/${id}/tests.txt\`, 5 passed`,
+        "",
+        "## History",
+        history,
+        "",
+      ].join("\n");
+    for (const id of ["1.1", "1.2"]) {
+      mkdirSync(join(dir, `.groundwork/evidence/${id}`), { recursive: true });
+      writeFileSync(join(dir, `.groundwork/evidence/${id}/tests.txt`), "5 passed\n");
+      writeFileSync(
+        join(dir, `.groundwork/cards/${id}-card.md`),
+        cardText(id, "awaiting-approval", "- 2026-09-29 implementing → built: 5 passed\n- 2026-09-29 built → awaiting-approval: reviewed", true),
+      );
+    }
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "checkpoint cards and evidence");
+    expect(humanSpeaks(dir, "/gw-approve all").status).toBe(0);
+    const approval = JSON.parse(readFileSync(join(dir, ".groundwork/.approvals/last-human.json"), "utf8"));
+    expect(approval.approves.sort()).toEqual(["1.1", "1.2"]);
+
+    for (const id of ["1.1", "1.2"]) {
+      writeFileSync(
+        join(dir, `.groundwork/cards/${id}-card.md`),
+        cardText(
+          id,
+          "done",
+          "- 2026-09-29 implementing → built: 5 passed\n- 2026-09-29 built → awaiting-approval: reviewed\n- 2026-09-29 awaiting-approval → done\n- 2026-09-29 approved by human",
+          true,
+        ),
+      );
+    }
+    const result = hook(dir, bash('git commit -m "[no-card] Approve cards 1.1-1.2"'));
+    expect(result.status, result.stderr).toBe(0);
+  });
+
+  it("does not turn a malformed /gw-approve argument into a batch approval", async () => {
+    const dir = await project({ approvalMode: "at-end" });
+    card(dir, "1.1", "awaiting-approval");
+    card(dir, "1.2", "awaiting-approval");
+    expect(humanSpeaks(dir, "/gw-approve 1.1.").status).toBe(0);
+    const record = JSON.parse(readFileSync(join(dir, ".groundwork/.approvals/last-human.json"), "utf8"));
+    expect(record.approves).toBeNull();
+    expect(record.error).toMatch(/Use \/gw-approve/);
   });
 });
 
