@@ -67,6 +67,12 @@ export function weakenedConfig(before, next) {
   if (next.approvalMode !== undefined && next.approvalMode !== mode && next.approvalMode !== "per-card") {
     lost.push(`switch approvalMode to ${next.approvalMode}, which changes when you approve the work`);
   }
+  // PR integration hands approval to PR review and drops the local approval gate. Going back to local
+  // is stricter; any other switch is the human's.
+  const integration = before.integration ?? "local";
+  if (next.integration !== undefined && next.integration !== integration && next.integration !== "local") {
+    lost.push(`switch integration to ${next.integration}, which drops the local approval gate`);
+  }
   if (before.autoCommit === false && next.autoCommit !== false) lost.push("turn automatic commits back on, which you turned off");
   if (before.setup === "done" && next.setup !== "done") lost.push("mark setup as not done");
   return lost;

@@ -57,6 +57,27 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, edit(".groundwork/config.json", '"test": ""', '"test": "npm test"')).status).toBe(0);
   });
 
+  it("blocks the agent from switching to PR integration, which drops the local approval gate", async () => {
+    const dir = await project();
+    const switched = hook(dir, edit(".groundwork/config.json", '"integration": "local"', '"integration": "pr"'));
+    expect(switched.status).toBe(2);
+    expect(switched.stderr).toMatch(/\[protect-harness\].*integration to pr/);
+    // An unapproved done card stays blocked, because the config never changed.
+    mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.1/run.md"), "1 pass\n");
+    writeFileSync(
+      join(dir, ".groundwork/cards/1.1-x.md"),
+      "---\nid: 1.1\ntitle: X\nstatus: done\n---\n## Acceptance criteria\n- [x] works\n\n## Evidence\n- .groundwork/evidence/1.1/run.md\n\n## History\n- 2026-10-19 approved by human\n",
+    );
+    expect(hook(dir, bash('git add -A && git commit -m "[1.1] X"')).status).toBe(2);
+  });
+
+  it("lets a PR-integration project return to local approval, and lets setup choose PR integration", async () => {
+    expect(hook(await project({ integration: "pr" }), edit(".groundwork/config.json", '"integration": "pr"', '"integration": "local"')).status).toBe(0);
+    const pending = await project({ setup: "pending" });
+    expect(hook(pending, edit(".groundwork/config.json", '"integration": "local"', '"integration": "pr"')).status).toBe(0);
+  });
+
   it("lets setup write the config freely until setup is done", async () => {
     const dir = await project({ setup: "pending" });
     expect(hook(dir, edit(".groundwork/config.json", '"per-card"', '"per-phase"')).status).toBe(0);

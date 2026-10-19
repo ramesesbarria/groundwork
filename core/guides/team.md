@@ -41,7 +41,7 @@ On branch `gw/<id>`, `gw-handoff` writes `.groundwork/work/<id>/HANDOFF.md`. The
 
 ## Approval in a team project
 
-Set `integration` to `pr` in `.groundwork/config.json`. Local task-branch commits are checkpoints; the local commit gate does not require a human approval line.
+The human sets `integration` to `pr` in `.groundwork/config.json`, during setup or in their own editor afterwards; once setup is done the guard refuses that switch from the agent. Local task-branch commits are checkpoints; the local commit gate does not require a human approval line.
 
 The repository enforces integration:
 

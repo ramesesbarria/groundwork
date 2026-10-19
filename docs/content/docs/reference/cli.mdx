@@ -149,6 +149,7 @@ even when it is `done`; unchanged historical done cards are out of scope. `check
 With `integration: "pr"` in `config.json`, a done card does not need a local “approved by human”
 line; PR review and required checks are the approval. The local commit gate becomes checkpoint-only.
 Groundwork checks the card, context, and evidence; the repository enforces the approving review.
+Once setup is done, only you can switch a project to `pr`: the guard refuses that change from the agent.
 
 `check` validates that linked evidence exists and is not empty, and that declared context files match
 their recorded hashes. It does not prove evidence is authentic or that tests were run; the project's
