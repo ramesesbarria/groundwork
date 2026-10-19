@@ -2,6 +2,7 @@
 // Used by `groundwork check`, `groundwork doctor` and the commit gate in run.mjs. Plain JavaScript
 // with no imports beyond Node, because it runs inside a project's .groundwork/guards/ too.
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
@@ -12,6 +13,24 @@ export const STATUSES = ["todo", "testing", "implementing", "built", "review", "
 // same estimate `groundwork doctor` uses; a test ties the two together so they can't drift.
 export const CARD_TOKEN_LIMIT = 1500;
 export const estimateCardTokens = (md) => Math.ceil(md.length / 4);
+
+// What /gw-approve adds to History: the status line, "approved by human" and the human-checks line,
+// about 150 characters. A card waiting for review or approval is measured with this room set aside,
+// so one that passes `check` before the human approves still passes the commit gate after.
+export const APPROVAL_RESERVE = 50;
+
+// The one size rule, shared by `check`, `doctor` and the commit gate. Returns the problem, or undefined.
+export function cardSizeProblem(md) {
+  const status = frontmatter(md).status;
+  const reserve = status === "review" || status === "awaiting-approval" ? APPROVAL_RESERVE : 0;
+  const tokens = estimateCardTokens(md) + reserve;
+  if (tokens <= CARD_TOKEN_LIMIT) return undefined;
+  const counted = reserve > 0 ? ` counting the ≈${reserve} the approval lines will add` : "";
+  return (
+    `it's ≈${tokens} tokens${counted}, over ${CARD_TOKEN_LIMIT}: every role rereads it. Shorten each History and call: line to ` +
+    "one sentence and move longer reasoning into an evidence file linked under Evidence; keep every call. The details belong in the evidence files"
+  );
+}
 
 // The allowed status changes; .groundwork/reference/statuses.md documents each one.
 export const TRANSITIONS = [
@@ -104,12 +123,8 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", integrati
   const problems = [];
   if (!STATUSES.includes(fm.status)) problems.push(`its status "${fm.status ?? ""}" isn't one of ${STATUSES.join(", ")}`);
 
-  const tokens = estimateCardTokens(md);
-  if (cardSize && tokens > CARD_TOKEN_LIMIT) {
-    problems.push(
-      `it's ≈${tokens} tokens, over ${CARD_TOKEN_LIMIT}: every role rereads it, so trim the Goal, criteria and History to what's needed; the details belong in the evidence files`,
-    );
-  }
+  const size = cardSize ? cardSizeProblem(md) : undefined;
+  if (size) problems.push(size);
 
   for (const [from, to] of historyMoves(md)) {
     if (!TRANSITIONS.some(([f, t]) => f === from && t === to)) {
@@ -150,11 +165,26 @@ export function checkCard(md, { projectDir, approvalMode = "per-card", integrati
   return problems;
 }
 
+// Done cards committed and unchanged since: the commit gate won't see them again, so the size rule,
+// which applies when a card is committed, doesn't either. Without Git, every card counts.
+function committedUnchanged(projectDir) {
+  const run = (args) => execFileSync("git", args, { cwd: projectDir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  try {
+    const tracked = run(["ls-files", "-z", "--", ".groundwork/cards"]).split(" ").filter(Boolean);
+    const changed = new Set(run(["diff", "--name-only", "-z", "HEAD", "--", ".groundwork/cards"]).split(" ").filter(Boolean));
+    const prefix = run(["rev-parse", "--show-prefix"]).trim();
+    return new Set(tracked.filter((path) => !changed.has(prefix + path) && !changed.has(path)).map((path) => path.split("/").pop()));
+  } catch {
+    return new Set();
+  }
+}
+
 // Every card in the project: [{ file, id, problems, openHumanChecks }].
 export function checkCards(projectDir, approvalMode, options = {}) {
   const dir = join(projectDir, ".groundwork", "cards");
   if (!existsSync(dir)) return [];
   const legacy = readLegacy(projectDir);
+  const settled = options.cardSize === false ? new Set() : committedUnchanged(projectDir);
   return readdirSync(dir)
     .filter((name) => name.endsWith(".md"))
     .sort()
@@ -168,6 +198,7 @@ export function checkCards(projectDir, approvalMode, options = {}) {
           projectDir,
           approvalMode,
           ...options,
+          cardSize: options.cardSize !== false && !(frontmatter(md).status === "done" && settled.has(name)),
           legacy: legacy[id] === legacyFingerprint(md),
         }),
         openHumanChecks: humanChecks(md).filter((check) => !check.checked).map((check) => check.text),

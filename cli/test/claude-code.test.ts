@@ -139,7 +139,7 @@ describe("generated CLAUDE.md", () => {
     const { isGeneratedClaudeMd } = await import("../src/upgrade.js");
     expect(isGeneratedClaudeMd(V090)).toBe(true);
     expect(isGeneratedClaudeMd(V090.replace(/\n/g, "\r\n"))).toBe(true);
-    const v030 = "@AGENTS.md\n\n## Claude Code\nGroundwork commands are skills: /gw-next, /gw-resume.\nWhen a command says to run a role, use its subagent: gw-tester.\n";
+    const v030 = "@AGENTS.md\n\n## Claude Code\nGroundwork commands are skills: /gw-next, /gw-plan.\nWhen a command says to run a role, use its subagent: gw-tester.\n";
     expect(isGeneratedClaudeMd(v030)).toBe(true);
   });
 

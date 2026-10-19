@@ -65,7 +65,7 @@ export async function check(args: string[], io: Pick<Io, "cwd">): Promise<RunRes
   const { wanted, base, task, error } = parse(args);
   if (error) return { code: 1, output: error };
 
-  const all = await checkProject(io.cwd, { cardSize: false });
+  const all = await checkProject(io.cwd);
   const ids = new Set(wanted);
   if (task) ids.add(task);
   const missing = [...ids].filter((id) => !all.some((c) => c.id === id));

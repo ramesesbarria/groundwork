@@ -81,8 +81,8 @@ async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ 
 }
 
 // Every role rereads the card, so a long History or Evidence section is paid for again and again.
-// The same limit as CARD_TOKEN_LIMIT in core/guards/lib/cards.mjs, which the commit gate enforces;
-// a test ties the two together.
+// The same limit as CARD_TOKEN_LIMIT in core/guards/lib/cards.mjs, whose size rule check, doctor and the
+// commit gate share; a test ties the two together.
 export const CARD_TOKEN_LIMIT = 1500;
 
 interface CardFile {
@@ -154,16 +154,9 @@ function checkEvidenceEncoding(groundwork: string, f: Findings) {
 // Longer than this, a History or Evidence line is carrying detail that belongs in an evidence file.
 const LINE_LIMIT = 200;
 
-function checkCardSize(cards: CardFile[], f: Findings) {
+function checkLongLines(cards: CardFile[], f: Findings) {
   for (const { name, text, card } of cards) {
     const id = card?.id ?? name;
-    const tokens = estimateTokens(text);
-    if (tokens > CARD_TOKEN_LIMIT) {
-      f.problems.push(
-        `Card ${id} is ≈${tokens} tokens, over ${CARD_TOKEN_LIMIT}, and every role rereads it. Keep its History and Evidence ` +
-          "lines to a sentence or two; the details belong in the evidence files.",
-      );
-    }
     for (const section of ["History", "Evidence"]) {
       const long = withoutComments(sectionBody(text, section))
         .split(/\r?\n/)
@@ -361,10 +354,10 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkModels(groundwork, f);
   const cardText = checkCards(cards, f);
   checkUnreviewed(cards, f);
-  for (const card of await checkProject(io.cwd, { cardSize: false })) {
+  for (const card of await checkProject(io.cwd)) {
     for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
   }
-  checkCardSize(cards, f); // reports size itself, with its own wording
+  checkLongLines(cards, f); // the size limit itself comes from the shared card rules above
   checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 
