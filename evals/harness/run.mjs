@@ -15,6 +15,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   EVALS, addTeamPlan, applyUpstream, baseRepo, branchFor, checksFor, git, setupBaseline, setupGroundwork, taskRefFor,
 } from "./arms.mjs";
@@ -38,7 +39,6 @@ const OPENCODE =
   process.env.OPENCODE_BIN ??
   (process.platform === "win32" ? join(process.env.APPDATA, "npm/node_modules/@opencode/cli/bin/opencode.exe") : "opencode");
 
-if (ARMS.includes("groundwork") && !TGZ) throw new Error("--tgz <path to the packed groundwork-ai build> is required");
 
 function loadTask(id) {
   const name = readdirSync(join(EVALS, "tasks")).find((n) => n.startsWith(`${id}-`));
@@ -87,9 +87,13 @@ const awaitingCards = (cwd) => {
 };
 
 // The agent stopped to ask the human something: its last paragraph is a question, or asks to proceed.
+// Also counts a request for the human's go-ahead without a question mark ("Say OK and I'll commit").
 export function asksHuman(text) {
   const tail = text.trim().split(/\n\s*\n/).at(-1) ?? "";
-  return /\?\s*\**\s*$/.test(tail) || /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start)|want me to)\b/i.test(tail);
+  return (
+    /\?\s*\**\s*$/.test(tail) ||
+    /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start|commit)|want me to|say (OK|the word|go)|give me (the|your) (OK|go-ahead)|once you (confirm|approve|say)|let me know (if|when|whether))\b/i.test(tail)
+  );
 }
 
 async function runStep(cwd, arm, prompt, reply, log) {
@@ -233,7 +237,7 @@ async function teamScenario(task, arm, run, outDir) {
   const cloneFor = (name, task) => {
     if (clones[name]) return clones[name];
     const dir = join(root, name);
-    git(root, "clone", "-q", origin, dir);
+    git(root, "clone", "-q", "-c", "core.autocrlf=false", origin, dir);
     git(dir, "config", "core.autocrlf", "false");
     git(dir, "config", "user.name", `Developer ${name}`);
     git(dir, "config", "user.email", `${name.toLowerCase()}@example.com`);
@@ -254,14 +258,14 @@ async function teamScenario(task, arm, run, outDir) {
       stages.push({ kind: "agent", clone: stage.clone, ...(await runStep(cwd, arm, fill(stage.prompt), fill(stage.reply), log)) });
     } else if (stage.kind === "upstream") {
       const mate = join(root, "teammate");
-      if (!existsSync(mate)) git(root, "clone", "-q", origin, mate);
+      if (!existsSync(mate)) git(root, "clone", "-q", "-c", "core.autocrlf=false", origin, mate);
       git(mate, "pull", "-q", "origin", "main");
       for (const change of stage.changes) applyUpstream(mate, arm, change);
       git(mate, "push", "-q", "origin", "main");
       stages.push({ kind: "upstream", changes: stage.changes });
     } else if (stage.kind === "merge") {
       const mate = join(root, "teammate");
-      if (!existsSync(mate)) git(root, "clone", "-q", origin, mate);
+      if (!existsSync(mate)) git(root, "clone", "-q", "-c", "core.autocrlf=false", origin, mate);
       git(mate, "pull", "-q", "origin", "main");
       git(mate, "fetch", "-q", "origin");
       let merged = true;
@@ -285,7 +289,7 @@ async function teamScenario(task, arm, run, outDir) {
   mkdirSync(sessionsDir, { recursive: true });
   const exports = exportSessions(Object.values(clones), sessions, sessionsDir);
   const scorer = join(root, "scorer");
-  git(root, "clone", "-q", origin, scorer);
+  git(root, "clone", "-q", "-c", "core.autocrlf=false", origin, scorer);
   const branch = branchFor(arm, task.score.branchTask);
   const hasBranch = Boolean(git(scorer, "ls-remote", "--heads", "origin", branch));
   let upToDate = false;
@@ -307,6 +311,7 @@ async function teamScenario(task, arm, run, outDir) {
 }
 
 async function main() {
+  if (ARMS.includes("groundwork") && !TGZ) throw new Error("--tgz <path to the packed groundwork-ai build> is required");
   const tasks = (args.tasks ?? "").split(",").filter(Boolean).map(loadTask);
   const tgzHash = TGZ ? createHash("sha256").update(readFileSync(TGZ)).digest("hex") : null;
   mkdirSync(OUT, { recursive: true });
@@ -355,4 +360,4 @@ async function main() {
   await Promise.all(Array.from({ length: PARALLEL }, worker));
 }
 
-main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();
