@@ -25,24 +25,26 @@ export function head(project) {
   }
 }
 
-// The code the human reviewed: tracked changes plus untracked files, excluding Groundwork's own
-// records. Card and evidence changes are bound separately, so the runner can still set the status
-// and History after approval without invalidating the code review.
+// The code the human reviewed: every path that differs from HEAD (staged, unstaged or untracked),
+// with its working-tree content, excluding Groundwork's own records. It doesn't depend on what is
+// staged, so `git add` between approval and commit doesn't look like a change; a staged copy that
+// differs from the working tree is refused separately. Card and evidence changes are bound
+// separately, so the runner can still set the status and History after approval.
 export function workFingerprint(project) {
   try {
-    const tracked = git(project, ["diff", "HEAD", "--binary", "--", ".", ":(exclude).groundwork"]);
-    const names = git(project, ["ls-files", "--others", "--exclude-standard", "-z", "--", ".", ":(exclude).groundwork"])
-      .split("\0")
-      .filter(Boolean)
-      .sort();
-    const untracked = names
-      .map((name) => {
-        const abs = join(project, name);
-        const content = existsSync(abs) && statSync(abs).isFile() ? readFileSync(abs, "utf8") : "";
-        return `${name}\0${fingerprint(content)}`;
-      })
-      .join("\0");
-    return fingerprint(`${tracked}\0${untracked}`);
+    const list = (args) => git(project, args).split("\0").filter(Boolean);
+    const changed = list(["diff", "HEAD", "--relative", "--name-only", "--no-renames", "-z", "--", ".", ":(exclude).groundwork"]);
+    const untracked = list(["ls-files", "--others", "--exclude-standard", "-z", "--", ".", ":(exclude).groundwork"]);
+    const paths = [...new Set([...changed, ...untracked])].sort();
+    return fingerprint(
+      paths
+        .map((path) => {
+          const abs = join(project, path);
+          const content = existsSync(abs) && statSync(abs).isFile() ? fingerprint(readFileSync(abs, "utf8")) : "deleted";
+          return `${path}\0${content}`;
+        })
+        .join("\0"),
+    );
   } catch {
     return undefined;
   }

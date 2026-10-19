@@ -252,6 +252,21 @@ describe("commit-gate", SLOW, () => {
     expect(bad.stderr).toMatch(/no "approved by human" line/);
   });
 
+  it("keeps an approval valid when the approved work is only staged, and still catches a real edit", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, "src"), { recursive: true });
+    writeFileSync(join(dir, "src/new.ts"), "export const added = 1;\n");
+    writeFileSync(join(dir, "README.md"), "edited\n");
+    card(dir, "awaiting-approval");
+    humanSpeaks(dir, "/gw-approve 1.1");
+    card(dir, "done");
+    git(dir, "add", "-A");
+    expect(hook(dir, commitCard).status).toBe(0);
+    writeFileSync(join(dir, "src/new.ts"), "export const added = 2;\n");
+    git(dir, "add", "-A");
+    expect(hook(dir, commitCard).stderr).toMatch(/code changed since the approval/);
+  });
+
   it("ties approval to the reviewed code, card and evidence; conversation and rejection do not count", async () => {
     const dir = await project();
     card(dir, "awaiting-approval");
