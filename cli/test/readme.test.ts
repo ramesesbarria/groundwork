@@ -36,26 +36,36 @@ function pageFile(path: string): string {
 }
 
 describe("README", () => {
-  it("opens with the tagline, the install and the first-session GIF", () => {
-    const firstScreen = readme.slice(0, readme.indexOf("## The problem"));
-    expect(firstScreen).toMatch(/spec, proof, approval/i);
+  it("opens with the positioning, the install, the next step and the first-session GIF", () => {
+    const firstScreen = readme.slice(0, readme.indexOf("## "));
+    expect(firstScreen).toMatch(/shared project context for developers and their coding agents/i);
     expect(firstScreen).toContain("/gw");
     expect(firstScreen).toContain("npx groundwork-ai init");
     expect(firstScreen).toContain("demo-first-session.gif");
+    expect(firstScreen).toMatch(/\*\*Next:\*\*.*quickstart/);
   });
 
-  it("sells the why before the how", () => {
+  it("says who it helps and why before how it works", () => {
     const at = (heading: string) => readme.indexOf(`## ${heading}`);
-    expect(at("The problem")).toBeGreaterThan(-1);
-    expect(at("The problem")).toBeLessThan(at("Before and after"));
-    expect(at("Before and after")).toBeLessThan(at("How it works"));
-    expect(at("How it works")).toBeLessThan(at("Quickstart"));
+    expect(at("Who it helps")).toBeGreaterThan(-1);
+    expect(at("Who it helps")).toBeLessThan(at("The problem"));
+    expect(at("The problem")).toBeLessThan(at("A short example"));
+    expect(at("A short example")).toBeLessThan(at("How it works"));
   });
 
-  it("has the pitch sections", () => {
-    for (const heading of ["The problem", "Before and after", "How it works", "Quickstart", "Who it's for", "Honest comparison", "FAQ", "Contributing", "License"]) {
+  it("has the product sections, including the team path and the limits", () => {
+    for (const heading of ["Who it helps", "The problem", "A short example", "How it works", "Working as a team", "What's checked, and what isn't", "Evidence so far", "Documentation", "Contributing", "License"]) {
       expect(section(heading), `missing "## ${heading}"`).not.toBe("");
     }
+  });
+
+  it("presents only the three native commands as slash commands", () => {
+    const slash = new Set([...readme.matchAll(/`(\/gw[\w-]*)/g)].map((m) => m[1]));
+    expect([...slash].sort()).toEqual(["/gw", "/gw-approve", "/gw-reject"]);
+  });
+
+  it("keeps the calculator evidence scoped: one build, not a comparison", () => {
+    expect(section("Evidence so far")).toMatch(/isn't a comparison/);
   });
 
   it("stays a product page, not a manual", () => {
@@ -92,7 +102,7 @@ describe("README", () => {
 
   it("every demo GIF it shows exists in docs/public", () => {
     const gifs = [...readme.matchAll(/groundwork\/(demo-[\w-]+\.gif)/g)].map((match) => match[1]);
-    expect(gifs.length).toBeGreaterThan(1);
+    expect(gifs.length).toBeGreaterThan(0);
     for (const gif of new Set(gifs)) {
       expect(existsSync(join(repo, "docs", "public", gif)), `docs/public is missing ${gif}`).toBe(true);
     }
