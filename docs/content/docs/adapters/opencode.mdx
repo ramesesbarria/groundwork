@@ -4,8 +4,9 @@ title: "OpenCode"
 
 Groundwork's OpenCode adapter adds commands, subagents with permissions, and a plugin for guards
 and session-start orientation. **It needs OpenCode 2.x** (tested with 2.0.16, 2.0.18 and 2.0.32).
-The V2 plugin uses `Plugin.define`; the older `export default { id, setup }` object no longer runs
-in 2.0.32.
+The plugin uses `Plugin.define`. In a 2.0.32 check with `opencode run --standalone`, a plugin in
+the older `export default { id, setup }` form also loaded, so an older project keeps its guards
+until it upgrades.
 
 ## What `init` adds
 

@@ -5,11 +5,12 @@ Groundwork's adapter depends on OpenCode's tool names, argument names and plugin
 changed without warning in 2.x. A session inside OpenCode can report what it actually sees; a model's
 memory of OpenCode can't be trusted.
 
-Last run: OpenCode 2.0.32 (2026-10-19), Windows 11, Node.js 24.19.0. The V1 plugin object
-(`export default { id, setup }`) no longer runs in 2.0.32; the adapter now generates
-`Plugin.define({ id, setup })` from `@opencode/plugin`. Project plugins also loaded only with
-`opencode run --standalone` in this check; the shared background service did not pick up the
-project's plugin. Session start last checked on 2.0.18 (2026-09-26).
+Last run: OpenCode 2.0.32 (2026-10-19), Windows 11, Node.js 24.19.0. The adapter generates
+`Plugin.define({ id, setup })` from `@opencode/plugin`. Project plugins loaded only with
+`opencode run --standalone`; the shared background service did not pick up the project's plugin.
+An earlier note said the older `export default { id, setup }` form stopped running in 2.0.32. A
+later controlled `--standalone` run loaded that form and its commit gate blocked a cardless commit,
+so the earlier observation was probably the background-service problem. Session start last checked on 2.0.18 (2026-09-26).
 
 ## Setup
 

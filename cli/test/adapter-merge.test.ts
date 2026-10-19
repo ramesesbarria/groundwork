@@ -62,7 +62,7 @@ describe("upgrading files the user changed", () => {
     expect(read(dir, `${PLUGIN}.new`)).toContain("Plugin.define(");
     const flagged = await doctor(dir);
     expect(flagged.code).toBe(1);
-    expect(flagged.output).toMatch(/old OpenCode plugin format/);
+    expect(flagged.output).toMatch(/groundwork-guards\.js differs from what Groundwork would generate/);
     expect(flagged.output).toMatch(/groundwork-guards\.js\.new is waiting/);
 
     // The merge: the new version with the team's line on top, then the .new file goes.

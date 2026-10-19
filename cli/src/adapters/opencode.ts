@@ -14,7 +14,7 @@ const ROLE_DENY: Record<string, string[]> = {
 // own messages for the commit gate, and adds the session-start orientation to the system prompt,
 // like Claude Code's SessionStart hook.
 // OpenCode 2.x plugin format: Plugin.define({ id, setup }), with hooks registered on the context.
-// The V1 { id, setup } default export stopped running in 2.0.32. Guards checked against 2.0.16 on
+// (A 2.0.32 `run --standalone` check also loaded the older { id, setup } default export.) Guards checked against 2.0.16 on
 // 2026-09-25. The "context" session hook, whose system entries must be { type: "text", text },
 // checked against 2.0.18 on 2026-09-26. The "prompt" session hook fires for the human's prompts
 // (raw text, before command expansion) and for subagent prompts in child sessions, which the hook

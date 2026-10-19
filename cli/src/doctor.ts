@@ -206,10 +206,6 @@ function checkModels(groundwork: string, f: Findings) {
   }
 }
 
-// OpenCode 2.0.32 no longer loads the V1 `export default { id, setup }` plugin, so none of
-// Groundwork's guards, approval recording or session start run in that project.
-const OPENCODE_PLUGIN = ".opencode/plugins/groundwork-guards.js";
-
 function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Findings) {
   const core = readCore(groundwork);
   const models = readProjectConfig(groundwork).models;
@@ -236,12 +232,6 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
             f.problems.push(`${file.path} is missing Groundwork's ${HOOK_EFFECT[event] ?? `${event} hook`}. ${fix}`);
           }
         }
-      } else if (file.path === OPENCODE_PLUGIN && current !== "" && !current.includes("Plugin.define(")) {
-        f.problems.push(
-          `${file.path} uses the old OpenCode plugin format, which OpenCode 2.0.32 and later don't load: no guards, approval ` +
-            "recording or session start run. Merge in the new version (Plugin.define), or delete the file and run " +
-            "`npx groundwork-ai upgrade`.",
-        );
       } else if (current.replace(/\r\n/g, "\n") !== file.content && !alreadyMerged(cwd, manifest, file)) {
         f.problems.push(`${file.path} ${current === "" ? "is missing" : "differs from what Groundwork would generate"}. ${fix}`);
       }
