@@ -2,7 +2,7 @@
 // real merge keeps both the customization and working enforcement. The 0.9.0 OpenCode plugin is the
 // realistic case: OpenCode 2.0.32 no longer loads its format.
 import { afterEach, describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -124,5 +124,53 @@ describe("upgrading files the user changed", () => {
     expect((await doctor(dir)).output).toMatch(/\.groundwork\/roles\/reviewer\.md\.new is waiting/);
     rmSync(join(dir, `${role}.new`));
     expect((await doctor(dir)).output).not.toMatch(/reviewer\.md\.new/);
+  });
+});
+
+// Helper commands 0.9 and earlier installed natively, in the exact shape those versions wrote.
+const HELPERS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+function addOldHelpers(dir: string) {
+  for (const name of HELPERS) {
+    const read = `Read \`.groundwork/commands/${name}.md\` now and follow it exactly.\n`;
+    mkdirSync(join(dir, `.claude/skills/${name}`), { recursive: true });
+    writeFileSync(join(dir, `.claude/skills/${name}/SKILL.md`), `---\nname: ${name}\ndescription: Use when ${name} is needed.\n---\n${read}`);
+    mkdirSync(join(dir, ".opencode/commands"), { recursive: true });
+    writeFileSync(join(dir, `.opencode/commands/${name}.md`), `---\ndescription: "Use when ${name}: is needed."\n---\n${read}\nArguments: $ARGUMENTS\n`);
+  }
+}
+
+describe("helper commands earlier versions installed natively", () => {
+  async function both(): Promise<string> {
+    const dir = await project090();
+    await run(["adapter", "add", "claude-code"], { cwd: dir, ...yes });
+    addOldHelpers(dir);
+    // One the team changed, with the manifest's record of what Groundwork wrote.
+    const edited = ".claude/skills/gw-plan/SKILL.md";
+    const manifest = JSON.parse(read(dir, MANIFEST));
+    manifest.files[edited] = fingerprint(read(dir, edited));
+    writeFileSync(join(dir, MANIFEST), JSON.stringify(manifest, null, 2));
+    writeFileSync(join(dir, edited), `${read(dir, edited)}Also read our planning notes.\n`);
+    return dir;
+  }
+
+  it("upgrade removes the unchanged ones and keeps and reports one the user changed", async () => {
+    const dir = await both();
+    const { output } = await upgrade(dir);
+    expect(output).toMatch(/remove\s+\.claude\/skills\/gw-next\/SKILL\.md/);
+    expect(output).toMatch(/remove\s+\.opencode\/commands\/gw-plan\.md/);
+    expect(output).toMatch(/Kept: \.claude\/skills\/gw-plan\/SKILL\.md \(you changed it/);
+    expect(readdirSync(join(dir, ".claude/skills")).sort()).toEqual(["gw", "gw-approve", "gw-plan", "gw-reject"]);
+    expect(readdirSync(join(dir, ".opencode/commands")).sort()).toEqual(["gw-approve.md", "gw-reject.md", "gw.md"]);
+    expect(read(dir, ".claude/skills/gw-plan/SKILL.md")).toContain("Also read our planning notes.");
+    expect(existsSync(join(dir, ".groundwork/commands/gw-next.md"))).toBe(true);
+  });
+
+  it("uninstall removes the unchanged ones and lists the one it kept", async () => {
+    const dir = await both();
+    const { output } = await run(["uninstall", "--keep-state"], { cwd: dir, ...yes });
+    expect(output).toMatch(/remove\s+\.opencode\/commands\/gw-quick\.md/);
+    expect(output).toMatch(/Kept:[\s\S]*\.claude\/skills\/gw-plan\/SKILL\.md \(you changed it/);
+    expect(readdirSync(join(dir, ".claude/skills"))).toEqual(["gw-plan"]);
+    expect(existsSync(join(dir, ".opencode/commands"))).toBe(false);
   });
 });
