@@ -13,3 +13,6 @@ PLAN.md
 # Source recordings dropped at the repo root; the cut clips live in docs/public/clips/
 /*.mp4
 
+
+# npm pack output when testing the package as users get it
+*.tgz

@@ -27,6 +27,24 @@ git init
 node ../groundwork/cli/dist/bin.js init
 ```
 
+To test the package as users get it (shipped files, `npx`, CI), pack it and install the tarball in
+the project instead of a published version. `npx groundwork-ai` in a project without it installed
+fetches the published release, not your build.
+
+```bash
+npm pack -w groundwork-ai                       # in this repo: groundwork-ai-<version>.tgz
+cd ../gw-try
+npm install --save-dev ../groundwork/groundwork-ai-<version>.tgz
+npx --no-install groundwork-ai doctor
+```
+
+The two-branch team flow has a scripted demo that runs against your build:
+
+```bash
+npm run build
+GW_CLI="node $PWD/cli/dist/bin.js" GW_ROOT="$PWD" bash demo/team-workflow.sh
+```
+
 ## The docs site
 
 The docs site has its own dependencies, separate from the root install:

@@ -4,6 +4,11 @@ The raw evidence behind the [walkthrough](https://ramesesbarria.github.io/ground
 calculator app built with Groundwork in OpenCode, across two main chats and 18 subagent chats. Nothing
 is edited except for the export itself — these are the sessions as they ran.
 
+This is a historical record from September 2026, on an earlier Groundwork version (before v1's
+approval binding, three-command surface and team path). It is one build with no run without
+Groundwork to compare against, so it shows how the workflow ran and where tokens went, not that it
+is better or cheaper. For current usage, see the [docs](https://ramesesbarria.github.io/groundwork/docs).
+
 ## Phase 1 — cards 1.1 to 1.4
 
 | | |
