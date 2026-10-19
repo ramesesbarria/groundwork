@@ -55,8 +55,9 @@ permissions and hooks survive.
 - **SessionStart** (`startup|clear|compact`) runs `.groundwork/hooks/session-start.mjs`, which
   prints a few lines from `HANDOFF.md` — where things stand and the next step. It injects project
   state, not methodology, and prints nothing if `.groundwork/` isn't there.
-- **PreToolUse** (`Bash|Write|Edit|MultiEdit|NotebookEdit`) runs `.groundwork/guards/run.mjs` before
-  every shell command and file write. Exit code 2 blocks the action and shows the reason. It runs
+- **PreToolUse** (`Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit`) runs
+  `.groundwork/guards/run.mjs` before every shell command (Bash, or PowerShell on Windows) and file
+  write. Exit code 2 blocks the action and shows the reason. It runs
   two built-in checks, then the guards listed in your config:
   - **commit-gate**: a commit whose message names a card needs that card `done` and passing
     [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode a message from you since

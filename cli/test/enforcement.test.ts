@@ -78,6 +78,17 @@ describe("protect-harness", SLOW, () => {
     expect(hook(pending, edit(".groundwork/config.json", '"integration": "local"', '"integration": "pr"')).status).toBe(0);
   });
 
+  it("watches Claude Code's PowerShell tool like Bash: no migrate, no unapproved commit", async () => {
+    const dir = await project();
+    const powershell = (command: string) => ({ tool_name: "PowerShell", tool_input: { command } });
+    expect(hook(dir, powershell("npx groundwork-ai migrate legacy --yes --reviewed")).status).toBe(2);
+    expect(hook(dir, powershell("git commit -m 'no card'")).stderr).toMatch(/\[commit-gate\]/);
+    expect(hook(dir, powershell("Set-Content .groundwork/.approvals/last-human.json '{}'")).status).toBe(2);
+    expect(hook(dir, powershell("git status")).status).toBe(0);
+    const settings = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8"));
+    expect(settings.hooks.PreToolUse[0].matcher.split("|")).toContain("PowerShell");
+  });
+
   it("lets setup write the config freely until setup is done", async () => {
     const dir = await project({ setup: "pending" });
     expect(hook(dir, edit(".groundwork/config.json", '"per-card"', '"per-phase"')).status).toBe(0);

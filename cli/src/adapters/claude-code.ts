@@ -87,7 +87,7 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
           ],
           PreToolUse: [
             {
-              matcher: "Bash|Write|Edit|MultiEdit|NotebookEdit",
+              matcher: "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
               hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code' }],
             },
           ],

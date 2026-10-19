@@ -49,6 +49,7 @@ export function toAction(tool, input) {
     const args = input.tool_input ?? {};
     switch (input.tool_name) {
       case "Bash":
+      case "PowerShell": // Claude Code's shell tool on Windows
         return { kind: "command", command: String(args.command ?? "") };
       case "Write":
         return { kind: "write", path: String(args.file_path ?? ""), content: String(args.content ?? ""), whole: true };
