@@ -90,9 +90,13 @@ const awaitingCards = (cwd) => {
 // Also counts a request for the human's go-ahead without a question mark ("Say OK and I'll commit").
 export function asksHuman(text) {
   const tail = text.trim().split(/\n\s*\n/).at(-1) ?? "";
+  // Imperative requests too ("Confirm those and I'll plan one card", "need a yes/no"), read over the
+  // last two paragraphs. Added after v1-full: these went unanswered in three Groundwork runs.
+  const lastTwo = text.trim().split(/\n\s*\n/).slice(-2).join("\n");
   return (
     /\?\s*\**\s*$/.test(tail) ||
-    /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start|commit)|want me to|say (OK|the word|go)|give me (the|your) (OK|go-ahead)|once you (confirm|approve|say)|let me know (if|when|whether))\b/i.test(tail)
+    /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start|commit)|want me to|say (OK|the word|go)|give me (the|your) (OK|go-ahead)|once you (confirm|approve|say)|let me know (if|when|whether))\b/i.test(tail) ||
+    /\b(confirm (those|this|it|the|them|or)|yes\/no|next step is yours|needs? your (yes|answer|OK|confirmation|decision)|waiting (for|on) your (yes|answer|OK|confirmation|approval|decision)|your (yes|confirmation|go-ahead))\b/i.test(lastTwo)
   );
 }
 
@@ -328,6 +332,11 @@ async function main() {
   writeFileSync(join(OUT, `environment-${Date.now()}.json`), JSON.stringify(env, null, 2));
   const jobs = [];
   for (let run = 1; run <= RUNS; run += 1) for (const task of tasks) for (const arm of ARMS) jobs.push({ task, arm, run });
+  // --only S05-groundwork-r1,S08-groundwork-r1 reruns just those runs.
+  if (args.only) {
+    const only = new Set(args.only.split(","));
+    jobs.splice(0, jobs.length, ...jobs.filter((j) => only.has(`${j.task.id}-${j.arm}-r${j.run}`)));
+  }
   let next = 0;
   const worker = async () => {
     while (next < jobs.length) {
