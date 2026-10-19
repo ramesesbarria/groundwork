@@ -50,8 +50,10 @@ export function workFingerprint(project) {
   }
 }
 
-// The card content the human reviewed, excluding the status and History the runner changes after
-// approval. A change to Goal, criteria, evidence links, How to check or caveats invalidates it.
+// The card content the human reviewed, without the completion metadata the runner writes after
+// approval: the status, History, and whether each human check was confirmed or waived (its tick,
+// date and waiver note). A change to Goal, criteria, evidence links, How to check, caveats or the
+// wording of a human check invalidates it.
 export function cardFingerprint(md) {
   const fm = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   let text = md;
@@ -60,6 +62,9 @@ export function cardFingerprint(md) {
     text = `---\n${fields.join("\n")}\n---${md.slice(fm[0].length)}`;
   }
   text = text.replace(/\n## History\s*\n[\s\S]*?(?=\n## |\s*$)/, "\n");
+  text = text.replace(/(\n## Human checks\s*\n)([\s\S]*?)(?=\n## |\s*$)/, (_, heading, body) =>
+    heading + body.replace(/^- \[[ xX]\]\s*(.*?)(?:\s+(?:—|--)\s+(?:waived\b.*|\d{4}-\d{2}-\d{2}.*))?\s*$/gm, "- $1"),
+  );
   return fingerprint(text.trimEnd());
 }
 

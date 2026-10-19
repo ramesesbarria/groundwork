@@ -18,7 +18,7 @@ Turn `.groundwork/SPEC.md` into phases and cards the build loop can run. You act
    - lists the cards it needs first in `depends_on`.
 
    When the work includes UI, the **first card** leaves something visible or runnable end to end (a thin vertical slice); pure-logic cards come after it.
-5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes. In `per-card` mode, say how many approval stops that means (one per card) and offer to merge cards if too many. Say in one line how the work gets saved: each card is committed when the approval mode allows. If they'd rather commit themselves, set `autoCommit` to `false`. Do not offer `at-end`: it is parked for v1; existing projects that already use it keep working.
+5. Show the plan as a table (ID, title, depends on, one-line goal) and **wait for the human's OK** or changes. A one-card plan for a complete request needs no OK: show it and go on. In `per-card` mode, say how many approval stops that means (one per card) and offer to merge cards if too many. Say in one line how the work gets saved: each card is committed when the approval mode allows. If they'd rather commit themselves, set `autoCommit` to `false`. Do not offer `at-end`: it is parked for v1; existing projects that already use it keep working.
 6. Once they agree, write **one file per card**: `.groundwork/cards/<phase>.<n>-<slug>.md` from `.groundwork/templates/card.md` without its `<!-- -->` comments (every role rereads the card), with status `todo`. If a card adds a new area of code, add it to the Codebase map in SPEC.md. Team: record dependencies via `reassess` (`.groundwork/guides/team.md`).
 7. Update HANDOFF: phase 1, next step is `gw-next`.
 

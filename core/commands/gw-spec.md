@@ -10,12 +10,12 @@ Turn a rough idea into `.groundwork/SPEC.md`: detailed enough to plan cards from
 ## Steps
 1. Read `.groundwork/SPEC.md` and any notes or drafts the human points you to.
 2. **Scope first.** Before any details, ask: "What's the smallest version that would be useful to you?" Write that into Goals. Everything else goes under a "Later phases" heading in Features, in a line each, and gets no detail yet.
-3. List what's missing or unclear about the first version only: users, features, rules, edge cases, constraints.
+3. List what's missing or unclear about the first version only: users, features, rules, edge cases, constraints. If the request already covers it all, skip the questions in steps 2 and 4.
 4. Ask a **batch of 3–5 specific questions**, in plain English. Good: "Can one guest join two events at the same time?" Where you have a sensible default, offer it: "I'd suggest X because Y. OK?" If the app copies a product people know, suggest how that product behaves, even where a thinner option exists. If your tool can ask questions with clickable choices, use it.
 5. If the human says "you decide" or "your call", use your suggested answers, mark each one *(default)* in the spec, and list any extra choices you made beyond the questions you asked. Never present a default as the human's decision. Don't widen the scope while filling gaps.
 6. Write the answers into the spec straight away, in the right section.
 7. Repeat until every first-version feature has its rules and edge cases, and Open questions only holds things the human chose to leave for later.
-8. Summarise the spec in a few plain sentences and ask the human to confirm it.
+8. Summarise the spec in a few plain sentences. If the human's own words settled everything in it (nothing open, no defaults you chose), it's confirmed: say so and go on to `gw-plan`. Otherwise ask them to confirm it. Don't ask about what they already told you.
 9. Update HANDOFF: note whether the spec is confirmed; next step is `gw-plan`.
 
 ## Existing project

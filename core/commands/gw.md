@@ -17,7 +17,7 @@ The one command to remember. Work out where the project is, tell the human, then
 | Nothing set up: no `.groundwork/`, or `setup` in `.groundwork/config.json` isn't `done` | `gw-setup` (if `.groundwork/` is missing, tell the human to run `npx groundwork-ai init` first, and stop) |
 | No spec yet (SPEC.md is still the empty template) | `gw-spec` |
 | Existing project with no open change (SPEC.md describes the app today; nothing under Changes is open or planned, and no card is left to do) | Ask what to change or add next, then `gw-spec` for it, or `gw-quick` if it's small |
-| Spec written but not confirmed (HANDOFF doesn't say so) | Ask the human to read it and confirm, or say what to change |
+| Spec written but not confirmed (HANDOFF doesn't say so) | If the request settled all of it, note it confirmed and go on; else ask the human to confirm or change it |
 | No cards yet | `gw-plan` |
 | A card is `testing`, `implementing` or `review` | Resume it (below) |
 | A card is `awaiting-approval` | Show the summary from `gw-next` step 7 (including any open human checks), then ask the human to approve or reject. Don't run either yourself |

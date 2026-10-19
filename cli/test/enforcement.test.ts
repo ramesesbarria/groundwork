@@ -264,6 +264,19 @@ describe("commit-gate", SLOW, () => {
     expect(bad.stderr).toMatch(/no "approved by human" line/);
   });
 
+  it("treats confirming or waiving a human check after approval as completion metadata, not a change", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval", "- 2026-09-29 review → awaiting-approval: passed", "- [ ] Tab through the form");
+    humanSpeaks(dir, "/gw-approve 1.1");
+    card(dir, "done", "- 2026-09-29 approved by human", "- [x] Tab through the form — 2026-09-29");
+    expect(hook(dir, commitCard).status).toBe(0);
+    card(dir, "done", "- 2026-09-29 approved by human", "- [ ] Tab through the form — waived 2026-09-29 (no keyboard here)");
+    expect(hook(dir, commitCard).status).toBe(0);
+    // Changing what the check says is substantive.
+    card(dir, "done", "- 2026-09-29 approved by human", "- [x] Tab through the whole app — 2026-09-29");
+    expect(hook(dir, commitCard).stderr).toMatch(/card changed since the approval/);
+  });
+
   it("keeps an approval valid when the approved work is only staged, and still catches a real edit", async () => {
     const dir = await project();
     mkdirSync(join(dir, "src"), { recursive: true });
