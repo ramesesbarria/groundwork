@@ -55,8 +55,10 @@ estimated 450 to 760 tokens, depending on the tool; `groundwork doctor` estimate
 - **Not autonomous.** Groundwork stops for your approval, by design.
 - **Not a stack picker.** Choices are laid out as options with trade-offs; you decide, and the
   decision is recorded.
-- **Not a task-level skill pack.** It's the project layer — spec, cards, approvals, handoff and
-  lessons. How the agent handles a single task stays with your tool.
+- **Not a task-level skill pack.** It's shared project context — spec, decisions, cards, evidence,
+  handoff and lessons. How the agent handles a single task stays with your tool.
+- **Not a hosted service.** Everything is files in your repo and checks in your CI; there are no
+  accounts, dashboards or team permissions.
 
 ## One-shot prompting vs a process
 
@@ -77,9 +79,11 @@ checked, and rules that can be enforced.
 
 ## Who it's for
 
-- **Vibecoders** who want to build real things without learning a methodology: specific questions,
-  plain-language approvals, and a check they can click through themselves.
-- **Experienced developers** who want an agent to run a card at a time with a real review step, a
-  commit trail, and control over every merge.
+- **Developers using coding agents on ongoing projects**, who want the plan, the decisions and the
+  proof to outlast the chat, and a review step before anything is committed.
+- **Newer builders** who want to make real things without learning a methodology: specific
+  questions, plain-language approvals, and a check they can click through themselves.
+- **Teams**, where each task branch carries its own handoff and the decisions it depends on, and
+  pull-request review is the approval. [Teams and pull requests →](/docs/guides/teams)
 
 [Get started →](/docs/getting-started/installation)
