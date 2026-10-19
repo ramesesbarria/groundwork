@@ -36,14 +36,14 @@ block new work, and then asks what you want to change.
 ## Will it commit or push without asking?
 
 In the default mode, a card is committed only after you approve it. In `per-phase` mode each card
-commits once its review passes, and you approve the phase. In `at-end` mode each card commits as a
-checkpoint once it's built, marked *not reviewed yet*, and you approve the whole build at the end.
-Set `"autoCommit": false` if you'd rather make every commit yourself. Pushing never happens unless
-you ask.
+commits once its review passes, and you approve the phase. A quick fix commits as `[quick]` after
+your OK. Set `"autoCommit": false` if you'd rather make every commit yourself. Pushing never happens
+unless you ask.
 
 ## Can I change my approval mode later?
 
-Yes — run `npx groundwork-ai mode <mode>` yourself (`per-card`, `per-phase` or `at-end`). It's read
+Yes — run `npx groundwork-ai mode <mode>` yourself (`per-card` or `per-phase`; `at-end` is kept only
+for projects that already use it). It's read
 fresh at each stop, so the next step uses the new mode. The agent isn't allowed to loosen it on
 its own. The same is true of `experience`.
 
@@ -58,9 +58,10 @@ and if that still gets broken, into a guard that blocks it. Nothing changes with
 An estimated **≈760 tokens always loaded** on a fresh Claude Code install, ≈560 in OpenCode and ≈450
 with plain markdown: `AGENTS.md`, plus the one-line description of each skill and subagent your
 tool keeps in context. These are `doctor`'s estimates (characters ÷ 4), and it shows the number for
-your project, part by part. Measured in one fresh OpenCode 2.0.32 session (DeepSeek), Groundwork
-added about 610 tokens to the model's first prompt; Claude Code hasn't been measured the same way
-yet. Everything else — roles, commands, workflow — loads only when a step needs it, and cards
+your project, part by part. Observed once, in a fresh `opencode run --standalone` session on
+OpenCode 2.0.32 with DeepSeek, Groundwork added about 610 tokens to the model's first prompt. Claude
+Code hasn't been measured the same way yet, and neither number says anything about the quality or
+total cost of a build. Everything else — roles, commands, workflow — loads only when a step needs it, and cards
 carry their own proof so nothing is re-explained. You can also
 [assign cheaper models](/docs/reference/configuration#models-per-role) to the mechanical roles.
 
@@ -72,13 +73,10 @@ fix-soon-after-card patterns).
 
 ## Can a team use it?
 
-By default Groundwork is set up for one developer with one approval gate. For teams there is a
-pull-request prototype: each task branch `gw/<id>` keeps its own handoff and declared context,
-`check --base origin/main` reports a stale branch or a changed decision the task depends on, and
-with `integration: "pr"` pull-request review and required checks are the approval. See
-[check](/docs/reference/cli#check) and [reassess](/docs/reference/cli#reassess). Roles,
-permissions, dashboards and hosted services aren't part of it, and live human PR review hasn't been
-fully exercised yet.
+Yes, through pull requests. Each task branch keeps its own handoff and the decisions it depends on,
+`check --base origin/main` notices when `main` moves under it, and pull-request review is the
+approval. It's a working prototype; roles, permissions and dashboards aren't part of it. See
+[Teams and pull requests](/docs/guides/teams).
 
 ## Where do I see what was decided, and why?
 

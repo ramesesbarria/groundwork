@@ -106,9 +106,11 @@ npx groundwork-ai doctor
 Checks the install and the context budget, and **exits 1 when it finds a problem** (so it can run
 in CI). It reports:
 
-- **Always loaded** — what every session carries, part by part, against `tokenBudget`: `AGENTS.md`,
-  `CLAUDE.md`, the skill, command and subagent lists your tool keeps in context, and the
-  session-start lines. With advice when it's over.
+- **Always loaded** — an estimate (characters ÷ 4) of what every session carries, part by part,
+  against `tokenBudget`: `AGENTS.md`, `CLAUDE.md`, the skill and subagent lists your tool keeps in
+  context, and the session-start lines. OpenCode's command descriptions aren't counted: in an
+  OpenCode 2.0.32 `opencode run --standalone` check they didn't reach the model. With advice when
+  it's over.
 - **Startup cost** — what a `/gw` session and each role read before touching any code: the
   always-loaded files, the command or role file, HANDOFF and the current card. Your AI tool's own
   instructions come on top (about 8.5k tokens in OpenCode with DeepSeek, measured).
@@ -153,14 +155,10 @@ and declared context changes separately. The context check covers the current `g
 `--task <id>`, and tasks whose cards the branch changed, even when they are `done`; other tasks'
 context isn't checked. `check` is read-only.
 
-With `integration: "pr"` in `config.json`, a done card does not need a local “approved by human”
-line; PR review and required checks are the approval. The local commit gate becomes checkpoint-only.
-Groundwork checks the card, context, and evidence; the repository enforces the approving review.
-Once setup is done, only you can switch a project to `pr`: the guard refuses that change from the agent.
-
-`check` validates that linked evidence exists and is not empty, and that declared context files match
-their recorded hashes. It does not prove evidence is authentic or that tests were run; the project's
-test command does that separately.
+With `integration: "pr"` in `config.json`, a done card doesn't need the "approved by human" line:
+pull-request review is the approval. See [Teams and pull requests](/docs/guides/teams). What `check`
+can and can't prove about evidence is in
+[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 `doctor` runs the same card checks and lists what it finds as problems.
 

@@ -26,8 +26,8 @@ plain request like *"I have an app idea"*. You don't have to learn command names
 
 `/gw-approve` and `/gw-reject` are **human-only**: they carry `disable-model-invocation`, so the
 model can't run them as skills. That alone wouldn't stop a model reading the command file or
-running `git commit` itself, so the commit gate backs it up: in `per-card` mode a card commit needs a
-message from you since the last commit (see Hooks below).
+running `git commit` itself, so the commit gate backs it up: in `per-card` mode a card commit needs
+your own `/gw-approve` for the work as it is now (see Hooks below).
 
 ## Subagents with different limits
 
@@ -60,13 +60,17 @@ permissions and hooks survive.
   write. Exit code 2 blocks the action and shows the reason. It runs
   two built-in checks, then the guards listed in your config:
   - **commit-gate**: a commit whose message names a card needs that card `done` and passing
-    [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode a message from you since
-    the last commit.
-  - **protect-harness**: the agent can't remove guards, turn these checks off, switch to
-    `per-phase`, or take Groundwork's hooks out of settings. You can, in your editor.
+    [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode your `/gw-approve` for
+    the work as it is now. A commit that names no card needs a tag such as `[quick]`.
+  - **protect-harness**: the agent can't remove guards, turn these checks off, relax the approval
+    mode, switch to PR integration, run `migrate`, or take Groundwork's hooks out of settings. You
+    can, in your editor or terminal.
 - **UserPromptSubmit** runs `.groundwork/hooks/user-prompt.mjs` on each message *you* send (never on
-  the agent's own actions) and records it in `.groundwork/.approvals/` (git-ignored). That record is
-  how the commit gate tells your approval from the agent's say-so.
+  the agent's own actions) and records it in `.groundwork/.approvals/` (git-ignored). Only a
+  `/gw-approve` message records an approval; any other message clears it.
+
+What this enforces, and where it stops, is in
+[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 The runner fails safe: if the config or a guard can't be read, commits are blocked and everything
 else goes through, with a message saying what to fix. New installs start with `no-ai-trailers` on.

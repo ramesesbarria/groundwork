@@ -1,0 +1,73 @@
+---
+title: "Teams and pull requests"
+description: "Share one project's context across task branches, and let pull-request review be the approval."
+---
+
+By default Groundwork is set up for one developer with one approval gate. A team, or one developer
+working across several branches, can use the pull-request path instead. Each task gets its own
+branch and handoff. The decisions a task depends on are recorded, so a change on `main` is noticed.
+Pull-request review is the approval.
+
+This is a working prototype. Two branches, fresh clones and PR checks have been exercised; a live
+human review cycle (approve, request changes, dismiss a stale approval) hasn't been fully observed
+yet. Roles, permissions, dashboards and hosted services are not part of it.
+
+## Set it up once
+
+1. **Switch the project to PR integration.** Set `"integration": "pr"` in `.groundwork/config.json`,
+   during setup or in your own editor. Once setup is done, the guard refuses that change from the
+   agent, because it drops the local approval gate.
+2. **Add the checks.** Copy
+   [`demo/groundwork-pr.yml`](https://github.com/ramesesbarria/groundwork/blob/main/demo/groundwork-pr.yml)
+   to `.github/workflows/`. Its `groundwork-head` job runs `groundwork-ai check --base origin/main` on
+   the real PR head; `groundwork-merge` runs your tests on the merge result. Add `groundwork-ai` as a
+   dev dependency so CI and your machines run the same version. `check --base` needs a release newer
+   than 0.9.0.
+3. **Protect `main`.** Require a pull request, at least one approving review, the
+   `groundwork-head` and `groundwork-merge` checks, an up-to-date branch, and dismissal of stale
+   approvals when new commits are pushed. These rules are what enforce approval in this mode.
+
+## Work on a task
+
+- **Cards are created on `main`** (plan them there and merge), so every branch agrees on the IDs.
+- **One branch per card:** `gw/<id>`, e.g. `gw/1.2`. On that branch the handoff is
+  `.groundwork/work/<id>/HANDOFF.md`; `/gw` and session start read it, so two tasks don't overwrite
+  each other's state.
+- **Record what the task relies on** when you start it:
+
+  ```bash
+  npx groundwork-ai reassess 1.2 --target origin/main --dep decision:0001 --dep spec:SPEC.md
+  ```
+
+  This stores the versions you read in `.groundwork/work/1.2/context.json`.
+- **Local commits are checkpoints.** The commit gate still refuses a cardless commit and checks the
+  card's rules, but doesn't ask for `/gw-approve`.
+
+## When `main` moves
+
+Run `npx groundwork-ai check --base origin/main` before you start, when you resume, and before
+review. It reports two things separately:
+
+- **freshness:** your branch is behind `main`. Merge or rebase as your team usually does.
+- **context:** a decision or spec section the task depends on changed. Read the change,
+  reconcile the code and card, rerun the tests, and only then record it:
+
+  ```bash
+  npx groundwork-ai reassess 1.2 --target origin/main
+  ```
+
+Recording an acknowledgment doesn't prove the change was understood; the review still judges that.
+Changes to knowledge the task didn't declare stay quiet. If a dependency was deleted on purpose,
+drop it with `--drop decision:0001`. Renames aren't followed: `--dep` re-resolves a reference to its
+current path.
+
+## Review and merge
+
+Open a pull request from `gw/<id>`. The head check verifies the card, its evidence and its context
+on the PR's own head (not the merge ref, which would hide a stale branch). A reviewer approves in
+your Git host, and the repository's rules decide when it can merge. An agent-written
+"approved by human" line is not a PR approval.
+
+What this does and doesn't enforce is spelled out in
+[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+Command details: [`check`](/docs/reference/cli#check) and [`reassess`](/docs/reference/cli#reassess).

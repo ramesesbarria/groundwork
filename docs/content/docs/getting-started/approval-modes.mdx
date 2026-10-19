@@ -72,15 +72,12 @@ you know exactly what you're taking on trust.
 
 ## What counts as approval
 
-Only your explicit `/gw-approve <card-id>` prompt records approval. A normal “looks good”, a
-`/gw-reject`, and an agent-written “approved by human” line do not. The record is bound to the
-reviewed HEAD commit, the code diff, the card content (excluding status and History), the linked
-evidence files, and the project knowledge the work rests on: `SPEC.md`, the decision records, and
-the task's declared context and dependency files. If any of those changes after approval, the commit
-gate refuses the commit and asks you to approve again.
-
-The approval file is local and gitignored. In a team project, PR review is the approval instead;
-see [team approval](/docs/reference/cli#check) and the repository's branch protection rules.
+Only your own `/gw-approve` prompt records approval. A normal "looks good", a `/gw-reject`, or an
+"approved by human" line the agent writes doesn't. The approval covers the work as you saw it: if the
+code, the card, its evidence, the spec or a decision changes afterwards, you're asked to approve
+again. The details, and the limits of what's enforced, are in
+[Evidence and approval](/docs/concepts/evidence-and-approval). In a team project, pull-request review
+is the approval instead: see [Teams and pull requests](/docs/guides/teams).
 
 ## Rejecting
 

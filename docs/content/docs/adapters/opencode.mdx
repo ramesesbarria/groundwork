@@ -63,10 +63,8 @@ fresh each time, and skipped for Groundwork's own subagents, which get their car
 
 `/gw-approve` and `/gw-reject` are ordinary commands whose text says only the human runs them, and
 the runner is instructed never to run them. The commit gate backs that up: it refuses to commit a
-card that isn't `done`, lacks evidence, or has no "approved by human" line in `per-card` mode.
-
-Since 0.8.1 it also checks that *you* sent a message since the last commit. The plugin records your
-own prompt submissions (they arrive as raw text in a top-level session) in
+card that isn't `done` or lacks evidence, and in `per-card` mode one without your own `/gw-approve`
+for the work as it is now. The plugin records your own prompt submissions (they arrive as raw text in a top-level session) in
 `.groundwork/.approvals/`; subagent tasks arrive as prompts in a child session and are ignored, so a
 spawned agent can't record its own approval. Verified live on OpenCode 2.0.26 and 2.0.32. A later
 human message clears the approval by design, so `/gw-approve` and the commit it authorizes belong in

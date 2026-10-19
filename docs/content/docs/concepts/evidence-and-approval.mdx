@@ -45,20 +45,40 @@ knowledge the card depends on (`SPEC.md`, decisions, and declared context files)
 any of them needs a new approval. See [Claude Code](/docs/adapters/claude-code#hooks) and
 [OpenCode](/docs/adapters/opencode#human-only-commands) for the details.
 
-Commits that aren't card work have their own tags: `[plan]`, `[docs]`, `[setup]`, `[quick]` and
-`[no-card] <reason>`. Each only covers the kind of change it names: `[plan]` can change planning
-records but not evidence or a done card; `[setup]` can't carry card or evidence work; `[quick]` can't
-change a card, evidence, `SPEC.md`, a decision or context. Relabelling card work does not bypass the
-gate.
+## What's enforced, and where it stops
 
-## What evidence checks can and cannot prove
+This is the one place these limits are described; other pages link here.
 
-`groundwork check` verifies that linked evidence exists and is not empty, and that declared context
-dependencies match their recorded hashes. The solo commit gate also refuses evidence that changed
-after the human approved it. These checks do not prove that a test command ran, that the output is
-authentic, or that the software is correct. A fabricated but non-empty file can still be linked;
-review and the project's test execution are what judge it. This is a deliberate trust limit, not a
-promise to detect every fabricated output.
+**Non-card commits.** A commit that names no card is refused unless it carries a tag:
+`[plan]`, `[docs]`, `[setup]`, `[quick]` or `[no-card] <reason>`. Each tag covers only its kind of
+change. `[plan]` can change planning records but not evidence or a done card; `[setup]` can't carry
+card or evidence work; `[quick]` and `[no-card]` can't change a card, evidence, `SPEC.md`, a decision
+or declared context.
+
+**The quick path is the exception by design.** A `[quick]` commit can change code without a card,
+so it never needs `/gw-approve`. In `per-card` mode the agent is told to wait for your OK before a
+quick commit; that is an instruction, not a check. Keep quick changes small (the agent is told to
+stop and suggest a card when one grows), and read `git log` for `[quick]` commits if that matters to
+you.
+
+**Team projects (`integration: "pr"`).** Local commits on a task branch are checkpoints: the commit
+gate doesn't ask for `/gw-approve`. Approval is the pull-request review, enforced by your
+repository's rules (required review, required checks, dismissing stale approvals), not by
+Groundwork. Groundwork checks the card, its evidence and its context on the PR head. Only you can
+switch a project to `pr` once setup is done. See [Teams and pull requests](/docs/guides/teams).
+
+**What the hooks see.** The guards run on the tool calls your AI tool reports to them. In Claude Code
+that's Bash, PowerShell, Write, Edit, MultiEdit and NotebookEdit; in OpenCode, its shell, write, edit
+and patch tools. A determined agent can still get around a local hook through something the hook
+doesn't see or can't read in a command: an unwatched tool, a package script, an alias, Git plumbing.
+The approval record is a local file, and the guard keeps the agent from writing it, but it isn't
+cryptographic proof that you typed the approval. CI and pull-request review are the backstop.
+
+**What evidence checks prove.** `groundwork check` verifies that linked evidence exists and is not
+empty, and that declared context dependencies match their recorded hashes. The solo commit gate
+also refuses evidence that changed after you approved it. None of this proves that a test command
+ran, that the output is authentic, or that the software is correct. A fabricated but non-empty file
+can still be linked; review and the project's own test run are what judge it.
 
 ## Baselines
 
