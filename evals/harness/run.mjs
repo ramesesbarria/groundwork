@@ -82,7 +82,8 @@ const awaitingCards = (cwd) => {
   return readdirSync(dir)
     .map((name) => readFileSync(join(dir, name), "utf8"))
     .filter((md) => /^status:\s*awaiting-approval\s*$/m.test(md))
-    .map((md) => md.match(/^id:\s*(\S+)/m)?.[1])
+    // A card may write its id quoted (id: "1.1"); a person types /gw-approve 1.1.
+    .map((md) => md.match(/^id:\s*(\S+)/m)?.[1]?.replace(/^["']|["']$/g, ""))
     .filter(Boolean);
 };
 
@@ -96,7 +97,8 @@ export function asksHuman(text) {
   return (
     /\?\s*\**\s*$/.test(tail) ||
     /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start|commit)|want me to|say (OK|the word|go)|give me (the|your) (OK|go-ahead)|once you (confirm|approve|say)|let me know (if|when|whether))\b/i.test(tail) ||
-    /\b(confirm (those|this|it|the|them|or)|yes\/no|next step is yours|needs? your (yes|answer|OK|confirmation|decision)|waiting (for|on) your (yes|answer|OK|confirmation|approval|decision)|your (yes|confirmation|go-ahead))\b/i.test(lastTwo)
+    /\bplease confirm\b|\bconfirm (\(|\*\*)/i.test(lastTwo) ||
+    /\b(confirm (those|this|it|the|them|or|both|and)|yes\/no|next step is yours|needs? your (yes|answer|OK|confirmation|decision)|waiting (for|on) your (yes|answer|OK|confirmation|approval|decision)|your (yes|confirmation|go-ahead))\b/i.test(lastTwo)
   );
 }
 
