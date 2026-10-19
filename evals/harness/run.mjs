@@ -52,7 +52,9 @@ function runTurn(cwd, message, sessionId) {
   const argv = ["run", "--standalone", "--auto", "--format", "json", "-m", MODEL, ...(sessionId ? ["--session", sessionId] : []), message];
   const started = Date.now();
   return new Promise((resolve) => {
-    const child = spawn(OPENCODE, argv, { cwd, stdio: ["ignore", "pipe", "pipe"] });
+    // OpenCode takes its project folder from PWD, not the process's working directory: without this
+    // the agent works in whatever folder launched the harness (the 2026-10-19 pilot ran in this repo).
+    const child = spawn(OPENCODE, argv, { cwd, env: { ...process.env, PWD: cwd }, stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     let err = "";
     child.stdout.on("data", (d) => (out += d));
@@ -129,7 +131,7 @@ function exportSessions(cwds, roots, dir) {
     let text = "";
     for (const c of cwds) {
       try {
-        text = execFileSync(OPENCODE, ["session", "export", id], { cwd: c, encoding: "utf8", maxBuffer: 512 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
+        text = execFileSync(OPENCODE, ["session", "export", id], { cwd: c, env: { ...process.env, PWD: c }, encoding: "utf8", maxBuffer: 512 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
         if (text.trim()) break;
       } catch {
         // try the next workspace
@@ -317,6 +319,7 @@ async function main() {
     evalsRevision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: REPO, encoding: "utf8" }).trim(),
     evalsDirty: execFileSync("git", ["status", "--porcelain", "--", "evals"], { cwd: REPO, encoding: "utf8" }).trim() !== "",
   };
+  if (env.evalsDirty) throw new Error("Commit evals/ first: scored runs use a committed harness, and a change under evals/ during a run means an agent escaped its workspace.");
   writeFileSync(join(OUT, `environment-${Date.now()}.json`), JSON.stringify(env, null, 2));
   const jobs = [];
   for (let run = 1; run <= RUNS; run += 1) for (const task of tasks) for (const arm of ARMS) jobs.push({ task, arm, run });
@@ -331,6 +334,14 @@ async function main() {
       console.log(`start ${task.id} ${arm} r${run}`);
       try {
         const result = task.type === "team" ? await teamScenario(task, arm, run, outDir) : await soloScenario(task, arm, run, outDir);
+        // An agent must never reach this repository: a change under evals/ would leak or alter the
+        // fixture and the hidden tests. Stop everything if it happens.
+        const leaked = execFileSync("git", ["status", "--porcelain", "--", "evals"], { cwd: REPO, encoding: "utf8" }).trim();
+        if (leaked) {
+          writeFileSync(join(outDir, "error.txt"), `evals/ changed during this run; result discarded:\n${leaked}`);
+          console.log(`ABORT ${task.id} ${arm} r${run}: evals/ changed during the run`);
+          process.exit(2);
+        }
         result.elapsedMs = Date.now() - started;
         result.environment = { model: MODEL, groundworkTgzSha256: tgzHash };
         writeFileSync(join(outDir, "result.json"), JSON.stringify(result, null, 2));
