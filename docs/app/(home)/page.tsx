@@ -39,7 +39,7 @@ const benefits = [
   },
   {
     title: 'You stay in charge',
-    body: 'Nothing is saved to your project’s history until you say so. Every stop tells you what changed, how to try it yourself, and what to watch out for.',
+    body: 'By default, a piece of work is committed only after you approve it. Every stop tells you what changed, how to try it yourself, and what to watch out for.',
     looks: 'What changed · How to check · Caveats → /gw-approve',
   },
   {
@@ -54,7 +54,7 @@ const benefits = [
   },
   {
     title: 'Use the AI you already have',
-    body: 'Works in Claude Code, OpenCode, or any AI tool that can read files. Switch tools or models halfway through; the project stays the same.',
+    body: 'Works in Claude Code, OpenCode, or any AI tool that can read files. Switch tools or models, or hand a task to a teammate on its own branch; the context comes with it.',
     looks: 'plain markdown files in your repo',
   },
 ];
@@ -67,13 +67,14 @@ export default function HomePage() {
       <section className="page-container pt-20 pb-10 sm:pt-28">
         <p className="type-label mb-5">Open source · Any tool</p>
         <h1 className="type-display max-w-4xl">
-          Spec, proof, approval.
+          Shared project context
           <br />
-          <span className="text-muted">A workflow your AI agent can’t skip.</span>
+          <span className="text-muted">for developers and their coding agents.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-          Your agent writes the code. Groundwork is the project layer: it owns the spec, the cards, the evidence and
-          the approvals, in files, so any session can pick up where the last one stopped.
+          Your agent writes the code. Groundwork keeps the spec, the decisions, the plan, the proof and the handoff in
+          your repo, so any session, tool or teammate can pick up where the last one stopped, and checks that a card
+          isn’t committed without its proof and your approval.
         </p>
       </section>
 

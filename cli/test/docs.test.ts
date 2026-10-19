@@ -103,10 +103,15 @@ describe("helper commands in the docs", () => {
   // Fresh installs have only /gw, /gw-approve and /gw-reject as native commands; the docs mustn't
   // tell anyone to type the others.
   it("never writes a helper as a slash command", () => {
-    const pages = [join(repo, "README.md"), join(repo, "cli", "README.md"), ...files(content, ".mdx").map((page) => join(docs, page))];
+    const pages = [
+      join(repo, "README.md"),
+      join(repo, "cli", "README.md"),
+      ...files(content, ".mdx").map((page) => join(docs, page)),
+      ...files(join(docs, "app", "(home)"), ".tsx").map((page) => join(docs, page)),
+    ];
     for (const page of pages) {
       const text = readFileSync(page, "utf8");
-      expect(text, page).not.toMatch(/[`( ]\/gw-(setup|spec|plan|next|handoff|quick|decide|ui-spec|retro)\b/);
+      expect(text, page).not.toMatch(/[`(' "]\/gw-(setup|spec|plan|next|handoff|quick|decide|ui-spec|retro)\b/);
     }
   });
 });

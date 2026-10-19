@@ -48,7 +48,7 @@ const takeaways = [
   {
     href: '#honest',
     title: 'The honest catch.',
-    body: 'On an app this small, one plain chat would likely be cheaper. Groundwork pays off as a project grows past what one chat can hold.',
+    body: 'On an app this small, one plain chat would likely be cheaper. The model below predicts Groundwork pays off as a project grows past what one chat can hold; that hasn’t been measured yet.',
   },
 ];
 
@@ -62,6 +62,10 @@ export default function ProofPage() {
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
             One real build across 20 sessions, measured call by call. Every number here comes from OpenCode’s own token
             accounting and links to the raw row it came from, including the ones that don’t flatter it.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+            It ran on an earlier Groundwork version. It shows where the tokens went on one small app; it isn’t a
+            comparison of quality or cost against working without Groundwork. That evaluation is still to come.
           </p>
           <p className="mt-4 font-mono text-xs text-muted">{model} · measured 2026-09-26</p>
           <div className="mt-8 flex flex-wrap gap-3">
