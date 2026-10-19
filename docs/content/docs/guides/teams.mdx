@@ -42,6 +42,8 @@ yet. Roles, permissions, dashboards and hosted services are not part of it.
   This stores the versions you read in `.groundwork/work/1.2/context.json`.
 - **Local commits are checkpoints.** The commit gate still refuses a cardless commit and checks the
   card's rules, but doesn't ask for `/gw-approve`.
+- **The agent finishes by pushing the task branch** and stops for the pull request. It doesn't merge
+  into `main` or push `main`, and the guard refuses a push that would.
 
 ## When `main` moves
 

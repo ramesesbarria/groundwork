@@ -43,6 +43,8 @@ On branch `gw/<id>`, `gw-handoff` writes `.groundwork/work/<id>/HANDOFF.md`. The
 
 The human sets `integration` to `pr` in `.groundwork/config.json`, during setup or in their own editor afterwards; once setup is done the guard refuses that switch from the agent. Local task-branch commits are checkpoints; the local commit gate does not require a human approval line.
 
+Finish a task by pushing its branch (`git push -u origin gw/<id>`) and opening a pull request, then stop. Never merge into `main` or push `main` yourself, and don't start another task's card: review and merge happen in the pull request. The guard refuses a push that updates `main`.
+
 The repository enforces integration:
 
 - Require a pull request before merging.

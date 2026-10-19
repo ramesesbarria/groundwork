@@ -72,6 +72,18 @@ describe("protect-harness", SLOW, () => {
     expect(hook(dir, bash('git add -A && git commit -m "[1.1] X"')).status).toBe(2);
   });
 
+  it("in PR integration, refuses pushes that update main, and allows pushing the task branch", async () => {
+    const dir = await project({ integration: "pr" });
+    for (const command of ["git push origin main", "git push origin HEAD:main", "git push -u origin gw/1.1:refs/heads/main", "git push --all origin"]) {
+      expect(hook(dir, bash(command)).stderr, command).toMatch(/\[protect-harness\].*pull request/);
+    }
+    expect(hook(dir, bash("git push")).status).toBe(2); // on main
+    git(dir, "checkout", "-q", "-b", "gw/1.1");
+    expect(hook(dir, bash("git push")).status).toBe(0);
+    expect(hook(dir, bash("git push -u origin gw/1.1")).status).toBe(0);
+    expect(hook(await project(), bash("git push origin main")).status).toBe(0); // local integration
+  });
+
   it("lets a PR-integration project return to local approval, and lets setup choose PR integration", async () => {
     expect(hook(await project({ integration: "pr" }), edit(".groundwork/config.json", '"integration": "pr"', '"integration": "local"')).status).toBe(0);
     const pending = await project({ setup: "pending" });

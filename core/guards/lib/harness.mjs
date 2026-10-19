@@ -8,6 +8,7 @@
 // It stops accidental and lazy changes and makes deliberate ones visible. A determined agent with a
 // shell can still find a way around it; that's what `groundwork check` in CI is for.
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
@@ -204,6 +205,39 @@ export function commandWriteTargets(command) {
   return targets;
 }
 
+// In PR integration, main changes only through a reviewed pull request. A push that updates main: an
+// explicit main/master refspec, --all or --mirror, or a bare `git push` while on main.
+const MAIN = /^(?:[^:]*:)?(?:refs\/heads\/)?(?:main|master)$/;
+function pushesMain(command, project) {
+  for (const segment of command.split(/[;&|\n]/)) {
+    const words = segment.trim().split(/\s+/).filter(Boolean);
+    const at = words.indexOf("push");
+    if (at < 1 || !words.slice(0, at).includes("git")) continue;
+    const args = words.slice(at + 1).map(unquote);
+    if (args.some((a) => a === "--all" || a === "--mirror")) return true;
+    const refs = args.filter((a) => !a.startsWith("-")).slice(1);
+    if (refs.some((ref) => MAIN.test(ref))) return true;
+    if (refs.length === 0) {
+      try {
+        const branch = execFileSync("git", ["branch", "--show-current"], { cwd: project, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+        if (MAIN.test(branch)) return true;
+      } catch {
+        // not a repository: nothing to push
+      }
+    }
+  }
+  return false;
+}
+
+function integrationIsPr(project) {
+  try {
+    const file = resolve(project, CONFIG);
+    return existsSync(file) && parseJson(readFileSync(file, "utf8")).integration === "pr";
+  } catch {
+    return false;
+  }
+}
+
 // Whether setup has finished. Until it has, the agent writes config.json freely, the same way the
 // Write and Edit tools already may; after, shell edits to it are the human's. A config that can't
 // be read counts as done, so a broken one can't open the door.
@@ -249,6 +283,12 @@ function checkCommand(action, project) {
   }
   if (/\bgit\b[^\n;&|]*\badd\b/i.test(command) && /\.groundwork[\\/]private[\\/]/i.test(command)) {
     return { block: true, reason: "Groundwork's private files must stay out of git. Don't stage them." };
+  }
+  if (integrationIsPr(project) && pushesMain(command, project)) {
+    return {
+      block: true,
+      reason: "In PR integration, main changes only through a reviewed pull request. Push your task branch (e.g. `git push -u origin gw/<id>`), open a pull request, and stop for review.",
+    };
   }
   if (MODE_SWITCH.test(command)) {
     return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
