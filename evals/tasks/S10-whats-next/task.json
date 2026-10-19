@@ -1,0 +1,15 @@
+{
+  "id": "S10",
+  "title": "Pick up the next planned step (budgets)",
+  "promise": "\"what's next?\" finds the planned work in a new session",
+  "steps": [
+    {
+      "prompt": "We need two things for budgets. (a) loadBudgets(path) in src/budgets.js reads a JSON file like { \"Food\": \"200.00\" } into { Food: 20000 } (cents); a missing file means {}. (b) renderReport(ledger, { date, budgets }) appends ` (over budget by X)` to a category's line when its total is above its budget, e.g. `Food: 250.00 (over budget by 50.00)`; categories without a budget, or within it, are unchanged. Do (a) today only; (b) is for next time.",
+      "reply": "Yes, go ahead with what you recommend, but only (a) today; (b) is for next time."
+    },
+    {
+      "prompt": "What's next? Carry on.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

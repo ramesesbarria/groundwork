@@ -1,0 +1,32 @@
+{
+  "decision": {
+    "id": "D5",
+    "groundworkFile": "0005-what-summaries-count.md",
+    "title": "What summaries count",
+    "before": "Totals and summaries include every entry, whatever its category.",
+    "after": "Transfers are not spending. Entries in the category `Transfer` are left out of all totals and summaries: totalsByCategory, balance, the report, and any summary such as monthly totals. (Changed 2026-10-20.)"
+  },
+  "tasks": {
+    "1.1": {
+      "title": "Monthly summary",
+      "slug": "monthly-summary",
+      "body": "monthlyTotals(ledger) in src/summary.js returns [{ month: 'YYYY-MM', total: cents }] sorted by month, and `node src/cli.js monthly` prints one line per month, like `2026-10: 85.25`. Add tests.",
+      "criteria": [
+        "monthlyTotals(ledger) returns [{ month, total }] sorted by month",
+        "`node src/cli.js monthly` prints one `YYYY-MM: amount` line per month",
+        "Totals follow decision D5 (what summaries count)"
+      ],
+      "relies": "decision D5 (what summaries count)"
+    },
+    "1.2": {
+      "title": "Report sorted by total",
+      "slug": "report-sorted",
+      "body": "The report lists categories by total, largest first; ties are ordered by category name. Add tests.",
+      "criteria": [
+        "renderReport lists categories by total, largest first",
+        "Ties are ordered by category name"
+      ],
+      "relies": "decision D1 (integer cents)"
+    }
+  }
+}

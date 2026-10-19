@@ -1,0 +1,11 @@
+{
+  "id": "S04",
+  "title": "Small change (report header date format)",
+  "promise": "a small change stays small: the quick path's cost and correctness",
+  "steps": [
+    {
+      "prompt": "Small change: the report header should show the date in ISO format, e.g. `Ledger report (2026-10-19)` instead of `Ledger report (19 October 2026)`. Nothing else changes.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "S08",
+  "title": "Don't reintroduce a rejected approach (no shared state)",
+  "promise": "an earlier rejection and the project's decisions shape later work",
+  "steps": [
+    {
+      "prompt": "Add category aliases: totalsByCategory(ledger, { aliases }) takes an optional second argument, e.g. { aliases: { Groceries: 'Food' } }, and adds an aliased category's total into its target. Someone tried a global alias registry before and we rejected it; configuration is passed in as arguments.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "prompt": "Add category colors to the report: renderReport(ledger, { date, colors }) takes an optional colors map like { Food: 'green' } and adds ` [green]` at the end of that category's line.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

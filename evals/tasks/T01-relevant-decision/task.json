@@ -1,0 +1,24 @@
+{
+  "id": "T01",
+  "type": "team",
+  "title": "A relevant decision changes upstream while a task is in flight; another developer continues",
+  "promise": "a changed decision the task relies on is noticed and applied; an unrelated change is not a distraction",
+  "stages": [
+    {
+      "kind": "agent",
+      "clone": "A",
+      "task": "1.1",
+      "prompt": "You're starting task 1.1 ({taskRef}) on branch {branch}. Get as far as the tests and the core function today, then commit and push the branch.",
+      "reply": "Yes, go ahead with what you recommend, but only today's part; then commit and push what you have."
+    },
+    { "kind": "upstream", "changes": ["decision-change", "unrelated-change"] },
+    {
+      "kind": "agent",
+      "clone": "C",
+      "task": "1.1",
+      "prompt": "You're picking up task 1.1 ({taskRef}) from a teammate on branch {branch}. Finish it and get it ready for review: the branch must be up to date with main and its checks must pass ({checks}). Commit and push.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ],
+  "score": { "branchTask": "1.1", "hidden": ["accept", "context"] }
+}
