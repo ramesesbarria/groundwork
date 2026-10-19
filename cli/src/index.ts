@@ -44,7 +44,7 @@ const COMMANDS: Record<string, string> = {
   mode: "Show or change when you approve: per-card, per-phase or at-end (mode [mode])",
   check: "Check cards against the workflow: evidence, criteria, status moves, approval, and task context (check [card-id...] [--base <ref>] [--task <id>]; exits 1 on problems)",
   reassess: "Record the local and upstream context versions a task has just been checked against (reassess <id> --target <ref> [--dep <ref>] [--drop <ref>])",
-  migrate: "Record pre-approval done cards for the one-time legacy migration; new cards stay checked (migrate legacy [--dry-run] [--yes])",
+  migrate: "Record done cards that Git shows predate the approval rule; new or changed cards stay checked (migrate legacy [--dry-run] [--yes] [--reviewed])",
   retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
   uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };

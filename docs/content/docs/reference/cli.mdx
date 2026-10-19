@@ -180,14 +180,21 @@ re-resolves the reference to its current path.
 ```bash
 npx groundwork-ai migrate legacy --dry-run
 npx groundwork-ai migrate legacy --yes
+npx groundwork-ai migrate legacy --yes --reviewed   # after checking the cards listed under review
 ```
 
-Records a one-time snapshot of done cards that predate the approval rule in
-`.groundwork/.legacy-cards.json`. It exempts only the historical “approved by human” requirement: a
-recorded card still fails on missing or empty evidence, invalid records, or stale context. It does
-not add an approval line or evidence, it does not record active cards, and it does not exempt new
-cards. A recorded card loses the exemption if its content changes. The manifest is locked against
-agent writes.
+Records a snapshot of done cards that predate the approval rule in `.groundwork/.legacy-cards.json`.
+It exempts only the historical “approved by human” requirement: a recorded card still fails on
+missing or empty evidence, invalid records, or stale context. It does not add an approval line or
+evidence, and it does not record active cards.
+
+A done status is not enough. Git has to show that the card, unchanged, was last committed before the
+approval rule (`.groundwork/guards/lib/approval.mjs`) entered the project. A card that isn't
+committed, changed since its last commit, or was committed with or after the rule is skipped: new
+work needs an approval. When Git can't show the history (no repository, or Git ignores the card), the
+card is listed under `review`; check each one is old work, then add `--reviewed`. Running it again
+never widens the record, and a recorded card loses the exemption if its content changes. The
+manifest is locked against agent writes, and the guard blocks the agent from running `migrate`.
 
 ## mode
 

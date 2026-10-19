@@ -34,10 +34,22 @@ const check = (dir: string) => run(["check"], { cwd: dir, ask: noQuestions });
 const git = (dir: string, ...args: string[]) =>
   execFileSync("git", ["-c", "user.name=Test", "-c", "user.email=test@example.com", ...args], { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 
+// History that predates the approval rule: the cards are committed first, then the rest of the
+// install (which brings .groundwork/guards/lib/approval.mjs) lands in a later commit.
+function oldHistory(dir: string): void {
+  git(dir, "init", "-q", "--initial-branch=main");
+  git(dir, "add", ".groundwork/cards", ".groundwork/evidence");
+  git(dir, "commit", "-qm", "old cards");
+  git(dir, "add", "-A");
+  git(dir, "commit", "-qm", "install the approval rule");
+}
+const migrate = (dir: string, ...args: string[]) => run(["migrate", "legacy", ...args], { cwd: dir, ask: noQuestions });
+
 describe("migrate legacy", () => {
   it("exempts only the recorded pre-approval card, and does not touch evidence", async () => {
     const dir = await project();
     const legacy = card(dir, "1.1", "Old card");
+    oldHistory(dir);
     expect((await check(dir)).code).toBe(1);
 
     const dry = await run(["migrate", "legacy"], { cwd: dir, ask: noQuestions });
@@ -60,6 +72,7 @@ describe("migrate legacy", () => {
   it("exempts only the approval line, never missing evidence", async () => {
     const dir = await project();
     card(dir, "1.1", "Old card");
+    oldHistory(dir);
     const evidence = join(dir, ".groundwork/evidence/1.1/tests.txt");
     rmSync(evidence);
     expect((await check(dir)).output).toMatch(/doesn't exist/);
@@ -76,14 +89,12 @@ describe("migrate legacy", () => {
     const dir = await project();
     const active = card(dir, "1.1", "Active card", "implementing");
     writeFileSync(active, readFileSync(active, "utf8").replace("## Goal\nActive card.", "## Goal\nActive card, approved by human."));
-    const migrated = await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions });
-    expect(migrated.output).toMatch(/No legacy cards/);
-    expect(existsSync(join(dir, ".groundwork/.legacy-cards.json"))).toBe(false);
-
     const donePath = card(dir, "1.2", "Done card", "done");
     writeFileSync(donePath, readFileSync(donePath, "utf8").replace("## Goal\nDone card.", "## Goal\nDone card, approved by human."));
+    oldHistory(dir);
     const recorded = await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions });
     expect(recorded.output).toMatch(/record\s+1\.2/);
+    expect(recorded.output).not.toMatch(/1\.1/);
     expect((await check(dir)).code).toBe(0); // the real approval line is exempted, but not invented
   });
 
@@ -95,7 +106,7 @@ describe("migrate legacy", () => {
       join(dir, ".groundwork/decisions/0001-storage.md"),
       "---\nid: 0001\ntitle: Storage\nstatus: accepted\n---\nUse SQLite.\n",
     );
-    git(dir, "add", "-A");
+    git(dir, "add", ".groundwork/decisions");
     git(dir, "commit", "-qm", "baseline");
     const base = git(dir, "rev-parse", "HEAD");
     mkdirSync(join(dir, ".groundwork/work/1.1"), { recursive: true });
@@ -112,8 +123,10 @@ describe("migrate legacy", () => {
       ),
     );
     card(dir, "1.1", "Old card");
-    git(dir, "add", "-A");
+    git(dir, "add", ".groundwork/cards", ".groundwork/evidence", ".groundwork/work");
     git(dir, "commit", "-qm", "old card");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-qm", "install the approval rule");
     expect((await run(["migrate", "legacy", "--yes"], { cwd: dir, ask: noQuestions })).code).toBe(0);
 
     const result = await run(["check", "--task", "1.1", "--base", "main"], { cwd: dir, ask: noQuestions });
@@ -130,5 +143,67 @@ describe("migrate legacy", () => {
     expect(result.code).toBe(0);
     expect(result.output).toMatch(/PR integration/);
     expect(readFileSync(join(dir, ".groundwork/cards/1.1.md"), "utf8")).not.toMatch(/approved by human/);
+  });
+
+  it("refuses new work: an uncommitted card, and a card committed after the approval rule", async () => {
+    const dir = await project();
+    card(dir, "1.1", "Old card");
+    oldHistory(dir);
+    card(dir, "2.1", "New untracked card");
+    const fresh = await migrate(dir, "--yes", "--reviewed");
+    expect(fresh.output).toMatch(/record\s+1\.1/);
+    expect(fresh.output).toMatch(/skip\s+2\.1 \(not committed/);
+
+    git(dir, "add", "-A");
+    git(dir, "commit", "-qm", "new card");
+    const committed = await migrate(dir, "--yes", "--reviewed");
+    expect(committed.output).toMatch(/skip\s+2\.1 \(committed with or after the approval rule/);
+    const manifest = JSON.parse(readFileSync(join(dir, ".groundwork/.legacy-cards.json"), "utf8"));
+    expect(Object.keys(manifest.cards)).toEqual(["1.1"]);
+    expect((await check(dir)).output).toMatch(/Card 2\.1[\s\S]*approved by human/);
+  });
+
+  it("refuses a historical card that changed, whether uncommitted or committed later", async () => {
+    const dir = await project();
+    const old = card(dir, "1.1", "Old card");
+    oldHistory(dir);
+    writeFileSync(old, readFileSync(old, "utf8").replace("Old card.", "Old card, reworded."));
+    expect((await migrate(dir, "--yes")).output).toMatch(/skip\s+1\.1 \(changed since its last commit/);
+    git(dir, "commit", "-qam", "reword");
+    expect((await migrate(dir, "--yes")).output).toMatch(/skip\s+1\.1 \(committed with or after the approval rule/);
+    expect(existsSync(join(dir, ".groundwork/.legacy-cards.json"))).toBe(false);
+  });
+
+  it("is idempotent when repeated, and never widens the record", async () => {
+    const dir = await project();
+    card(dir, "1.1", "Old card");
+    oldHistory(dir);
+    expect((await migrate(dir, "--yes")).output).toMatch(/record\s+1\.1/);
+    const first = readFileSync(join(dir, ".groundwork/.legacy-cards.json"), "utf8");
+    expect((await migrate(dir, "--yes")).output).toMatch(/No legacy cards need migration/);
+    card(dir, "1.2", "Later card");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-qm", "later card");
+    expect((await migrate(dir, "--yes")).output).toMatch(/skip\s+1\.2/);
+    expect(readFileSync(join(dir, ".groundwork/.legacy-cards.json"), "utf8")).toBe(first);
+  });
+
+  it("asks for human review when Git can't show the history, and records only with --reviewed", async () => {
+    const dir = await project();
+    card(dir, "1.1", "Old card");
+    const listed = await migrate(dir, "--yes");
+    expect(listed.output).toMatch(/review\s+1\.1 \(no Git history/);
+    expect(listed.output).toMatch(/--reviewed/);
+    expect(existsSync(join(dir, ".groundwork/.legacy-cards.json"))).toBe(false);
+
+    const ignored = await project();
+    card(ignored, "1.1", "Old card");
+    writeFileSync(join(ignored, ".gitignore"), ".groundwork/\n");
+    git(ignored, "init", "-q", "--initial-branch=main");
+    git(ignored, "add", "-A");
+    git(ignored, "commit", "-qm", "code only");
+    expect((await migrate(ignored, "--yes")).output).toMatch(/review\s+1\.1 \(Git ignores it/);
+    expect((await migrate(ignored, "--yes", "--reviewed")).output).toMatch(/record\s+1\.1/);
+    expect((await check(ignored)).code).toBe(0);
   });
 });
