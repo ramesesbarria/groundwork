@@ -21,8 +21,8 @@ yet. Roles, permissions, dashboards and hosted services are not part of it.
    [`demo/groundwork-pr.yml`](https://github.com/ramesesbarria/groundwork/blob/main/demo/groundwork-pr.yml)
    to `.github/workflows/`. Its `groundwork-head` job runs `groundwork-ai check --base origin/main` on
    the real PR head; `groundwork-merge` runs your tests on the merge result. Add `groundwork-ai` as a
-   dev dependency so CI and your machines run the same version. `check --base` needs a release newer
-   than 0.9.0.
+   dev dependency (`npm install --save-dev groundwork-ai@^1.0.0`) so CI and your machines run the
+   same version.
 3. **Protect `main`.** Require a pull request, at least one approving review, the
    `groundwork-head` and `groundwork-merge` checks, an up-to-date branch, and dismissal of stale
    approvals when new commits are pushed. These rules are what enforce approval in this mode.

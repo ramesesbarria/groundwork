@@ -5,8 +5,8 @@
 # check would pass even when the PR head is behind.
 #
 # The check runs the groundwork-ai version locked in the project's own package-lock.json, so CI
-# and the developers use the same one. It needs a release with `check --base` (newer than 0.9.0):
-#   npm install --save-dev groundwork-ai@<that release>
+# and the developers use the same one. It needs groundwork-ai 1.0.0 or later, which has `check --base`:
+#   npm install --save-dev groundwork-ai@^1.0.0
 # To try an unreleased build, install the package under test instead of a published one:
 #   npm pack -w groundwork-ai            (in the Groundwork checkout)
 #   npm install --save-dev <path>/groundwork-ai-<version>.tgz
