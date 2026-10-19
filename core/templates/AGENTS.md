@@ -18,7 +18,7 @@ This project uses [Groundwork](https://github.com/ramesesbarria/groundwork). The
 3. **Follow `.groundwork/workflow.md`** and the file for your role in `.groundwork/roles/`.
 4. **No evidence, no done.** Proof goes in `.groundwork/evidence/<card-id>/`, linked from the card. **Secrets** (passwords, keys, private details) go only in `.groundwork/private/`, which git ignores.
 5. **Commit only when the workflow allows** (config: `approvalMode`, `autoCommit`, `commitFormat`).
-6. **Update the handoff** each role; on `gw/<id>`, use `.groundwork/work/<id>/HANDOFF.md`. end each stop with the next step.
+6. **Update the handoff** each role; on `gw/<id>`, use `.groundwork/work/<id>/HANDOFF.md`. End each stop with the next step.
 7. **Don't change the stack silently.** Propose a new decision in `.groundwork/decisions/`.
 8. **Ask specific questions in plain English** when you need input. Explain as much as `experience` in the config says.
 9. **Request without a command? Say the path in one line first:** a "can X do Y?" question is a try; small, low-risk or a bug is quick (both in `.groundwork/commands/gw-quick.md`); anything bigger gets a card. The human can override.

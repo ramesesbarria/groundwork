@@ -47,7 +47,7 @@ describe("one HANDOFF writer", () => {
 
 describe("the next step is always obvious", () => {
   it("AGENTS.md: every stop ends with the next step", () => {
-    expect(core("templates/AGENTS.md")).toMatch(/end each stop with the next step/);
+    expect(core("templates/AGENTS.md")).toMatch(/end each stop with the next step/i);
   });
 
   it("gw-retro ends by saying what's next", () => {
