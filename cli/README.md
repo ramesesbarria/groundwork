@@ -1,6 +1,6 @@
 # groundwork-ai
 
-**Spec, proof, approval. A workflow your AI agent can't skip.**
+**Spec, proof, approval. Checked by hooks and CI, not just asked of your agent.**
 
 Groundwork gives your AI coding agent a real development process: a spec, small cards, separate
 tester, implementer and reviewer roles, and your approval before anything is committed. Full

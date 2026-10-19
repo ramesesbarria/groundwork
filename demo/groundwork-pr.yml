@@ -3,6 +3,13 @@
 # The head job checks the real PR head. The merge job runs tests on the simulated merge result.
 # Do not run the freshness/context check on the merge ref: that ref contains main, so the ancestry
 # check would pass even when the PR head is behind.
+#
+# The check runs the groundwork-ai version locked in the project's own package-lock.json, so CI
+# and the developers use the same one. It needs a release with `check --base` (newer than 0.9.0):
+#   npm install --save-dev groundwork-ai@<that release>
+# To try an unreleased build, install the package under test instead of a published one:
+#   npm pack -w groundwork-ai            (in the Groundwork checkout)
+#   npm install --save-dev <path>/groundwork-ai-<version>.tgz
 name: Groundwork PR
 
 on:
@@ -25,9 +32,8 @@ jobs:
         with:
           node-version: 22
       - run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-      # Pin this to the version your project uses. Add it as a devDependency and use
-      # `npx --no-install groundwork-ai` if you want a fully locked install.
-      - run: npx --yes groundwork-ai@0.9.0 check --base origin/main
+      - run: npm ci
+      - run: npx --no-install groundwork-ai check --base origin/main
 
   merge:
     name: groundwork-merge

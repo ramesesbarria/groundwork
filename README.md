@@ -5,7 +5,7 @@
 [![Docs](https://img.shields.io/badge/docs-read-4f46e5)](https://ramesesbarria.github.io/groundwork/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Spec, proof, approval. A workflow your AI agent can't skip.**
+**Spec, proof, approval. Checked by hooks and CI, not just asked of your agent.**
 
 Your agent writes the code. Groundwork is the project layer: it owns the spec, the cards, the
 evidence and the approvals, so any session can pick up where the last one stopped.
@@ -122,8 +122,9 @@ The measurements come from one recorded build. [The calculator walkthrough](http
 | Resume | Any session, tool or model continues from the handoff | Re-explain everything |
 
 **When not to use it:** one-off scripts and throwaway experiments (ask your agent). Fully
-autonomous overnight runs: Groundwork stops for you by design. Teams and pull-request flows: not
-built yet. There are no benchmarks or evals; the claim is the mechanism, not a score.
+autonomous overnight runs: Groundwork stops for you by design. Teams: a pull-request prototype
+(per-task handoffs, declared context, PR review as the approval); roles, permissions and dashboards
+aren't built. There are no benchmarks or evals; the claim is the mechanism, not a score.
 
 ## Quickstart
 

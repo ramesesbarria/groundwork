@@ -50,14 +50,17 @@ its own. The same is true of `experience`.
 ## What if the agent gets something wrong?
 
 Reject it. `/gw-reject` needs a reason in your words; the reason goes on the card and sends it back
-to the implementer. If the same mistake happens twice, `/gw-retro` proposes turning it into a rule —
+to the implementer. If the same mistake happens twice, `gw-retro` proposes turning it into a rule —
 and if that still gets broken, into a guard that blocks it. Nothing changes without your OK.
 
 ## How much does it cost in context?
 
-About **1,100 tokens always loaded** on a fresh Claude Code install, about 950 in OpenCode and 450
-with plain markdown: `AGENTS.md`, plus the one-line description of each command and subagent your
-tool keeps in context. `doctor` shows the real number for your project, part by part. Everything else — roles, commands, workflow — loads only when a step needs it, and cards
+An estimated **≈760 tokens always loaded** on a fresh Claude Code install, ≈560 in OpenCode and ≈450
+with plain markdown: `AGENTS.md`, plus the one-line description of each skill and subagent your
+tool keeps in context. These are `doctor`'s estimates (characters ÷ 4), and it shows the number for
+your project, part by part. Measured in one fresh OpenCode 2.0.32 session (DeepSeek), Groundwork
+added about 610 tokens to the model's first prompt; Claude Code hasn't been measured the same way
+yet. Everything else — roles, commands, workflow — loads only when a step needs it, and cards
 carry their own proof so nothing is re-explained. You can also
 [assign cheaper models](/docs/reference/configuration#models-per-role) to the mechanical roles.
 
@@ -69,9 +72,13 @@ fix-soon-after-card patterns).
 
 ## Can a team use it?
 
-Groundwork today is built for one developer with one approval gate. Team flows — pull requests per
-card or phase, multi-user approval — aren't part of it yet. The files are in your repo, so a team
-can read them, but that's not the same as being built for teams.
+By default Groundwork is set up for one developer with one approval gate. For teams there is a
+pull-request prototype: each task branch `gw/<id>` keeps its own handoff and declared context,
+`check --base origin/main` reports a stale branch or a changed decision the task depends on, and
+with `integration: "pr"` pull-request review and required checks are the approval. See
+[check](/docs/reference/cli#check) and [reassess](/docs/reference/cli#reassess). Roles,
+permissions, dashboards and hosted services aren't part of it, and live human PR review hasn't been
+fully exercised yet.
 
 ## Where do I see what was decided, and why?
 

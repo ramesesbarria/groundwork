@@ -21,7 +21,7 @@ npx groundwork-ai <command>
 | [`reassess`](#reassess) | Record the context versions a task has just been checked against |
 | [`migrate`](#migrate) | Record pre-approval done cards for the one-time legacy migration |
 | [`mode`](#mode) | Show or change when you approve the work |
-| [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
+| [`retro`](#retro) | Collect signals of repeated mistakes for `gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
 
 `npx groundwork-ai --version` prints the version; `npx groundwork-ai help` prints usage.
@@ -141,10 +141,17 @@ the commit gate and CI can all rely on it:
 - a card waiting for approval or done has Evidence, every file it links to exists and is not empty,
   and every acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
 - in `per-card` mode, a done card's History has the "approved by human" line
+- the card is within the size limit (≈1,500 tokens), the same rule the commit gate applies; a card
+  waiting for review or approval is measured with room for the lines approval adds. Done cards that
+  are committed and unchanged are left out of the size rule.
+
+These card rules apply to every card, including old done ones; see [migrate](#migrate) for cards
+that predate the approval rule.
 
 When a task has `.groundwork/work/<id>/context.json`, `--base <ref>` also reports branch freshness
-and declared context changes separately. The current `gw/<id>` task, or `--task <id>`, is checked
-even when it is `done`; unchanged historical done cards are out of scope. `check` is read-only.
+and declared context changes separately. The context check covers the current `gw/<id>` task,
+`--task <id>`, and tasks whose cards the branch changed, even when they are `done`; other tasks'
+context isn't checked. `check` is read-only.
 
 With `integration: "pr"` in `config.json`, a done card does not need a local “approved by human”
 line; PR review and required checks are the approval. The local commit gate becomes checkpoint-only.
@@ -200,7 +207,7 @@ manifest is locked against agent writes, and the guard blocks the agent from run
 
 ```bash
 npx groundwork-ai mode             # show the current approval mode
-npx groundwork-ai mode at-end      # per-card, per-phase or at-end
+npx groundwork-ai mode per-phase   # per-card or per-phase (at-end is parked for v1)
 ```
 
 Changes `approvalMode` in `.groundwork/config.json`. It's the command you run yourself: the agent
@@ -215,7 +222,7 @@ npx groundwork-ai retro
 
 Reads git history and Groundwork's own files, and writes `.groundwork/retro.md`: reverts, fixes
 committed soon after a card, rejections, send-backs, judgment calls that were later
-rejected, and a count per lesson cited. It only reports — `/gw-retro` turns the signals into
+rejected, and a count per lesson cited. It only reports — `gw-retro` turns the signals into
 proposed changes, with your approval.
 
 ## uninstall
