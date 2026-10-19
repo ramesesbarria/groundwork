@@ -97,7 +97,7 @@ export function asksHuman(text) {
   return (
     /\?\s*\**\s*$/.test(tail) ||
     /\b(should I|shall I|would you like me to|do you want me to|OK to (proceed|continue|write|start|commit)|want me to|say (OK|the word|go)|give me (the|your) (OK|go-ahead)|once you (confirm|approve|say)|let me know (if|when|whether))\b/i.test(tail) ||
-    /\bplease confirm\b|\bconfirm (\(|\*\*)/i.test(lastTwo) ||
+    /\bplease confirm\b|\bconfirm (\(|\*\*)|(^|[.!:]\s+|\n\s*)(\*\*)?confirm\b/i.test(lastTwo) ||
     /\b(confirm (those|this|it|the|them|or|both|and)|yes\/no|next step is yours|needs? your (yes|answer|OK|confirmation|decision)|waiting (for|on) your (yes|answer|OK|confirmation|approval|decision)|your (yes|confirmation|go-ahead))\b/i.test(lastTwo)
   );
 }
