@@ -25,7 +25,7 @@ A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-a
 
 - **`per-card`** (default): the runner stops at `awaiting-approval`. The human approves or rejects each card.
 - **`per-phase`**: cards that pass review are committed one by one without stopping. When the phase's last card is done, the runner stops and the human reviews the phase. They can reject any card, which goes back into the loop. Nothing is pushed until the phase is approved.
-- **`at-end`**: the runner builds every card itself, straight through, committing each as a checkpoint once it's `built` with its test output; one review covers them all, then the human approves once. Follow `.groundwork/guides/at-end.md`.
+- **`at-end`** (legacy only): the runner builds every card itself, straight through, committing each as a checkpoint once it's `built` with its test output; one review covers them all, then the human approves once. Follow `.groundwork/guides/at-end.md`.
 
 **No evidence, no approval.** A card can't be approved while its Evidence section is empty or links to a missing file. Evidence is saved in `.groundwork/evidence/<card-id>/` and linked from the card.
 

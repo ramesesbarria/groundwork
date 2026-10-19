@@ -19,11 +19,17 @@ export interface CoreCommand {
   description: string;
 }
 
-export const commandsOf = (core: CoreFiles): CoreCommand[] =>
-  matching(core, "commands/").map((path) => ({
-    name: baseName(path),
-    description: parseFrontmatter(core[path]).description ?? "",
-  }));
+// The default agent surface is deliberately small. Every other command stays in
+// .groundwork/commands/ and /gw reads the one the task needs.
+export const DEFAULT_COMMANDS = new Set(["gw", "gw-approve", "gw-reject"]);
+
+export const commandsOf = (core: CoreFiles, names: Set<string> = DEFAULT_COMMANDS): CoreCommand[] =>
+  matching(core, "commands/")
+    .map((path) => ({
+      name: baseName(path),
+      description: parseFrontmatter(core[path]).description ?? "",
+    }))
+    .filter((command) => names.has(command.name));
 
 export interface CoreRole {
   name: string;

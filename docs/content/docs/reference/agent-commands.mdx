@@ -20,9 +20,12 @@ where the project is and runs the next step.
 | Save where things stand before you stop | `/gw-handoff` |
 | Turn repeated mistakes into rules | `/gw-retro` |
 
-In Claude Code and OpenCode these are native commands. In any other tool, ask your agent to *"read
-`.groundwork/commands/<name>.md` and follow it"*. The commands are written so an agent can also
-pick the right one from a plain request — you don't have to name them.
+By default Claude Code and OpenCode install only three native commands: `/gw`, `/gw-approve` and
+`/gw-reject`. The rest of the helpers in the table stay in `.groundwork/commands/`; `/gw` reads the
+one the task needs, so the always-loaded list stays small. You can still ask for a helper by name.
+In any other tool, ask your agent to *"read `.groundwork/commands/<name>.md` and follow it"*. The
+commands are written so an agent can also pick the right one from a plain request - you don't have
+to name them.
 
 ## The everyday commands
 

@@ -32,73 +32,10 @@ Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",
-  ".opencode/commands/gw-decide.md": "---
-description: Use when the work needs a choice the human hasn't made, like a framework or database. Offers options and records the pick.
----
-Read \`.groundwork/commands/gw-decide.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-handoff.md": "---
-description: Use when stopping for any reason, such as the session ending or context running low. Saves the state to HANDOFF.md.
----
-Read \`.groundwork/commands/gw-handoff.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-next.md": "---
-description: Use when there's a plan and the human wants to keep building. Runs the next card through tester, implementer and reviewer.
----
-Read \`.groundwork/commands/gw-next.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-plan.md": "---
-description: Use when the spec is confirmed and there are no cards yet, or new work needs planning. Breaks it into phases and cards.
----
-Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-quick.md": "---
-description: Use when the human asks for a small, low-risk change or reports a bug. Makes it in one pass without a card; tests must pass.
----
-Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
   ".opencode/commands/gw-reject.md": "---
 description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
 ---
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-retro.md": "---
-description: Use when a phase ends, or the same mistakes keep happening. Proposes turning lessons into rules or guards, with the human's OK.
----
-Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-setup.md": "---
-description: Use when Groundwork was just installed and setup in .groundwork/config.json isn't done. Sets the project up with a short interview.
----
-Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-spec.md": "---
-description: Use when the human describes a new app or feature and there's no confirmed spec for it. Writes the spec by asking questions.
----
-Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
-
-Arguments: $ARGUMENTS
-",
-  ".opencode/commands/gw-ui-spec.md": "---
-description: Use when a card involves UI or animation, before it's built. Agrees how it will look and behave, as checkable criteria.
----
-Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
 ",

@@ -11,7 +11,7 @@ in 2.0.32.
 
 | Path | What it is |
 |---|---|
-| `.opencode/commands/gw-*.md` | One command per command file; each reads its core file and follows it |
+| `.opencode/commands/gw*.md` | Commands for `/gw`, `/gw-approve` and `/gw-reject`; other helpers are read from `.groundwork/commands/` on demand |
 | `.opencode/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, with permissions |
 | `.opencode/plugins/groundwork-guards.js` | Runs Groundwork's checks and your guards before each tool call, and tells each session where things stand |
 

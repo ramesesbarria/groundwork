@@ -24,10 +24,10 @@ Make a card instead (`gw-plan`, then `gw-next`) when the change:
 4. Make the change. If it grows past the limits above, **stop**, say so, and suggest making a card instead.
 5. Run the project's test, lint and build commands. All must pass (with a baseline: no new failures) before you commit.
 6. Show a short summary of the diff.
-7. Commit with the message `[quick] <what changed>` (or the config's `commitFormat`, with `quick` as the ID):
-   - `per-card` mode: only after the human says OK.
-   - `per-phase` and `at-end` mode: once the checks pass. (`autoCommit` off: say what to commit.)
-8. Add one line to Notes in `.groundwork/HANDOFF.md`, e.g. "Quick change: fixed a typo (abc123)". Leave the current card and next step alone.
+7. Commit as `[quick] <what changed>` (or `commitFormat` with `quick` as the ID):
+   - `per-card`: only after the human says OK. If the request says commit, that's the OK; don't ask again.
+   - `per-phase` and `at-end`: once the checks pass. (`autoCommit` off: say what to commit.)
+8. Add a line under the existing Notes line in HANDOFF (same key), e.g. "Quick change: typo fixed (abc123)". Leave card and next step alone.
 
 **A run of small tweaks** (often from screenshots): one line each under "Tweaks since last commit" in HANDOFF's Notes, then one `[quick]` commit for all of them when the human moves on.
 

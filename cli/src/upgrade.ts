@@ -205,9 +205,17 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     newCommands.length > 0
       ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`]
       : [];
+  const adapterKept = kept.filter(({ file }) => file.path.startsWith(".claude/") || file.path.startsWith(".opencode/"));
   const notes = [
     ...(kept.length > 0
       ? [`You changed ${kept.length} of Groundwork's files, so they were kept. Compare each with its .new file, merge what you want, then delete the .new file.`]
+      : []),
+    ...(adapterKept.length > 0
+      ? [
+          `The active adapter still loads your preserved file${adapterKept.length === 1 ? "" : "s"}: ` +
+            `${adapterKept.map(({ file }) => file.path).join(", ")}. The .new version is not active. ` +
+            "Merge it, or remove your edit and run upgrade again, before relying on adapter changes in this release.",
+        ]
       : []),
     ...(unknown.length > 0
       ? ["This project had no record of the files Groundwork last wrote (it's from before that was tracked), so its files were replaced. If you had edited any, `git diff` shows it. From now on, edits are kept."]
@@ -225,6 +233,7 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
       ...fillIn,
       ...(notes.length > 0 ? ["", ...notes] : []),
       "",
+      "Commit Groundwork's updated files separately before the next card, e.g. `[setup] Upgrade Groundwork`, so they don't mix with card work.",
       "Run `npx groundwork-ai doctor` to check the result.",
     ].join("\n"),
   };

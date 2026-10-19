@@ -96,10 +96,10 @@ describe("groundwork doctor", () => {
 
   it("flags adapter files that differ from what the core would generate", async () => {
     const dir = await installed();
-    writeFileSync(join(dir, ".claude/skills/gw-next/SKILL.md"), "stale\n");
+    writeFileSync(join(dir, ".claude/skills/gw/SKILL.md"), "stale\n");
     const { code, output } = await doctor(dir);
     expect(code).toBe(1);
-    expect(output).toContain(".claude/skills/gw-next/SKILL.md");
+    expect(output).toContain(".claude/skills/gw/SKILL.md");
     expect(output).toMatch(/npx groundwork-ai adapter add claude-code/);
   });
 

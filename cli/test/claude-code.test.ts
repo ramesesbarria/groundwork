@@ -7,7 +7,9 @@ import { estimateTokens } from "../src/tokens.js";
 const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
 const out = generateClaudeCode(core);
 
-const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const COMMANDS = ["gw", "gw-approve", "gw-reject"];
+// Helpers stay in .groundwork/commands/ and are read by /gw on demand.
+const HELPERS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 // Roles that get a subagent. The planner doesn't: the main session plans.
 const ROLES = ["tester", "implementer", "reviewer"];
 
@@ -43,6 +45,11 @@ describe("Claude Code adapter", () => {
         ...ROLES.map((r) => `.claude/agents/gw-${r}.md`),
       ].sort(),
     );
+  });
+
+  it.each(HELPERS)("does not install the %s helper as a skill", (name) => {
+    expect(out[`.claude/skills/${name}/SKILL.md`]).toBeUndefined();
+    expect(core[`commands/${name}.md`]).toBeDefined();
   });
 
   it.each(COMMANDS)("skill %s has the command's name and description", (name) => {
@@ -97,10 +104,10 @@ describe("Claude Code adapter", () => {
   it("quotes descriptions that would break YAML", () => {
     const tricky = {
       ...core,
-      "commands/gw-next.md": core["commands/gw-next.md"].replace(/^description: .*$/m, 'description: Next card: run "the loop" # now'),
+      "commands/gw-approve.md": core["commands/gw-approve.md"].replace(/^description: .*$/m, 'description: Approve: run "the loop" # now'),
     };
-    const skill = generateClaudeCode(tricky)[".claude/skills/gw-next/SKILL.md"];
-    expect(skill).toContain('description: "Next card: run \\"the loop\\" # now"');
+    const skill = generateClaudeCode(tricky)[".claude/skills/gw-approve/SKILL.md"];
+    expect(skill).toContain('description: "Approve: run \\"the loop\\" # now"');
   });
 
   it("matches the snapshot", () => {

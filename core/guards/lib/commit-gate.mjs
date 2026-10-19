@@ -151,11 +151,11 @@ const lower = (path) => path.toLowerCase();
 const CARD = /^\.groundwork\/cards\//;
 const EVIDENCE = /^\.groundwork\/evidence\//;
 const PRIVATE = /^\.groundwork\/private\//;
-const KNOWLEDGE = /^(?:\.groundwork\/(?:SPEC\.md|decisions\/|work\/[^/]+\/context\.json$)|SPEC\.md$)/;
-const HANDOFF = /^\.groundwork\/(?:HANDOFF\.md|work\/[^/]+\/HANDOFF\.md)$/;
-const PLANNING = /^(?:\.groundwork\/(?:cards|decisions|work|SPEC\.md|HANDOFF\.md|JOURNAL\.md|LESSONS\.md)(?:\/|$)|PLAN\.md$|V1\.md$)/;
-const SETUP = /^(?:\.groundwork\/|\.claude\/|\.opencode\/|AGENTS\.md$|CLAUDE\.md$|\.gitattributes$|\.gitignore$|\.npmrc$|\.nvmrc$|package(?:-lock)?\.json$|pnpm-lock\.yaml$|yarn\.lock$|tsconfig\.json$)/;
-const DOCS = /^(?:docs\/|site\/|(?:README|CONTRIBUTING|CHANGELOG|LICENSE)(?:\.[^/]*)?$|V1\.md$)/;
+const KNOWLEDGE = /^(?:\.groundwork\/(?:spec\.md|decisions\/|work\/[^/]+\/context\.json$)|spec\.md$)/;
+const HANDOFF = /^\.groundwork\/(?:handoff\.md|work\/[^/]+\/handoff\.md)$/;
+const PLANNING = /^(?:\.groundwork\/(?:cards|decisions|work|spec\.md|handoff\.md|journal\.md|lessons\.md)(?:\/|$)|plan\.md$|v1\.md$)/;
+const SETUP = /^(?:\.groundwork\/|\.claude\/|\.opencode\/|agents\.md$|claude\.md$|\.gitattributes$|\.gitignore$|\.npmrc$|\.nvmrc$|package(?:-lock)?\.json$|pnpm-lock\.yaml$|yarn\.lock$|tsconfig\.json$)/;
+const DOCS = /^(?:docs\/|site\/|(?:readme|contributing|changelog|license)(?:\.[^/]*)?$|v1\.md$)/;
 
 const list = (paths, limit = 2) =>
   paths.length <= limit ? paths.join(", ") : `${paths.slice(0, limit).join(", ")} and ${paths.length - limit} more`;

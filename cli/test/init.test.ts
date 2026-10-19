@@ -62,7 +62,7 @@ describe("planInit", () => {
   it("adds the Claude Code files when that adapter is chosen", () => {
     const paths = planInit(core, "claude-code").map((f) => f.path);
     expect(paths).toContain("CLAUDE.md");
-    expect(paths).toContain(".claude/skills/gw-next/SKILL.md");
+    expect(paths).toContain(".claude/skills/gw/SKILL.md");
     expect(paths).toContain(".claude/agents/gw-reviewer.md");
   });
 });
@@ -77,7 +77,7 @@ describe("groundwork init", () => {
     expect(io.asked[0]).toMatch(/Claude Code/);
     expect(read(dir, ".groundwork/workflow.md")).toBe(core["workflow.md"]);
     expect(read(dir, "AGENTS.md")).toBe(core["templates/AGENTS.md"]);
-    expect(existsSync(join(dir, ".claude/skills/gw-setup/SKILL.md"))).toBe(true);
+    expect(existsSync(join(dir, ".claude/skills/gw/SKILL.md"))).toBe(true);
     expect(read(dir, "CLAUDE.md")).toContain("@AGENTS.md");
   });
 

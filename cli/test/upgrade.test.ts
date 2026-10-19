@@ -291,6 +291,24 @@ describe("groundwork upgrade", () => {
     expect(existsSync(join(dir, ".groundwork/templates/card.md.new.new"))).toBe(false);
   });
 
+  it("says when a preserved adapter file's .new version is not active", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "opencode"], { cwd: dir, ask: answers().ask });
+    const plugin = ".opencode/plugins/groundwork-guards.js";
+    write(dir, plugin, `${read(dir, plugin)}\n// project edit\n`);
+    const cfg = config(dir);
+    cfg.version = "0.0.1";
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+
+    const { output } = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(output).toMatch(/active adapter still loads your preserved file/);
+    expect(output).toContain(plugin);
+    expect(output).toMatch(/\.new version is not active/);
+    expect(read(dir, plugin)).toContain("// project edit");
+    expect(read(dir, `${plugin}.new`)).toContain("Plugin.define");
+    expect(existsSync(join(dir, ".groundwork/.manifest.json"))).toBe(true);
+  });
+
   it("gives each role a rules file that upgrades never touch", async () => {
     const dir = await v03Project();
     rmSync(join(dir, ".groundwork/rules"), { recursive: true });

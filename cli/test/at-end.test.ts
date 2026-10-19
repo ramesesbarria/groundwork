@@ -261,6 +261,6 @@ describe("the at-end guide", () => {
     expect(guide).toMatch(/One reviewer run/);
     expect(guide).toMatch(/gw-approve/);
     expect(core["commands/gw-next.md"]).toContain(".groundwork/guides/at-end.md");
-    expect(core["commands/gw-plan.md"]).toMatch(/npx groundwork-ai mode at-end/);
+    expect(core["commands/gw-plan.md"]).toMatch(/at-end.*parked/i);
   });
 });

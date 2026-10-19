@@ -16,6 +16,7 @@ trap cleanup EXIT
 if [ "${GW_KEEP:-0}" = "1" ]; then trap - EXIT; echo "kept: $ROOT"; fi
 
 git init -q --bare "$ROOT/origin.git"
+git -C "$ROOT/origin.git" symbolic-ref HEAD refs/heads/main
 git init -q --initial-branch=main "$ROOT/repo"
 cd "$ROOT/repo"
 git config user.email demo@example.com
@@ -290,7 +291,7 @@ git push -q origin "$(git rev-parse HEAD):refs/pull/2/merge"
 
 # A fresh clone must resume from tracked records, not ignored local state.
 cd "$ROOT"
-git clone -q origin.git fresh
+git clone -q -b main origin.git fresh
 cd fresh
 git fetch -q origin refs/pull/2/head:refs/remotes/origin/pr-head refs/pull/2/merge:refs/remotes/origin/pr-merge
 [ -f .groundwork/cards/1.2.md ]

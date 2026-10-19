@@ -70,66 +70,12 @@ disable-model-invocation: true
 ---
 Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 ",
-  ".claude/skills/gw-decide/SKILL.md": "---
-name: gw-decide
-description: Use when the work needs a choice the human hasn't made, like a framework or database. Offers options and records the pick.
----
-Read \`.groundwork/commands/gw-decide.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-handoff/SKILL.md": "---
-name: gw-handoff
-description: Use when stopping for any reason, such as the session ending or context running low. Saves the state to HANDOFF.md.
----
-Read \`.groundwork/commands/gw-handoff.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-next/SKILL.md": "---
-name: gw-next
-description: Use when there's a plan and the human wants to keep building. Runs the next card through tester, implementer and reviewer.
----
-Read \`.groundwork/commands/gw-next.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-plan/SKILL.md": "---
-name: gw-plan
-description: Use when the spec is confirmed and there are no cards yet, or new work needs planning. Breaks it into phases and cards.
----
-Read \`.groundwork/commands/gw-plan.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-quick/SKILL.md": "---
-name: gw-quick
-description: Use when the human asks for a small, low-risk change or reports a bug. Makes it in one pass without a card; tests must pass.
----
-Read \`.groundwork/commands/gw-quick.md\` now and follow it exactly.
-",
   ".claude/skills/gw-reject/SKILL.md": "---
 name: gw-reject
 description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
 disable-model-invocation: true
 ---
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-retro/SKILL.md": "---
-name: gw-retro
-description: Use when a phase ends, or the same mistakes keep happening. Proposes turning lessons into rules or guards, with the human's OK.
----
-Read \`.groundwork/commands/gw-retro.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-setup/SKILL.md": "---
-name: gw-setup
-description: Use when Groundwork was just installed and setup in .groundwork/config.json isn't done. Sets the project up with a short interview.
----
-Read \`.groundwork/commands/gw-setup.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-spec/SKILL.md": "---
-name: gw-spec
-description: Use when the human describes a new app or feature and there's no confirmed spec for it. Writes the spec by asking questions.
----
-Read \`.groundwork/commands/gw-spec.md\` now and follow it exactly.
-",
-  ".claude/skills/gw-ui-spec/SKILL.md": "---
-name: gw-ui-spec
-description: Use when a card involves UI or animation, before it's built. Agrees how it will look and behave, as checkable criteria.
----
-Read \`.groundwork/commands/gw-ui-spec.md\` now and follow it exactly.
 ",
   ".claude/skills/gw/SKILL.md": "---
 name: gw
@@ -141,7 +87,8 @@ Read \`.groundwork/commands/gw.md\` now and follow it exactly.
 
 ## Claude Code
 Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.
-The others: /gw-approve, /gw-decide, /gw-handoff, /gw-next, /gw-plan, /gw-quick, /gw-reject, /gw-retro, /gw-setup, /gw-spec, /gw-ui-spec.
+The others: /gw-approve, /gw-reject.
+Other helpers live in .groundwork/commands/; /gw reads the one it needs.
 When a command says to run a role, use its subagent: gw-implementer, gw-reviewer, gw-tester.
 ",
 }

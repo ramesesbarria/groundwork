@@ -378,6 +378,15 @@ describe("commit-gate", SLOW, () => {
     expect(unknown.stderr).toMatch(/no card file has that id/);
   });
 
+  it("allows setup and docs tags for their ordinary files", async () => {
+    const dir = await project();
+    writeFileSync(join(dir, "AGENTS.md"), `${readFileSync(join(dir, "AGENTS.md"), "utf8")}\n- setup note\n`);
+    expect(hook(dir, bash('git commit -m "[setup] Set up Groundwork"')).status).toBe(0);
+    git(dir, "checkout", "--", "AGENTS.md");
+    writeFileSync(join(dir, "README.md"), "# Project\n");
+    expect(hook(dir, bash('git commit -m "[docs] Add README"')).status).toBe(0);
+  });
+
   it("only lets each non-card tag cover the kind of change it names", async () => {
     const dir = await project();
     writeFileSync(join(dir, "src.ts"), "export {};\n");

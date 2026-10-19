@@ -5,11 +5,15 @@ title: "Claude Code"
 Groundwork's Claude Code adapter turns the core into native skills, subagents and hooks. Everything
 it generates points back into `.groundwork/`, so the core stays the single source of truth.
 
+Checked with Claude Code 2.1.303 on 2026-10-19: scripted live `/gw-approve` and `/gw-reject` turns
+worked, including the commit and its gate. Stale approval and a human-driven session are still
+unobserved, so Claude Code compatibility is explicitly partial.
+
 ## What `init` adds
 
 | Path | What it is |
 |---|---|
-| `.claude/skills/gw-*/SKILL.md` | One skill per command, with a description that says *when* to use it |
+| `.claude/skills/gw*/SKILL.md` | Skills for the three default commands (`/gw`, `/gw-approve`, `/gw-reject`); other helpers are read from `.groundwork/commands/` on demand |
 | `.claude/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, each with limited tools |
 | `.claude/settings.json` | Three hooks: session-start orientation, the guard runner, and the approval recorder |
 | `CLAUDE.md` | A short pointer whose first line loads `AGENTS.md`, then lists the commands and subagents |

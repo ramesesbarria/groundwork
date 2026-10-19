@@ -31,7 +31,7 @@ const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b
 // Running the prompt hook directly would let an agent write its own approval record.
 const APPROVAL_HOOK = /\b(?:node|bun)\b[^\n;&|]*\buser-prompt\.mjs\b/i;
 const COMMIT = /\bgit\b[\s\S]*\bcommit\b/;
-const PROTECTED_COMMIT_WRITE = /^\.groundwork\/(?:cards|evidence|work|\.approvals|SPEC\.md|decisions)(?:\/|$)|^\.groundwork\/private(?:\/|$)|^\.groundwork\/\.legacy-cards\.json$/;
+const PROTECTED_COMMIT_WRITE = /^\.groundwork\/(?:cards|evidence|work|\.approvals|spec\.md|decisions)(?:\/|$)|^\.groundwork\/private(?:\/|$)|^\.groundwork\/\.legacy-cards\.json$/;
 
 const ASK = "Only the human changes Groundwork's own setup. Tell them what you wanted to change and why, and ask them to make the change themselves.";
 

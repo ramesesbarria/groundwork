@@ -9,25 +9,27 @@ card commit: the card must be done, with its evidence. How often you're asked is
 |---|---|
 | **`per-card`** (default) | The runner stops after every card. You approve or reject each one before its commit. |
 | **`per-phase`** | Cards that pass review commit on their own. When the phase's last card is done, the runner stops and you review the phase as a whole. |
-| **`at-end`** | For a deadline. The agent builds every card straight through, then one review covers them all, and you approve once. |
+| **`at-end`** | **Parked for v1.** Existing projects that already use it keep working; new projects should use `per-card` or `per-phase`. |
 
-During setup the agent asks in plain words — *"every piece of work, each milestone, or only once
-everything is built?"* If you're unsure, `new` users default to per-card, `experienced` to
-per-phase.
+During setup the agent asks in plain words - *"every piece of work, or each milestone?"* If you're
+unsure, `new` users default to per-card, `experienced` to per-phase. `at-end` is not offered for new
+projects.
 
 To change it later, run the command yourself:
 
 ```bash
-npx groundwork-ai mode at-end      # or per-card, per-phase; with no mode it shows the current one
+npx groundwork-ai mode per-card    # or per-phase; with no mode it shows the current one
 ```
 
 The agent isn't allowed to relax this on its own. If you ask it to skip the process, it gives you
 the command to run (in Claude Code, type it with `!` in front). It can always switch back to
 `per-card` for you.
 
-## Building straight through (`at-end`)
+## Building straight through (`at-end`, parked)
 
-When time is short, the full loop per card can be more than you want. In `at-end` mode:
+`at-end` is parked for v1: it is not offered during setup and not recommended for new projects.
+Existing projects that already use it keep the behavior below, including the `/gw-approve all` batch
+record. In `at-end` mode:
 
 - **The agent builds each card itself**, in order, without stopping: tests first, then the code,
   until the tests, lint and build pass. The test output is saved as the card's evidence.

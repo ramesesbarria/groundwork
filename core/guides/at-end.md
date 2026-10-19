@@ -1,4 +1,6 @@
-# Building straight through (`at-end` mode)
+# Building straight through (`at-end` mode, parked for v1)
+
+This guide is kept for projects that already use `at-end`. New projects use `per-card` or `per-phase`.
 
 The human chose to review once, at the end: usually a deadline. You build every card yourself, in order, without stopping. One review covers them all, then the human approves once. Nothing is rounded up: a card you built is `built`, not `done`, until the review and the human say so.
 

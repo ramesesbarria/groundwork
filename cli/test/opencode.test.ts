@@ -13,7 +13,8 @@ const coreDir = fileURLToPath(new URL("../../core/", import.meta.url));
 const core = readCore(coreDir);
 const out = generateOpenCode(core);
 
-const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const COMMANDS = ["gw", "gw-approve", "gw-reject"];
+const HELPERS = ["gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
 // Roles that get a subagent. The planner doesn't: the main session plans.
 const ROLES = ["tester", "implementer", "reviewer"];
 
@@ -49,6 +50,11 @@ describe("OpenCode adapter", () => {
         ...ROLES.map((r) => `.opencode/agents/gw-${r}.md`),
       ].sort(),
     );
+  });
+
+  it.each(HELPERS)("does not install the %s helper as a command", (name) => {
+    expect(out[`.opencode/commands/${name}.md`]).toBeUndefined();
+    expect(core[`commands/${name}.md`]).toBeDefined();
   });
 
   it.each(COMMANDS)("command %s points to the core command and passes arguments", (name) => {
@@ -277,7 +283,7 @@ describe("init --adapter opencode", () => {
     const project = tempDir();
     const { code, output } = await run(["init", "--adapter", "opencode"], { cwd: project, ask: async () => "" });
     expect(code).toBe(0);
-    expect(existsSync(join(project, ".opencode/commands/gw-next.md"))).toBe(true);
+    expect(existsSync(join(project, ".opencode/commands/gw.md"))).toBe(true);
     expect(existsSync(join(project, ".opencode/plugins/groundwork-guards.js"))).toBe(true);
     expect(existsSync(join(project, "CLAUDE.md"))).toBe(false);
     expect(existsSync(join(project, ".claude"))).toBe(false);
