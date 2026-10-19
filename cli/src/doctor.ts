@@ -12,6 +12,7 @@ import { compareVersions, VERSION } from "./version.js";
 import { parseJson, readProjectConfig } from "./config.js";
 import { rolesOf } from "./adapters/shared.js";
 import { checkProject } from "./check.js";
+import { alreadyMerged, readManifest } from "./manifest.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -211,12 +212,17 @@ function checkModels(groundwork: string, f: Findings) {
   }
 }
 
+// OpenCode 2.0.32 no longer loads the V1 `export default { id, setup }` plugin, so none of
+// Groundwork's guards, approval recording or session start run in that project.
+const OPENCODE_PLUGIN = ".opencode/plugins/groundwork-guards.js";
+
 function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Findings) {
   const core = readCore(groundwork);
   const models = readProjectConfig(groundwork).models;
+  const manifest = readManifest(cwd);
   for (const tool of ["claude-code", "opencode"] as const) {
     const planned = planAdapter(core, tool, models).filter((file) => file.mode !== "append-lines");
-    const installed = planned.some((file) => file.mode === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
+    const installed = planned.some((file) => (file.mode ?? "replace") === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
     if (!installed) continue;
 
     // An older project's adapter files are out of date because the whole install is: upgrade fixes both.
@@ -236,10 +242,41 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
             f.problems.push(`${file.path} is missing Groundwork's ${HOOK_EFFECT[event] ?? `${event} hook`}. ${fix}`);
           }
         }
-      } else if (current !== file.content) {
+      } else if (file.path === OPENCODE_PLUGIN && current !== "" && !current.includes("Plugin.define(")) {
+        f.problems.push(
+          `${file.path} uses the old OpenCode plugin format, which OpenCode 2.0.32 and later don't load: no guards, approval ` +
+            "recording or session start run. Merge in the new version (Plugin.define), or delete the file and run " +
+            "`npx groundwork-ai upgrade`.",
+        );
+      } else if (current.replace(/\r\n/g, "\n") !== file.content && !alreadyMerged(cwd, manifest, file)) {
         f.problems.push(`${file.path} ${current === "" ? "is missing" : "differs from what Groundwork would generate"}. ${fix}`);
       }
     }
+  }
+}
+
+// A <file>.new that upgrade left next to a file the user changed: that update isn't active until it's merged.
+function checkPendingUpdates(cwd: string, f: Findings) {
+  const pending: string[] = [];
+  const walk = (dir: string) => {
+    if (!existsSync(join(cwd, dir))) return;
+    for (const entry of readdirSync(join(cwd, dir), { withFileTypes: true })) {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        if (!["cards", "evidence", "work", "private", "decisions", ".approvals"].includes(entry.name)) walk(path);
+      } else if (entry.name.endsWith(".new") && existsSync(join(cwd, path.slice(0, -".new".length)))) {
+        pending.push(path);
+      }
+    }
+  };
+  for (const dir of [".groundwork", ".claude", ".opencode"]) walk(dir);
+  if (existsSync(join(cwd, "CLAUDE.md.new"))) pending.push("CLAUDE.md.new");
+  for (const path of pending.sort()) {
+    const active = path.slice(0, -".new".length);
+    f.problems.push(
+      `${path} is waiting: you changed ${active}, so upgrade kept yours and ${active} still runs without this version's ` +
+        `changes. Merge what you want from ${path} into ${active}, then delete ${path}.`,
+    );
   }
 }
 
@@ -320,6 +357,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkGitAttributes(io.cwd, f);
   checkGuards(groundwork, config.guards ?? [], f);
   checkAdapters(io.cwd, groundwork, behind, f);
+  checkPendingUpdates(io.cwd, f);
   checkModels(groundwork, f);
   const cardText = checkCards(cards, f);
   checkUnreviewed(cards, f);

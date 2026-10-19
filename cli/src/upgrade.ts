@@ -11,7 +11,7 @@ import { ADAPTERS, GITATTRIBUTES, isManaged, isProjectFile, locateCore, planAdap
 import { VERSION } from "./version.js";
 import { CLAUDE_MD_LINES } from "./adapters/claude-code.js";
 import { parseJson, readProjectConfig } from "./config.js";
-import { editState, readManifest, recordFiles } from "./manifest.js";
+import { alreadyMerged, editState, readManifest, recordFiles, recordOffered } from "./manifest.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -126,8 +126,10 @@ function decide(cwd: string, files: PlannedFile[]): Step[] {
     const current = readFileSync(path, "utf8");
     if (sameText(current, file.content)) continue;
     const state = editState(manifest, file.path, current);
-    if (state === "edited") steps.push({ file, action: "keep" });
-    else steps.push({ file, action: "replace", unknown: state === "unknown" && file.path !== "CLAUDE.md" });
+    if (state === "edited") {
+      // Offered before and merged by the user (they deleted the .new file): their version stands.
+      if (!alreadyMerged(cwd, manifest, file)) steps.push({ file, action: "keep" });
+    } else steps.push({ file, action: "replace", unknown: state === "unknown" && file.path !== "CLAUDE.md" });
   }
   return steps;
 }
@@ -206,6 +208,7 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     writeFileSync(configPath, stampVersion(setup ? withSetup(updated, setup) : updated, VERSION));
   }
   recordFiles(io.cwd, managed, VERSION);
+  recordOffered(io.cwd, steps.filter((s) => s.action === "keep").map((s) => s.file), VERSION);
 
   const kept = steps.filter((s) => s.action === "keep");
   const unknown = steps.filter((s) => s.unknown);
