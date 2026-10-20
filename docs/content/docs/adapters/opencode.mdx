@@ -3,7 +3,7 @@ title: "OpenCode"
 ---
 
 Groundwork's OpenCode adapter adds commands, subagents with permissions, and a plugin for guards
-and session-start orientation. **It needs OpenCode 2.x** (tested with 2.0.16, 2.0.18 and 2.0.32).
+and session-start orientation. **It needs OpenCode 2.x** (tested with 2.0.16, 2.0.18, 2.0.32 and 2.1.0).
 The plugin uses `Plugin.define`. In a 2.0.32 check with `opencode run --standalone`, a plugin in
 the older `export default { id, setup }` form also loaded, so an older project keeps its guards
 until it upgrades.
@@ -64,9 +64,12 @@ fresh each time, and skipped for Groundwork's own subagents, which get their car
 `/gw-approve` and `/gw-reject` are ordinary commands whose text says only the human runs them, and
 the runner is instructed never to run them. The commit gate backs that up: it refuses to commit a
 card that isn't `done` or lacks evidence, and in `per-card` mode one without your own `/gw-approve`
-for the work as it is now. The plugin records your own prompt submissions (they arrive as raw text in a top-level session) in
-`.groundwork/.approvals/`; subagent tasks arrive as prompts in a child session and are ignored, so a
-spawned agent can't record its own approval. Verified live on OpenCode 2.0.26 and 2.0.32. A later
+for the work as it is now. The plugin records your own prompt submissions in a top-level session in `.groundwork/.approvals/`;
+subagent tasks arrive as prompts in a child session and are ignored, so a spawned agent can't record
+its own approval. OpenCode hands the plugin a command picked from the menu as its expanded text, with
+no command name, so Groundwork's `/gw-approve` and `/gw-reject` files start with the command line
+itself, and only a message whose first line is that command counts. This tells a command from
+conversation; it doesn't prove who sent it. A later
 human message clears the approval by design, so `/gw-approve` and the commit it authorizes belong in
 the same turn. A change to the spec, a decision, declared context, the card, or the code after the
 approval is refused by the gate. On an older 2.x whose plugin API lacks the prompt hook, the gate

@@ -94,9 +94,12 @@ human-typed approval in OpenCode has not been observed.
    session with a `parentID`. Confirm `last-human.json`'s `at` did not change after the subagent
    ran. If a future version drops `parentID` or delivers subagent prompts differently, the marker
    must be reworked before it can be trusted.
-3. `/gw-approve <id>` arrives as the raw command text in a top-level session, before command
-   expansion. One `/gw-approve 1.1` turn should record the approval, set the card done, and commit
-   it. A later human message clears the approval by design, so approval and the commit it
+3. A command picked from the menu reaches the prompt hook as its expanded template, with no command
+   name (2.1.0); a message passed to `opencode run` arrives as typed. Groundwork's `gw-approve` and
+   `gw-reject` templates therefore start with the command line itself (`/gw-approve $ARGUMENTS`).
+   Check it the way a person does: pick `/gw-approve` from the menu in the interactive app, not only
+   `opencode run`. One `/gw-approve 1.1` turn should record the approval, set the card done, and
+   commit it. A later human message clears the approval by design, so approval and the commit it
    authorizes belong in the same turn.
 4. End to end: with a `done` card and its evidence committed, ask the agent to make two commits
    naming the card in one run. The first should pass; the second must be refused with

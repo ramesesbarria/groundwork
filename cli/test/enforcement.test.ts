@@ -6,6 +6,12 @@ import { join } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { run } from "../src/index.js";
+import { readCore } from "../src/core.js";
+import { generateOpenCode } from "../src/adapters/opencode.js";
+
+// The OpenCode command file Groundwork generates for a command, as written to .opencode/commands/.
+const openCodeFiles = generateOpenCode(readCore(fileURLToPath(new URL("../../core/", import.meta.url))));
+const expandedCommand = (name: string) => openCodeFiles[`.opencode/commands/${name}.md`];
 
 const temps: string[] = [];
 afterEach(() => {
@@ -377,6 +383,35 @@ describe("commit-gate", SLOW, () => {
 
     humanSpeaks(dir, "/gw-reject 1.1");
     expect(hook(dir, commitCard).stderr).toMatch(/no explicit human approval recorded|last human approval/);
+  });
+
+  it("records approval only from a command that opens the message, including OpenCode's expanded template", async () => {
+    const dir = await project();
+    card(dir, "awaiting-approval");
+    card(dir, "done");
+    // What OpenCode hands the prompt hook for /gw-approve 1.1 picked from its command menu.
+    const expanded = (name: string, args: string) =>
+      expandedCommand(name).replace(/\$ARGUMENTS/g, args).replace(/^---[\s\S]*?---\n/, "");
+    for (const prompt of [
+      "/gw-approve 1.1 looks good",
+      "/gw-approve 1.1, and ship it",
+      "Sure.\n/gw-approve 1.1",
+      "`/gw-approve 1.1`",
+      "> /gw-approve 1.1",
+      "Type /gw-approve 1.1 when you're happy",
+      "looks good, commit it",
+    ]) {
+      humanSpeaks(dir, prompt);
+      expect(hook(dir, commitCard).status, JSON.stringify(prompt)).toBe(2);
+    }
+    humanSpeaks(dir, expanded("gw-approve", "1.1"));
+    expect(hook(dir, commitCard).status).toBe(0);
+    humanSpeaks(dir, "/gw-approve 1.1\n\nThanks, nice work.");
+    expect(hook(dir, commitCard).status).toBe(0);
+    humanSpeaks(dir, expanded("gw-reject", "1.1 the list is unsorted"));
+    const record = JSON.parse(readFileSync(join(dir, ".groundwork/.approvals/last-human.json"), "utf8"));
+    expect(record).toMatchObject({ approves: null, rejects: "1.1" });
+    expect(hook(dir, commitCard).status).toBe(2);
   });
 
   it("invalidates approval when the spec, a decision, or the declared context changes", async () => {

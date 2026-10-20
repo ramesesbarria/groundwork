@@ -28,6 +28,8 @@ Load only the files it lists under Load.
   ".opencode/commands/gw-approve.md": "---
 description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
 ---
+/gw-approve $ARGUMENTS
+
 Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS
@@ -35,6 +37,8 @@ Arguments: $ARGUMENTS
   ".opencode/commands/gw-reject.md": "---
 description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
 ---
+/gw-reject $ARGUMENTS
+
 Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
 
 Arguments: $ARGUMENTS

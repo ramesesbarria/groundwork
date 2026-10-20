@@ -6,6 +6,12 @@
 // clears approval. Any other human
 // message clears approval as well, so an ordinary "looks good" or "go ahead" cannot be used later.
 //
+// The command must open the message: its first line is `/gw-approve` followed only by card IDs (or
+// `all`). A command quoted or mentioned further down, or followed by other words, approves nothing.
+// A tool that delivers a custom command as its expanded template gets one from Groundwork's adapter
+// that starts with the command line itself. This tells a typed or invoked command from conversation; it can't prove who
+// typed it.
+//
 //   node .groundwork/hooks/user-prompt.mjs <project-dir>   (hook input as JSON on stdin)
 //
 // Adapters without a separate hook process import recordHuman instead. It prints nothing
@@ -34,15 +40,17 @@ function writeRecord(project, record) {
 export function recordHuman(project, prompt) {
   // Some shells pass a quoted argument through with its quotes; they aren't part of the command.
   const text = String(prompt ?? "").trim().replace(/^(["'])([\s\S]*)\1$/, "$2");
-  const approve = text.match(/^\s*\/gw-approve\b(.*)$/);
-  const reject = text.match(/^\s*\/gw-reject\b\s*([\d.]*)/);
+  const first = text.split(/\r?\n/, 1)[0].trim();
+  const approve = first.match(/^\/gw-approve\b(.*)$/);
+  const reject = first.match(/^\/gw-reject\b\s*([\d.]*)/);
   const base = { head: head(project), at: new Date().toISOString(), approves: null };
   try {
     if (approve) {
       const args = approve[1].trim();
       const all = /^all$/i.test(args);
-      const ids = [...new Set(args.split(/[\s,]+/).filter((word) => /^\d+(?:\.\d+)+$/.test(word)))];
-      if (args && !all && ids.length === 0) {
+      const words = args.split(/[\s,]+/).filter(Boolean);
+      const ids = [...new Set(words.filter((word) => /^\d+(?:\.\d+)+$/.test(word)))];
+      if (args && !all && (ids.length === 0 || words.some((word) => !/^\d+(?:\.\d+)+$/.test(word)))) {
         writeRecord(project, { ...base, error: "Use /gw-approve <card-id>, /gw-approve <id...>, or /gw-approve all." });
         return;
       }

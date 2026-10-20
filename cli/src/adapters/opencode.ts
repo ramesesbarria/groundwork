@@ -16,10 +16,10 @@ const ROLE_DENY: Record<string, string[]> = {
 // OpenCode 2.x plugin format: Plugin.define({ id, setup }), with hooks registered on the context.
 // (A 2.0.32 `run --standalone` check also loaded the older { id, setup } default export.) Guards checked against 2.0.16 on
 // 2026-09-25. The "context" session hook, whose system entries must be { type: "text", text },
-// checked against 2.0.18 on 2026-09-26. The "prompt" session hook fires for the human's prompts
-// (raw text, before command expansion) and for subagent prompts in child sessions, which the hook
-// skips by parentID so a spawned agent can't record an approval. Checked live against 2.0.32 on
-// 2026-10-19.
+// checked against 2.0.18 on 2026-09-26. The "prompt" session hook fires for top-level prompts and
+// for subagent prompts in child sessions, which the hook skips by parentID so a spawned agent can't
+// record an approval. A typed message arrives as typed; a custom command arrives as its expanded
+// template, with no command name (2.1.0, 2026-10-20), hence RECORDED_COMMANDS below.
 const GUARD_PLUGIN = `// Groundwork: runs the guards listed in .groundwork/config.json before each tool call, records the
 // human's own messages for the commit gate, and tells each new session where the project stands
 // (from .groundwork/HANDOFF.md).
@@ -112,6 +112,9 @@ export default Plugin.define({
 });
 `;
 
+// Commands the prompt hook records (.groundwork/hooks/user-prompt.mjs).
+const RECORDED_COMMANDS = new Set(["gw-approve", "gw-reject"]);
+
 // Pure: core files in, OpenCode files out. Generated files point to the core instead of copying it.
 export function generateOpenCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {
   const out: Record<string, string> = {};
@@ -121,6 +124,10 @@ export function generateOpenCode(core: CoreFiles, models: ModelHints = {}): Reco
       "---",
       `description: ${yamlValue(description)}`,
       "---",
+      // OpenCode 2.1 hands the prompt hook the expanded template, not what the human typed (checked
+      // 2026-10-20). The approval recorder reads the command from the first line, so these two
+      // templates start with it.
+      ...(RECORDED_COMMANDS.has(name) ? [`/${name} $ARGUMENTS`, ""] : []),
       `Read \`.groundwork/commands/${name}.md\` now and follow it exactly.`,
       "",
       "Arguments: $ARGUMENTS",

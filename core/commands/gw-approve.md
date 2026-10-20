@@ -10,7 +10,7 @@ Record the human's approval of a card and commit it.
 Only the human runs this; the `/gw-approve <id>` prompt counts.
 
 ## Steps
-If the human didn't ask for this in their own words, stop and ask them to approve or reject.
+If the human didn't ask for this by typing `/gw-approve`, stop: change nothing and ask them to type it.
 
 1. Find the `awaiting-approval` card (HANDOFF, or the ID given). If none, say so and stop.
 2. **Check the evidence.** Run `npx groundwork-ai check <card-id>` (or by hand). Refuse to approve if:

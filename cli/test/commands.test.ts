@@ -154,6 +154,11 @@ describe("gw-next", () => {
 });
 
 describe("gw-approve", () => {
+  it("treats a plain-words approval as a request to type the command, without touching the card", () => {
+    // Seen live: after "looks good, commit it" an agent marked the card done before the gate refused.
+    expect(section(command("gw-approve"), "Steps")).toMatch(/didn't ask for this by typing `\/gw-approve`, stop: change nothing and ask them to type it/);
+  });
+
   it("refuses when Evidence is empty or a linked file is missing", () => {
     const text = section(command("gw-approve"), "Steps");
     expect(text).toMatch(/refuse/i);

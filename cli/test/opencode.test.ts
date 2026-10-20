@@ -185,6 +185,28 @@ describe("OpenCode guard plugin", () => {
     expect(readFileSync(records, "utf8")).toContain('"opencode"');
   });
 
+  it("starts the approve and reject templates with the command, which is what the prompt hook receives", async () => {
+    for (const name of ["gw-approve", "gw-reject"]) {
+      const body = out[`.opencode/commands/${name}.md`].replace(/^---[\s\S]*?---\n/, "");
+      expect(body.split("\n")[0]).toBe(`/${name} $ARGUMENTS`);
+    }
+    expect(out[".opencode/commands/gw.md"].replace(/^---[\s\S]*?---\n/, "")).toMatch(/^Read `\.groundwork\/commands\/gw\.md`/);
+
+    const { hooks, project } = await loadPlugin([]);
+    mkdirSync(join(project, ".groundwork/cards"), { recursive: true });
+    writeFileSync(
+      join(project, ".groundwork/cards/1.2-login.md"),
+      "---\nid: 1.2\ntitle: Login\nphase: 1\nstatus: awaiting-approval\ndepends_on: []\n---\n## Goal\nLogin.\n",
+    );
+    // OpenCode 2.1 delivers a picked command as its expanded template, with no command name.
+    const expanded = out[".opencode/commands/gw-approve.md"].replace(/^---[\s\S]*?---\n/, "").replace(/\$ARGUMENTS/g, "1.2");
+    await hooks["session.prompt"]({ prompt: { text: expanded } });
+    const marker = () => JSON.parse(readFileSync(join(project, ".groundwork/.approvals/last-human.json"), "utf8"));
+    expect(marker().approves).toBe("1.2");
+    await hooks["session.prompt"]({ prompt: { text: "Read `.groundwork/commands/gw-approve.md` now and follow it exactly.\n\nArguments: 1.2" } });
+    expect(marker().approves).toBeNull(); // the template without its command line, as rc2 generated it
+  });
+
   it("still loads, and claims nothing, when the tool has no prompt hook", async () => {
     const project = coreProject();
     const hooks = await mountPlugin(project, { failsPrompt: true });
