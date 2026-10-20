@@ -10,7 +10,8 @@ and scoring are in [PLAN.md](PLAN.md); the results are in [RESULTS.md](RESULTS.m
 | `tasks/T01…T03` | Team scenarios, run with a bare `origin` and one clone per developer |
 | `tasks/_common/` | The regression suite and the CLI helper used by the hidden tests |
 | `tasks/_team/` | The team plan, decision D5 and the teammate's upstream changes |
-| `harness/` | `validate`, `dry-run`, `probe-isolation`, `run`, `score` and `report` scripts |
+| `harness/` | `validate`, `dry-run`, `probe-isolation`, `run`, `score` and `report` run and score the evaluation. `affected` finds runs the scripted human handled wrongly. `export-runs` writes `runs.csv` from the raw records, and `aggregate` recomputes the reported numbers from it. |
+| `runs.csv` | One row per run in the published results: batch, package, scores, interventions, tokens, cost and time |
 
 ## Reproduce
 
@@ -35,3 +36,13 @@ node evals/harness/report.mjs <name>
 that would mean an agent escaped its workspace. Workspaces live in your temp folder. Raw records
 (session exports, turn logs, scores) go to `.groundwork/evidence/evals/<name>/`, which this
 repository keeps out of Git.
+
+## Check the published numbers
+
+```bash
+node evals/harness/aggregate.mjs
+```
+
+This recomputes the success counts, medians and totals in RESULTS.md from `runs.csv`, with no
+model calls. It checks the reported arithmetic and which runs were counted. It doesn't reproduce
+the experiments; that needs the steps above.
