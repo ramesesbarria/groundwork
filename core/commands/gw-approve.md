@@ -13,7 +13,7 @@ Only the human runs this; the `/gw-approve <id>` prompt counts.
 If the human didn't ask for this by typing `/gw-approve`, stop: change nothing and ask them to type it.
 
 1. Find the `awaiting-approval` card (HANDOFF, or the ID given). If none, say so and stop.
-2. **Check the evidence.** Run `npx groundwork-ai check <card-id>` (or by hand). Refuse to approve if:
+2. **Check the evidence.** Run `npx groundwork-ai check <card-id>`. Refuse to approve if:
    - the card's Evidence section is empty, or
    - any file it links to in `.groundwork/evidence/<card-id>/` is missing, or
    - any acceptance criterion is unchecked with no reason after it (`- [ ] <criterion> — <why>`).
@@ -28,9 +28,9 @@ If the human didn't ask for this by typing `/gw-approve`, stop: change nothing a
 
 **`at-end` mode:** `/gw-approve all` records the batch; follow "Approving" in `.groundwork/guides/at-end.md`.
 
-**Fresh session per phase.** When a phase closes, tell the human the next phase is cheaper in a new session: HANDOFF carries everything.
+**Fresh session per phase.** When a phase closes, tell the human the next phase is cheaper in a new session (HANDOFF carries everything), where `/gw` offers a retro.
 
-**Phase recap.** When a phase closes, append exactly one recap to `.groundwork/JOURNAL.md` (create if missing), as its comment format shows: what shipped, how to try it, decisions, calls, and lessons. Under about 150 words; link to cards, don't copy them.
+**Phase recap.** When a phase closes, append exactly one recap to `.groundwork/JOURNAL.md`, as its comment format shows: what shipped, how to try it, decisions, calls, and lessons. Under about 150 words; link to cards, don't copy them.
 
 ## Writes
 - The card: status and History

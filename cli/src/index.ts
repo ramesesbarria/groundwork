@@ -45,7 +45,7 @@ const COMMANDS: Record<string, string> = {
   check: "Check cards against the workflow: evidence, criteria, status moves, approval, and task context (check [card-id...] [--base <ref>] [--task <id>]; exits 1 on problems)",
   reassess: "Record the local and upstream context versions a task has just been checked against (reassess <id> --target <ref> [--dep <ref>] [--drop <ref>])",
   migrate: "Record done cards that Git shows predate the approval rule; new or changed cards stay checked (migrate legacy [--dry-run] [--yes] [--reviewed])",
-  retro: "Collect signals of repeated mistakes for /gw-retro (writes .groundwork/retro.md)",
+  retro: "Collect signals of repeated mistakes for a retro, which your agent runs (writes .groundwork/retro.md)",
   uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };
 
@@ -53,7 +53,7 @@ function usage(): string {
   const width = Math.max(...Object.keys(COMMANDS).map((c) => c.length));
   const lines = Object.entries(COMMANDS).map(([cmd, desc]) => `  ${cmd.padEnd(width)}  ${desc}`);
   return [
-    `groundwork ${VERSION}: a tool-agnostic workflow for building software with AI agents`,
+    `groundwork ${VERSION}: shared project context for developers and their coding agents`,
     "",
     "Usage: npx groundwork-ai <command>",
     "",

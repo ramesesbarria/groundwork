@@ -2,7 +2,7 @@
 
 How a card goes from idea to commit. This works in any AI tool. Adapters only add shortcuts.
 
-**The runner** is the main session: the one you type `gw-next` into. It picks cards and hands them to each role (`.groundwork/roles/`) in turn.
+**The runner** is the main session, where `/gw` runs `gw-next`. It picks cards and hands them to each role (`.groundwork/roles/`) in turn.
 
 ## The loop
 

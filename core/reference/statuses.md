@@ -22,7 +22,7 @@ Read this before you change a card's status. `groundwork check` and the commit g
 | `built` | `awaiting-approval` | reviewer | `at-end` mode: the end review passed it |
 | `built` | `implementing` | reviewer | `at-end` mode: the end review found problems |
 
-No other changes are allowed. Every change gets one line under the card's History: `YYYY-MM-DD <from> → <to>: <why>`, as in `.groundwork/templates/card.md`.
+No other changes are allowed. Every change gets one line under the card's History: `YYYY-MM-DD <from> → <to>: <why>`, as in `.groundwork/templates/card.md`. The one exception is approval (`awaiting-approval` → `done`): write exactly `YYYY-MM-DD approved by human`, the line `check` looks for.
 
 ## Plain labels
 

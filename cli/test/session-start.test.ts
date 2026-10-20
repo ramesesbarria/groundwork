@@ -49,6 +49,8 @@ describe("orientation text", () => {
     expect(text).toMatch(/being built/);
     expect(text).toContain("make the session test pass");
     expect(text).toMatch(/type \/gw/i);
+    // Agents told people to type helpers such as /gw-next or /gw-plan; every session hears the real list.
+    expect(text).toContain("the only other commands: /gw-approve, /gw-reject");
     expect(text.split("\n").length).toBeLessThanOrEqual(3);
   });
 

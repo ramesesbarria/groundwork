@@ -1,5 +1,5 @@
-// `groundwork retro`: collect signals of repeated mistakes for /gw-retro.
-// Sources: git history and Groundwork's own files. It only reports; /gw-retro proposes changes.
+// `groundwork retro`: collect signals of repeated mistakes for the gw-retro helper.
+// Sources: git history and Groundwork's own files. It only reports; gw-retro proposes changes.
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -144,7 +144,7 @@ export function report(signals: Signal[], gitNote?: string): string {
     for (const [id, n] of [...byLesson].sort((a, b) => b[1] - a[1])) lines.push(`- ${id}: ${n} signal${n === 1 ? "" : "s"}`);
     lines.push("");
   }
-  lines.push("Next: run /gw-retro to turn repeated signals into lessons, rules or guards.");
+  lines.push("Next: ask your agent for a retro (it follows gw-retro) to turn repeated signals into lessons, rules or guards.");
   return lines.join("\n");
 }
 

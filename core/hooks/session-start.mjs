@@ -64,7 +64,7 @@ export function orientation(projectDir) {
   const first = noCard
     ? "Groundwork: no card in progress."
     : `Groundwork: card ${clip(card, 60)}${state ? ` is ${state}` : ""}.`;
-  return [first, ...(next ? [`Next: ${clip(next, 100)}`] : []), "Type /gw to continue."].join("\n");
+  return [first, ...(next ? [`Next: ${clip(next, 100)}`] : []), "Type /gw to continue (the only other commands: /gw-approve, /gw-reject)."].join("\n");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
