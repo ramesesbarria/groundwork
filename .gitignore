@@ -8,7 +8,7 @@ coverage/
 
 # Local development notes for Groundwork itself (not part of the product)
 .groundwork/
-PLAN.md
+/PLAN.md
 
 # Source recordings dropped at the repo root; the cut clips live in docs/public/clips/
 /*.mp4
