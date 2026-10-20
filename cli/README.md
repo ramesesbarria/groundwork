@@ -19,7 +19,11 @@ into a spec and small cards, and builds them one at a time. At each stop you `/g
 is committed) or `/gw-reject` with a reason. Come back any time and `/gw` carries on from the
 handoff. Teams can use task branches with pull-request review as the approval.
 
+Needs Node.js 22+ and git. With Claude Code, use 2.1.295 or later (on Windows, with Git for
+Windows); OpenCode 2.x and any tool that reads `AGENTS.md` work too.
+
 Next: [your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes).
+What it costs and what it was tested on: [results](https://ramesesbarria.github.io/groundwork/docs/results).
 
 Terminal commands: `init`, `upgrade`, `adapter add <tool>`, `status`, `doctor`, `check`, `reassess`,
 `migrate legacy`, `mode`, `retro`, `uninstall`. Run `npx groundwork-ai` for help.

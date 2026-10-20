@@ -72,10 +72,12 @@ you know exactly what you're taking on trust.
 
 ## What counts as approval
 
-Only your own `/gw-approve` prompt records approval. A normal "looks good", a `/gw-reject`, or an
-"approved by human" line the agent writes doesn't. The approval covers the work as you saw it: if the
-code, the card, its evidence, the spec or a decision changes afterwards, you're asked to approve
-again. The details, and the limits of what's enforced, are in
+Only your own `/gw-approve` records approval: `/gw-approve 1.2` for that card (or several IDs),
+or a bare `/gw-approve` when exactly one card is waiting. It has to open your message; a normal
+"looks good", a `/gw-reject`, or an "approved by human" line the agent writes doesn't count, and
+the agent asks you for the command instead. The approval covers the work as you saw it: if the code,
+the card, its evidence, the spec or a decision changes afterwards, the agent shows you what changed,
+and you approve the new state only if you accept it. The details, and the limits of what's enforced, are in
 [Evidence and approval](/docs/concepts/evidence-and-approval). In a team project, pull-request review
 is the approval instead: see [Teams and pull requests](/docs/guides/teams).
 

@@ -3,13 +3,8 @@ import { CopyCommand } from '@/components/gw/copy-command';
 import { PhasePlan, RoleSteps, Stage, StatusTrack } from '@/components/gw/how-it-works';
 import { ContextComparison, ReReadStaircase } from '@/components/gw/problem';
 import { ButtonLink, Section } from '@/components/gw/section';
-import { Source } from '@/components/gw/source';
 import { StatusPill } from '@/components/gw/status';
 import { ChatLines, Terminal } from '@/components/gw/terminal';
-import { measurementsUrl, phase1Main, resume, usd } from '@/lib/data/calculator';
-
-const n = (x: number) => x.toLocaleString('en-US');
-const m = (anchor: string) => `${measurementsUrl}#${anchor}`;
 
 const problems = [
   {
@@ -35,7 +30,7 @@ const benefits = [
   {
     title: 'Nothing is “done” without proof',
     body: 'The AI writes the checks before the code, and a second AI that never saw the work reruns them. You get the proof, not a promise.',
-    looks: '58 checks passing, each written before its code.',
+    looks: 'tests written first, rerun by a separate reviewer',
   },
   {
     title: 'You stay in charge',
@@ -45,7 +40,7 @@ const benefits = [
   {
     title: 'Big ideas, small steps',
     body: 'Your idea is broken into small pieces you can follow one at a time. A typo fix stays a quick fix; a feature gets a plan.',
-    looks: 'a calculator → 2 phases → 6 cards',
+    looks: 'an idea → phases → small cards',
   },
   {
     title: 'It learns from its mistakes',
@@ -59,8 +54,19 @@ const benefits = [
   },
 ];
 
+// From the v1 comparison (docs/results): OpenCode 2.0.32 with DeepSeek Flash, 3 runs per task.
+const results = [
+  { label: 'Work across sessions', value: '13/15 vs 7/15', body: 'Tasks where requirements or decisions from one session were needed in a later one.' },
+  { label: 'Work in one session', value: '12/12 vs 12/12', body: 'Self-contained tasks: a plain session did as well.' },
+  { label: 'The cost', value: '≈4× · ≈3×', body: 'API cost and time per solo task, median, with Groundwork.' },
+];
+
+const costs = [
+  { label: 'Median API cost per solo task', without: '$0.021', with: '$0.091' },
+  { label: 'Median time per solo task', without: '138 s', with: '389 s' },
+];
+
 export default function HomePage() {
-  const ratio = (resume.without.processed / resume.with.processed).toFixed(1);
   return (
     <main className="dot-grid flex-1">
       {/* Hero */}
@@ -87,21 +93,6 @@ export default function HomePage() {
         <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
           <ReReadStaircase />
           <div className="space-y-4">
-            <div className="rounded-xl border border-border bg-background p-5">
-              <p className="type-label mb-2">Measured, one real chat</p>
-              <p className="font-mono text-4xl font-semibold tracking-tight">
-                {Math.round(phase1Main.reRead / phase1Main.fresh)}×
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                The first phase of our calculator build ran in one chat: {phase1Main.calls} calls produced{' '}
-                {Math.round(phase1Main.fresh / 1000)}k tokens of new work and re-read{' '}
-                <strong className="text-foreground">{(phase1Main.reRead / 1e6).toFixed(1)}M</strong> tokens to do it. By
-                the end, each call carried 280k tokens of history.
-              </p>
-              <p className="mt-3">
-                <Source href={m('every-session')}>measurements</Source>
-              </p>
-            </div>
             <div className="rounded-xl border border-border bg-background p-5 text-sm leading-relaxed text-muted">
               <p>
                 <strong className="text-foreground">Caching makes re-reads cheaper, not free.</strong> Every re-read token
@@ -177,82 +168,24 @@ export default function HomePage() {
         </div>
 
         <div className="mt-12 mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <p className="type-label">The next day, a new session</p>
-          <p className="font-mono text-[11px] text-muted">a real run on the finished calculator · one run each</p>
+          <p className="type-label">Tested: the same agent and tasks, with and without</p>
+          <p className="font-mono text-[11px] text-muted">OpenCode · DeepSeek Flash · short tasks · 3 runs each</p>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Terminal title="groundwork removed" className="flex flex-col" bodyClassName="flex flex-1 flex-col">
-            <ChatLines
-              lines={[
-                { who: 'you', text: 'Where does this project stand and what should we do next? Look around and tell me.' },
-                {
-                  who: 'note',
-                  text: (
-                    <span className="block space-y-0.5">
-                      <span className="block">→ list the files in the repo</span>
-                      <span className="block">→ git log --oneline -15; git status</span>
-                      <span className="block">→ read folders outside the project</span>
-                      <span className="block">… {resume.without.toolCalls} tool calls in all</span>
-                    </span>
-                  ),
-                },
-                {
-                  who: 'agent',
-                  text: 'There is no README, spec, handoff, or any file that says what the project is or what’s next — everything below had to be reconstructed from git history.',
-                },
-              ]}
-            />
-            <dl className="mt-auto grid grid-cols-3 border-t border-border font-mono text-xs">
-              <div className="p-3">
-                <dt className="text-muted">calls</dt>
-                <dd className="mt-0.5 text-base font-semibold">{resume.without.calls}</dd>
-              </div>
-              <div className="border-l border-border p-3">
-                <dt className="text-muted">tokens read</dt>
-                <dd className="mt-0.5 text-base font-semibold">{Math.round(resume.without.processed / 1000)}k</dd>
-              </div>
-              <div className="border-l border-border p-3">
-                <dt className="text-muted">cost</dt>
-                <dd className="mt-0.5 text-base font-semibold">{usd(resume.without.cost, 4)}</dd>
-              </div>
-            </dl>
-          </Terminal>
-          <Terminal title="with groundwork" className="flex flex-col" bodyClassName="flex flex-1 flex-col">
-            <ChatLines
-              lines={[
-                { who: 'you', text: '/gw' },
-                {
-                  who: 'note',
-                  text: (
-                    <span className="block space-y-0.5">
-                      <span className="block">→ read .groundwork/HANDOFF.md</span>
-                      <span className="block">→ read the two phase 2 cards</span>
-                      <span className="block">… {resume.with.toolCalls} tool calls in all</span>
-                    </span>
-                  ),
-                },
-                {
-                  who: 'agent',
-                  text: 'Where things stand: Phase 2 Browser UI is built — cards 2.1 and 2.2 are done and committed, the full suite is green (58/58), and the deploy is live. Nothing is in progress; it’s waiting on your phase review.',
-                },
-              ]}
-            />
-            <dl className="mt-auto grid grid-cols-3 border-t border-border font-mono text-xs">
-              <div className="p-3">
-                <dt className="text-muted">calls</dt>
-                <dd className="mt-0.5 text-base font-semibold">{resume.with.calls}</dd>
-              </div>
-              <div className="border-l border-border p-3">
-                <dt className="text-muted">tokens read</dt>
-                <dd className="mt-0.5 text-base font-semibold">{Math.round(resume.with.processed / 1000)}k</dd>
-              </div>
-              <div className="border-l border-border p-3">
-                <dt className="text-muted">cost</dt>
-                <dd className="mt-0.5 text-base font-semibold">{usd(resume.with.cost, 4)}</dd>
-              </div>
-            </dl>
-          </Terminal>
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+          {results.map((r) => (
+            <div key={r.label} className="bg-background p-6">
+              <p className="type-label mb-2">{r.label}</p>
+              <p className="font-mono text-3xl font-semibold tracking-tight">{r.value}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{r.body}</p>
+            </div>
+          ))}
         </div>
+        <p className="mt-4 text-sm text-muted">
+          One agent and one model, scored by tests the agent never saw.{' '}
+          <Link href="/docs/results" className="text-foreground underline underline-offset-4">
+            How it was tested, and what it doesn’t show →
+          </Link>
+        </p>
       </Section>
 
       {/* How it works */}
@@ -283,7 +216,7 @@ export default function HomePage() {
                 you can try, like a milestone. You can approve card by card, or once at the end of each phase.
               </p>
             </div>
-            <p className="mt-6 mb-3 font-mono text-xs text-muted">the calculator’s real plan</p>
+            <p className="mt-6 mb-3 font-mono text-xs text-muted">an example plan: a small calculator</p>
             <PhasePlan />
           </Stage>
 
@@ -310,11 +243,6 @@ export default function HomePage() {
           <p className="type-label mb-6">Every card moves through, in order</p>
           <StatusTrack />
         </div>
-        <p className="mt-6 text-sm">
-          <Link href="/docs/guides/walkthrough" className="underline underline-offset-4">
-            Watch it happen on a real build →
-          </Link>
-        </p>
       </Section>
 
       {/* What you get */}
@@ -337,50 +265,25 @@ export default function HomePage() {
       {/* What it costs */}
       <Section
         label="What it costs"
-        title="Catching up shouldn’t mean re-reading the project."
-        intro="A fresh session in the finished calculator, asked where the project stands. Without Groundwork the agent has to rebuild the picture from files and git history; with it, it reads a short note."
+        title="More reliable across sessions, at a price."
+        intro="Groundwork spends tokens on a tester, an implementer, a reviewer and written records for every card. In the same comparison, that cost about four times the API spend per task."
       >
-        <div className="rounded-xl border border-border bg-surface/60 p-5 sm:p-8">
-          <div className="space-y-5">
-            {(
-              [
-                ['Groundwork removed', resume.without, 'var(--series-chat)'],
-                ['With Groundwork', resume.with, 'var(--series-gw)'],
-              ] as const
-            ).map(([label, r, color]) => (
-              <div key={label}>
-                <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2 text-sm">
-                  <span>{label}</span>
-                  <span className="font-mono">
-                    <strong className="text-lg">{n(r.processed)}</strong> <span className="text-muted">tokens read</span>
-                  </span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-r-[4px]">
-                  <div
-                    className="h-full rounded-r-[4px]"
-                    style={{ width: `${(r.processed / resume.without.processed) * 100}%`, background: color }}
-                  />
-                </div>
-                <p className="mt-1.5 font-mono text-xs text-muted">
-                  {r.calls} model calls · {r.toolCalls} tool calls · {usd(r.cost, 4)}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 grid gap-6 border-t border-border pt-6 sm:grid-cols-[auto_1fr] sm:items-center">
-            <p className="font-mono text-5xl font-semibold tracking-tight">{ratio}×</p>
-            <p className="text-sm leading-relaxed text-muted">
-              fewer tokens to answer “where are we?”, and the answer was right. Without written state, catching up costs
-              whatever there is to read, and a bigger project has more. One run each, on a small app, so read it as the
-              shape to expect.{' '}
-              <Source href={m('resuming-where-does-the-project-stand')}>measurements</Source>
-            </p>
-          </div>
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+          {costs.map((c) => (
+            <div key={c.label} className="bg-background p-6">
+              <p className="type-label mb-3">{c.label}</p>
+              <p className="font-mono text-sm text-muted">
+                without <strong className="text-lg text-foreground">{c.without}</strong> · with Groundwork{' '}
+                <strong className="text-lg text-foreground">{c.with}</strong>
+              </p>
+            </div>
+          ))}
         </div>
-        <p className="mt-4 text-sm text-muted">
-          Building has a cost too: three roles and a review per card. On a small app, a single chat is cheaper.{' '}
-          <Link href="/proof" className="text-foreground underline underline-offset-4">
-            See the full breakdown →
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+          It pays off when the project’s knowledge has to outlive a session: work you come back to, decisions later steps
+          must respect, a teammate picking up a task. For a quick one-off change, a plain session is cheaper.{' '}
+          <Link href="/docs/concepts/cost" className="text-foreground underline underline-offset-4">
+            Where the tokens go →
           </Link>
         </p>
       </Section>

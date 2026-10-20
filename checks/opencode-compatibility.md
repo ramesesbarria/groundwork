@@ -5,8 +5,9 @@ The adapter depends on OpenCode's tool names, argument names and plugin format, 
 changed without notice within 2.x. A session inside OpenCode can report what it actually sees. A
 model's memory of OpenCode can't be trusted.
 
-**Last run:** OpenCode 2.0.32, 2026-10-19, Windows 11, Node.js 24.19.0. Session start was last
-checked on 2.0.18 (2026-09-26).
+**Last full run:** OpenCode 2.0.32, 2026-10-19, Windows 11, Node.js 24.19.0. On 2.1.0 (2026-10-20):
+plugin loading, the commit gate, moving the harness, and approval and rejection picked from the
+command menu. Session start was last checked on 2.0.18 (2026-09-26).
 
 What that run established:
 

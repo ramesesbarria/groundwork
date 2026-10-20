@@ -9,8 +9,10 @@ const moved: Record<string, string> = {
   why: '/docs/why',
   faq: '/docs/faq',
   glossary: '/docs/glossary',
-  'guides/walkthrough': '/docs/guides/walkthrough',
-  walkthrough: '/docs/guides/walkthrough',
+  'guides/walkthrough': '/earlier-build',
+  walkthrough: '/earlier-build',
+  proof: '/earlier-build',
+  receipts: '/earlier-build',
 };
 for (const p of [
   'getting-started/installation',

@@ -20,7 +20,8 @@ cd your-project
 npx groundwork-ai init
 ```
 
-Needs Node.js 22+ and a git repo. Then open Claude Code, OpenCode or any AI tool and type `/gw`.
+Needs Node.js 22+ and a git repo (and Claude Code 2.1.295+, if you use Claude Code). Then open
+Claude Code, OpenCode or any AI tool and type `/gw`.
 **Next:** the [5-minute quickstart](https://ramesesbarria.github.io/groundwork/quickstart).
 
 ## Who it helps
@@ -61,7 +62,8 @@ Agent: Card 1.2 Voting is being built: the tests are written, the code isn't yet
 1. **Spec and plan.** The agent asks specific questions, writes the spec, records stack decisions
    with their trade-offs, and splits the work into small cards.
 2. **Build one card.** A tester writes failing tests, an implementer makes them pass, and a
-   reviewer with fresh context reruns everything. The proof is saved next to the card.
+   reviewer reruns everything, each in a fresh session where the tool supports subagents. The proof
+   is saved next to the card.
 3. **You approve.** `/gw-approve` commits the card; `/gw-reject` sends it back with your reason. Or
    approve once per phase. Small fixes take a quick path without a card.
 4. **Pick it up anywhere.** The handoff, cards and decisions are files, so any session, tool or
@@ -86,13 +88,16 @@ authentic, and a determined agent can work around a local hook through a tool it
 review are the backstop. The details:
 [evidence and approval](https://ramesesbarria.github.io/groundwork/docs/concepts/evidence-and-approval).
 
-## Evidence so far
+## Results
 
-One recorded build of a small calculator app, on an earlier version, measured call by call:
-[the walkthrough](https://ramesesbarria.github.io/groundwork/docs/guides/walkthrough) and
-[the proof page](https://ramesesbarria.github.io/groundwork/proof). It shows where the tokens go. It
-isn't a comparison of quality or cost against working without Groundwork; that evaluation is next.
-`npx groundwork-ai doctor` estimates what Groundwork adds to every session in your project.
+We ran the same agent (OpenCode 2.0.32 with DeepSeek Flash) on the same short tasks with and without
+Groundwork, scored by tests the agent never saw, three runs each. Work that spanned sessions held
+together better: **13 of 15** runs succeeded with Groundwork, 7 of 15 without. Self-contained tasks
+tied at 12 of 12. The price: about **4× the API cost and 3× the time** per solo task. One agent and
+model on a small project can't show how others behave, or what a long project saves.
+[The results, the corrections and the limits](https://ramesesbarria.github.io/groundwork/docs/results)
+· [the evaluation in this repo](evals/RESULTS.md). `npx groundwork-ai doctor` estimates what
+Groundwork adds to every session in your project.
 
 ## Documentation
 
@@ -111,10 +116,11 @@ isn't a comparison of quality or cost against working without Groundwork; that e
 | `cli/` | The `groundwork-ai` npm package. TypeScript on Node.js 22+, tested with Vitest. |
 | `docs/` | The documentation site: Next.js and Fumadocs, deployed to GitHub Pages. |
 | `demo/` | The two-branch team demo and the sample PR workflow. |
-| `transcripts/` | The raw sessions and measurements behind the calculator walkthrough (historical). |
+| `evals/` | The comparative evaluation: tasks, harness, per-run results and the report. |
+| `transcripts/` | Sessions and measurements from a pre-1.0 calculator build. |
 | `checks/` | Maintainer tools: the OpenCode compatibility check and the session cost script. |
 
-`V1.md` is the release plan and its evidence status.
+`V1.md` describes what v1 supports, its limits and the evidence for it.
 
 ## Contributing
 

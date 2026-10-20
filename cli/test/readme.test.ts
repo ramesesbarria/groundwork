@@ -54,7 +54,7 @@ describe("README", () => {
   });
 
   it("has the product sections, including the team path and the limits", () => {
-    for (const heading of ["Who it helps", "The problem", "A short example", "How it works", "Working as a team", "What's checked, and what isn't", "Evidence so far", "Documentation", "Contributing", "License"]) {
+    for (const heading of ["Who it helps", "The problem", "A short example", "How it works", "Working as a team", "What's checked, and what isn't", "Results", "Documentation", "Contributing", "License"]) {
       expect(section(heading), `missing "## ${heading}"`).not.toBe("");
     }
   });
@@ -64,8 +64,11 @@ describe("README", () => {
     expect([...slash].sort()).toEqual(["/gw", "/gw-approve", "/gw-reject"]);
   });
 
-  it("keeps the calculator evidence scoped: one build, not a comparison", () => {
-    expect(section("Evidence so far")).toMatch(/isn't a comparison/);
+  it("scopes the evaluation claims to the tested agent and model, with the cost", () => {
+    const results = section("Results");
+    expect(results).toMatch(/OpenCode 2\.0\.32 with DeepSeek Flash/);
+    expect(results).toMatch(/4× the API cost and 3× the time/);
+    expect(results).toMatch(/can't show how others behave/);
   });
 
   it("stays a product page, not a manual", () => {

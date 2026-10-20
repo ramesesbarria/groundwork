@@ -1,0 +1,67 @@
+---
+title: "Results"
+description: "What a controlled comparison showed about Groundwork: one agent, one model, short tasks, scored by hidden tests."
+---
+
+We ran the same coding agent with and without Groundwork on the same tasks and scored every run
+with tests the agent never saw. This page summarizes it; the full report, design and per-run data
+are in the repository's [`evals/`](https://github.com/ramesesbarria/groundwork/tree/main/evals).
+
+<Callout title="What was tested">
+OpenCode 2.0.32 with DeepSeek Flash, on Windows, in October 2026. 10 solo tasks and 3 team scenarios
+on a small Node.js project, 3 runs each, with a scripted human who answers and approves by fixed
+rules. The scored runs used Groundwork builds from just before 1.0 (`e5c994c`, team suite also on
+`a6a0f2e`). One agent and model can't show how others behave.
+</Callout>
+
+## The short version
+
+- **Work that spans sessions held together better.** When requirements or decisions were given in
+  one session and needed in a later one, Groundwork runs succeeded 13 of 15 times; without it, 7 of
+  15.
+- **Self-contained tasks didn't improve.** Both arms solved all 12 single-session tasks.
+- **It costs more.** A typical solo task took about **4× the API cost** and **3× the time**, and the
+  human was asked to reply more often (mostly approvals).
+
+| | Without | With Groundwork |
+|---|---|---|
+| Multi-session tasks (5 tasks × 3 runs) | 7/15 | **13/15** |
+| Single-session tasks (4 × 3) | 12/12 | 12/12 |
+| All solo tasks (10 × 3) | 22/30 | **28/30** |
+| Team scenarios (3 × 3), on the build that fixed a PR-mode defect | 9/9 | 9/9 |
+| Median API cost per solo run | $0.021 | $0.091 |
+| Median time per solo run | 138 s | 389 s |
+
+A run succeeds only if every hidden acceptance, context and regression test passes. With three runs
+per task the differences are suggestive, not conclusive: continuity 13/15 vs 7/15 gives p = 0.05,
+all solo tasks p = 0.08 (Fisher's exact test).
+
+## Corrections, kept visible
+
+During scoring we found three problems in the evaluation harness, not in Groundwork: the scripted
+human missed some ways an agent asks for a reply, and sent one approval with a quoted card id. The
+affected runs (all on the Groundwork side) were rerun on the same build, and every original run is
+kept. As first scored, Groundwork was **24/30**; corrected, **28/30**; the baseline was 22/30 either
+way. If you distrust the corrections, use 24/30.
+
+## When it's worth the cost
+
+Groundwork pays off when a project's knowledge has to outlive a session: work you come back to,
+decisions that later steps must respect, or a teammate picking up a task. On a one-off change you
+finish in one sitting, a plain session was as good and cheaper. The team scenarios didn't separate
+the arms: a careful plain workflow handled them too.
+
+What this doesn't show: savings over a long project. Every task here was 1–3 sessions on a small
+codebase. That needs a long-horizon evaluation, which hasn't been run.
+
+## Check the numbers
+
+`evals/runs.csv` has one row per run, marking which runs the original and the corrected results use.
+`node evals/harness/aggregate.mjs` recomputes every number above from it, with no model calls. It
+checks the arithmetic; rerunning the experiment takes OpenCode, a DeepSeek key and the steps in
+[`evals/README.md`](https://github.com/ramesesbarria/groundwork/blob/main/evals/README.md).
+
+## Before 1.0
+
+An earlier, pre-1.0 version built a small calculator app, recorded call by call. It shows how the
+workflow runs and where tokens went, without a comparison: [Earlier build (pre-1.0)](/earlier-build).

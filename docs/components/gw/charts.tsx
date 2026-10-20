@@ -3,7 +3,7 @@ import { useId, useMemo, useState } from 'react';
 import { cn } from '@/lib/cn';
 import type { CardCost, RoleSession } from '@/lib/data/calculator';
 
-// Hand-drawn SVG charts for /proof. Two series colors only (validated for both modes against the
+// Hand-drawn SVG charts for /earlier-build. Two series colors only (validated for both modes against the
 // page surfaces): --series-gw for Groundwork's fresh sessions, --series-chat for one long chat.
 // Text stays in text colors; every value is also in a table below the chart.
 

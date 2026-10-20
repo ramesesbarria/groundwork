@@ -146,8 +146,8 @@ export default function QuickstartPage() {
           </p>
           <div className="flex shrink-0 flex-wrap gap-3">
             <ButtonLink href="/docs">Read the docs →</ButtonLink>
-            <ButtonLink href="/docs/guides/walkthrough" variant="secondary">
-              Watch a real build
+            <ButtonLink href="/docs/results" variant="secondary">
+              See the results
             </ButtonLink>
           </div>
         </div>

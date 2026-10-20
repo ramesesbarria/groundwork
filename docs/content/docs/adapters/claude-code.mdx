@@ -5,9 +5,10 @@ title: "Claude Code"
 Groundwork's Claude Code adapter turns the core into native skills, subagents and hooks. Everything
 it generates points back into `.groundwork/`, so the core stays the single source of truth.
 
-Checked with Claude Code 2.1.303 on 2026-10-19: scripted live `/gw-approve` and `/gw-reject` turns
-worked, including the commit and its gate. Stale approval and a human-driven session are still
-unobserved, so Claude Code compatibility is explicitly partial.
+Needs **Claude Code 2.1.295 or later**, and Git for Windows on Windows (see Hooks below). Checked
+with Claude Code 2.1.304 in 2026-10: a person built, rejected, reworked, approved and resumed a
+project, including a stale approval, and scripted runs covered the commit gate and a guard that
+can't run.
 
 ## What `init` adds
 

@@ -51,6 +51,7 @@ describe("docs site", () => {
     // Each folder's meta.json lists its pages; the root meta.json pulls each folder in with "...folder".
     const meta = (dir: string): string[] => JSON.parse(readFileSync(join(content, dir, "meta.json"), "utf8")).pages;
     for (const page of pages) {
+      if (read(page).includes("<Moved ")) continue; // a forwarding stub for an old URL, not a page to list
       const path = relative("content/docs", page).replaceAll("\\", "/");
       const dir = dirname(path);
       const name = path.split("/").pop()!.replace(/\.mdx$/, "");
@@ -65,8 +66,9 @@ describe("docs site", () => {
       ...text.matchAll(/https:\/\/ramesesbarria\.github\.io\/groundwork\/((?:demo-[\w-]+\.gif|clips\/[\w-]+\.mp4))/g),
       ...text.matchAll(/asset\(['"`]\/([\w./-]+\.(?:gif|mp4|png|svg))/g),
       ...text.matchAll(/file="([\w-]+\.mp4)"/g),
+      ...text.matchAll(/file: '([\w-]+\.mp4)'/g),
       ...text.matchAll(/<Shot src="\/([\w./-]+)"/g),
-    ].map((match) => (match[0].startsWith("file=") ? `clips/${match[1]}` : match[1]));
+    ].map((match) => (match[0].startsWith("file") ? `clips/${match[1]}` : match[1]));
     expect(media.length).toBeGreaterThan(5);
     for (const file of new Set(media)) {
       expect(existsSync(join(docs, "public", file)), `docs/public is missing ${file}`).toBe(true);
