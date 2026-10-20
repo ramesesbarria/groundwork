@@ -1,5 +1,6 @@
 // `groundwork doctor`: harness health and the context budget.
 // Problems make it exit 1 (so it can run in CI); suggestions don't.
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -225,11 +226,24 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
         // Users may keep their own CLAUDE.md; it only has to load AGENTS.md.
         if (!current.includes("@AGENTS.md")) f.problems.push(`CLAUDE.md doesn't load AGENTS.md. Add the line @AGENTS.md.`);
       } else if (file.mode === "merge-settings") {
-        const hooks = JSON.parse(file.content).hooks as Record<string, { hooks: { command: string }[] }[]>;
+        const hooks = JSON.parse(file.content).hooks as Record<string, { hooks: { command: string; onFailure?: string }[] }[]>;
+        let installed: { hooks?: Record<string, { hooks?: { command?: string; onFailure?: string }[] }[]> } = {};
+        try {
+          installed = parseJson(current || "{}") as typeof installed;
+        } catch {
+          // An unreadable file is reported below as a missing hook.
+        }
         for (const [event, entries] of Object.entries(hooks)) {
-          const command = entries[0].hooks[0].command;
-          if (!current.includes(command.replace(/"/g, '\\"'))) {
+          const ours = entries[0].hooks[0];
+          if (!current.includes(ours.command.replace(/"/g, '\\"'))) {
             f.problems.push(`${file.path} is missing Groundwork's ${HOOK_EFFECT[event] ?? `${event} hook`}. ${fix}`);
+            continue;
+          }
+          const hook = (installed.hooks?.[event] ?? []).flatMap((entry) => entry.hooks ?? []).find((h) => h.command === ours.command);
+          if (ours.onFailure && hook?.onFailure !== ours.onFailure) {
+            f.problems.push(
+              `${file.path}: Groundwork's guard hook doesn't set "onFailure": "${ours.onFailure}", so Claude Code lets a call through when the guard can't run. Add it to that hook.`,
+            );
           }
         }
       } else if (current.replace(/\r\n/g, "\n") !== file.content && !alreadyMerged(cwd, manifest, file)) {
@@ -237,6 +251,53 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
       }
     }
   }
+}
+
+// Guard and hook scripts that won't load. The guards then block every call, so say which file and how
+// to get it back.
+async function checkScriptsLoad(cwd: string, groundwork: string, f: Findings) {
+  const scripts = ["guards", "guards/lib", "hooks"].flatMap((dir) =>
+    existsSync(join(groundwork, dir)) ? readdirSync(join(groundwork, dir)).filter((n) => n.endsWith(".mjs")).map((n) => join(groundwork, dir, n)) : [],
+  );
+  for (const script of scripts) {
+    try {
+      await import(pathToFileURL(script).href);
+    } catch (error) {
+      const path = relative(cwd, script).split("\\").join("/");
+      f.problems.push(
+        `${path} can't load (${(error as Error).message.split("\n")[0]}), so the guards block every call. ` +
+          "Restore it from Git if it's committed, or delete it and run `npx groundwork-ai upgrade`.",
+      );
+    }
+  }
+}
+
+// The guard hook's onFailure: "block" needs Claude Code 2.1.295 or later (code.claude.com/docs/en/hooks;
+// changelog 2.1.295). Earlier versions let a call through when the guard can't run.
+export const CLAUDE_CODE_MIN = "2.1.295";
+
+// The installed Claude Code version: GROUNDWORK_CLAUDE_CODE_VERSION if set, else `claude --version`.
+function claudeCodeVersion(): string | undefined {
+  let text = process.env.GROUNDWORK_CLAUDE_CODE_VERSION;
+  if (text === undefined) {
+    const result = spawnSync("claude", ["--version"], { encoding: "utf8", timeout: 10_000, shell: process.platform === "win32" });
+    text = result.status === 0 ? result.stdout : "";
+  }
+  return text.match(/\d+\.\d+\.\d+/)?.[0];
+}
+
+// Pure: one status line for the detected version, and a problem when it's too old.
+export function claudeCodeCompatibility(version: string | undefined): { line: string; problem?: string } {
+  if (!version) {
+    return {
+      line: `Claude Code:    version unknown. Groundwork needs ${CLAUDE_CODE_MIN} or later to block tool calls when its guard can't run; check with \`claude --version\`.`,
+    };
+  }
+  if (compareVersions(version, CLAUDE_CODE_MIN) >= 0) return { line: `Claude Code:    ${version} (blocks tool calls when the guard can't run)` };
+  return {
+    line: `Claude Code:    ${version}, older than ${CLAUDE_CODE_MIN}`,
+    problem: `Claude Code ${version} lets tool calls through when Groundwork's guard can't run; that needs ${CLAUDE_CODE_MIN} or later. Update Claude Code.`,
+  };
 }
 
 // A <file>.new that upgrade left next to a file the user changed: that update isn't active until it's merged.
@@ -326,11 +387,18 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   const configText = read(join(groundwork, "config.json"));
   const f: Findings = { problems: [], suggestions: [] };
   let config: { tokenBudget?: number; guards?: string[]; version?: string } = {};
+  if (configText === "") {
+    f.problems.push(
+      ".groundwork/config.json is missing, so this install is broken and the guards block every call. " +
+        "Restore it from Git if it's committed, or run `npx groundwork-ai init`, which recreates only missing files (then set " +
+        "your choices in it again); the other checks below use default settings.",
+    );
+  }
   try {
     config = parseJson(configText || "{}") as typeof config;
   } catch (error) {
     f.problems.push(
-      `.groundwork/config.json isn't valid JSON (${(error as Error).message}). Until it's fixed, guards block every commit. ` +
+      `.groundwork/config.json isn't valid JSON (${(error as Error).message}). Until it's fixed, the guards block every call. ` +
         "Fix the file; the other checks below use default settings.",
     );
   }
@@ -340,6 +408,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   const cards = readCardFiles(groundwork);
   checkGitAttributes(io.cwd, f);
   checkGuards(groundwork, config.guards ?? [], f);
+  await checkScriptsLoad(io.cwd, groundwork, f);
   checkAdapters(io.cwd, groundwork, behind, f);
   checkPendingUpdates(io.cwd, f);
   checkModels(groundwork, f);
@@ -352,7 +421,13 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   checkEvidenceEncoding(groundwork, f);
   checkLessons(io.cwd, groundwork, cardText, f);
 
-  const lines = ["Groundwork doctor", "", ...budget.lines, ...startupCost(groundwork, budget.tokens, cards), ""];
+  const lines = ["Groundwork doctor", "", ...budget.lines, ...startupCost(groundwork, budget.tokens, cards)];
+  if (read(join(io.cwd, ".claude/settings.json")).includes(".groundwork/guards/run.mjs")) {
+    const compatibility = claudeCodeCompatibility(claudeCodeVersion());
+    lines.push(compatibility.line);
+    if (compatibility.problem) f.problems.push(compatibility.problem);
+  }
+  lines.push("");
   if (f.problems.length === 0) lines.push("No problems found.");
   else lines.push(`Problems (${f.problems.length}):`, ...f.problems.map((p) => `  ✗ ${p}`));
   if (f.suggestions.length > 0) lines.push("", `Suggestions (${f.suggestions.length}):`, ...f.suggestions.map((s) => `  • ${s}`));

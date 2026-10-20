@@ -72,7 +72,10 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
   ].join("\n");
 
   // Guards: every shell command and file write goes through the runner, which applies the guards
-  // listed in .groundwork/config.json. Exit code 2 blocks the action.
+  // listed in .groundwork/config.json. Exit code 2 blocks the action. Claude Code lets a call through
+  // when a hook fails any other way (it can't start, crashes, times out), unless the hook sets
+  // onFailure: "block", added in Claude Code 2.1.295 (code.claude.com/docs/en/hooks, "Block the
+  // action when a hook fails"; changelog 2.1.295). Older versions ignore the field.
   // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF. Claude Code
   // adds a SessionStart hook's plain-text output as context (code.claude.com/docs/en/hooks).
   out[".claude/settings.json"] =
@@ -88,7 +91,7 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
           PreToolUse: [
             {
               matcher: "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code' }],
+              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code', onFailure: "block" }],
             },
           ],
           // Fires only on the human's own messages, so the commit gate can tell a human approval

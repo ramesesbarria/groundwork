@@ -4,8 +4,9 @@
 // It runs the guards listed under "guards" in .groundwork/config.json.
 // Exit code 2 blocks the action (Claude Code shows stderr to the model); 0 allows it.
 //
-// It fails safe: when the config or a guard can't be read or run, a commit is blocked (so a broken
-// setup can't let one through unnoticed) and everything else is allowed, with a message either way.
+// It fails closed: when the hook input, the config or a guard can't be read or run, the call is
+// blocked with a message saying how the human repairs it. Claude Code's hook sets onFailure: "block",
+// so a runner that can't start at all blocks the call too.
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -132,19 +133,21 @@ export async function runGuards(action, names, dir) {
   return { block: false, warnings, failed };
 }
 
-// When the guards can't do their job: block a commit, allow anything else. Both say why.
-function failSafe(action, problem, warnings = []) {
-  const message = `Groundwork: ${problem} Fix it, or run \`npx groundwork-ai doctor\`.`;
-  if (isCommit(action)) {
-    return { block: true, reason: `${message} Commits are blocked until the guards can run.`, warnings };
-  }
-  return { block: false, warnings: [...warnings, message] };
+// When the guards can't do their job, every watched call is blocked: a broken guard must not be a way
+// to change Groundwork's own files or commit unchecked. The human repairs it outside the agent.
+export const RECOVERY =
+  "The human fixes this in their own terminal: `npx groundwork-ai doctor` says what's wrong. Restore Groundwork's " +
+  "files from Git if they're committed; otherwise delete a damaged file and run `npx groundwork-ai upgrade`, or run " +
+  "`npx groundwork-ai init` to recreate a missing config.json.";
+function failSafe(problem, warnings = []) {
+  return { block: true, reason: `Groundwork: ${problem} This call is blocked until the guards can run. ${RECOVERY}`, warnings };
 }
 
-// Reads .groundwork/config.json next to the guards folder. Missing means no guards.
+// Reads .groundwork/config.json next to the guards folder. An installed project always has one, so a
+// missing file means a broken install, not "no guards".
 function readConfig(guardsDir) {
   const path = join(guardsDir, "..", "config.json");
-  if (!existsSync(path)) return {};
+  if (!existsSync(path)) throw new Error("it is missing");
   return parseJson(readFileSync(path, "utf8"));
 }
 
@@ -161,7 +164,7 @@ export async function evaluate(tool, input, guardsDir) {
     guards = config.guards ?? [];
     if (!Array.isArray(guards)) throw new Error('"guards" isn\'t a list');
   } catch (error) {
-    return failSafe(action, `.groundwork/config.json can't be read (${error.message}).`);
+    return failSafe(`.groundwork/config.json can't be read (${error.message}), so this install is broken.`);
   }
 
   // Built in, and not listed in `guards`, so editing that list can't remove them. Switching them off
@@ -180,13 +183,13 @@ export async function evaluate(tool, input, guardsDir) {
       if (result.block) return { block: true, reason: `[commit-gate] ${result.reason}`, warnings: [] };
     }
   } catch (error) {
-    return failSafe(action, `Groundwork's built-in checks couldn't run (${error.message}).`);
+    return failSafe(`Groundwork's built-in checks couldn't run (${error.message}).`);
   }
   if (guards.length === 0) return { block: false, warnings: [] };
 
   const result = await runGuards(action, guards, guardsDir);
   if (result.block || result.failed.length === 0) return result;
-  return failSafe(action, `guard ${result.failed.map((n) => `"${n}"`).join(", ")} couldn't run.`, result.warnings);
+  return failSafe(`guard ${result.failed.map((n) => `"${n}"`).join(", ")} couldn't run.`, result.warnings);
 }
 
 function readStdin() {
@@ -197,25 +200,33 @@ function readStdin() {
   }
 }
 
+// Exit code 2 blocks the call; any other failure would let it through, so every error ends here.
 async function main() {
   const here = dirname(fileURLToPath(import.meta.url));
   const tool = process.argv[2] ?? "claude-code";
   let input;
   try {
     const raw = readStdin();
-    if (!raw.trim()) return 0;
+    if (!raw.trim()) throw new Error("it was empty");
     input = parseJson(raw);
-  } catch {
-    return 0; // not a hook input we understand, so there's nothing to guard
-  }
-
-  const { block, reason, warnings } = await evaluate(tool, input, here);
-  for (const warning of warnings) process.stderr.write(`${warning}\n`);
-  if (block) {
-    process.stderr.write(`${reason}\n`);
+  } catch (error) {
+    // Unreadable input can't be checked, and its text isn't trusted to say what the call does.
+    process.stderr.write(`Groundwork couldn't read this tool call (${error.message}), so it's blocked. ${RECOVERY}\n`);
     return 2;
   }
-  return 0;
+
+  try {
+    const { block, reason, warnings } = await evaluate(tool, input, here);
+    for (const warning of warnings) process.stderr.write(`${warning}\n`);
+    if (block) {
+      process.stderr.write(`${reason}\n`);
+      return 2;
+    }
+    return 0;
+  } catch (error) {
+    process.stderr.write(`${failSafe(`the guard failed (${error.message}).`).reason}\n`);
+    return 2;
+  }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

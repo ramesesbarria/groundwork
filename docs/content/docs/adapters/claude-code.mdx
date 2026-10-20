@@ -63,8 +63,8 @@ permissions and hooks survive.
     [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode your `/gw-approve` for
     the work as it is now. A commit that names no card needs a tag such as `[quick]`.
   - **protect-harness**: the agent can't remove guards, turn these checks off, relax the approval
-    mode, switch to PR integration, run `migrate`, or take Groundwork's hooks out of settings. You
-    can, in your editor or terminal.
+    mode, switch to PR integration, run `migrate`, take Groundwork's hooks out of settings, or
+    remove or move the folders that hold them. You can, in your editor or terminal.
 - **UserPromptSubmit** runs `.groundwork/hooks/user-prompt.mjs` on each message *you* send (never on
   the agent's own actions) and records it in `.groundwork/.approvals/` (git-ignored). Only a
   `/gw-approve` message records an approval; any other message clears it.
@@ -72,8 +72,26 @@ permissions and hooks survive.
 What this enforces, and where it stops, is in
 [Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
 
-The runner fails safe: if the config or a guard can't be read, commits are blocked and everything
-else goes through, with a message saying what to fix. New installs start with `no-ai-trailers` on.
+**The guard fails closed.** If the tool call, `config.json` or a guard can't be read or run, the
+runner blocks the call and says how to repair it. If the runner can't start at all (its file is
+gone, or Node fails), the hook's `"onFailure": "block"` makes Claude Code block the call. That field
+needs **Claude Code 2.1.295 or later**
+([hooks reference](https://code.claude.com/docs/en/hooks)); earlier versions let the call through
+when the guard can't run, and `doctor` reports the version it finds. On Windows, Claude Code runs
+the hooks with Git Bash, so Groundwork needs Git for Windows. New installs start with
+`no-ai-trailers` on.
+
+When the guard is broken, every Bash, PowerShell, Write and Edit call is blocked until you repair it
+from your own terminal:
+
+1. `npx groundwork-ai doctor` says what's wrong.
+2. If Groundwork's files are committed, restore them from Git, e.g.
+   `git restore --source=HEAD -- .groundwork/guards .groundwork/hooks .groundwork/config.json .claude/settings.json`.
+3. If they aren't, delete a damaged guard or hook file and run `npx groundwork-ai upgrade`, which
+   writes it again. A missing `config.json` comes back with `npx groundwork-ai init`, which creates
+   only missing files; set your choices in it again.
+4. To take Groundwork out instead, `npx groundwork-ai uninstall --keep-state` removes the hooks and
+   keeps your project files.
 
 These checks stop the lazy or overconfident shortcut and make a deliberate one visible. An agent
 set on getting around them can still use the shell in ways a hook can't foresee; for a hard gate,
@@ -85,5 +103,6 @@ run `npx groundwork-ai check` in CI.
 npx groundwork-ai doctor
 ```
 
-Flags a missing hook, a `CLAUDE.md` that doesn't load `AGENTS.md`, and generated files that have
-drifted from what Groundwork would generate, with the command to fix each.
+Flags a missing hook, a guard hook without `"onFailure": "block"`, a Claude Code older than
+2.1.295 (or says the version is unknown), a `CLAUDE.md` that doesn't load `AGENTS.md`, and generated
+files that have drifted from what Groundwork would generate, with the command to fix each.

@@ -221,7 +221,7 @@ describe("OpenCode guard plugin", () => {
     await expect(before({ tool: "shell", input: { command: "npx groundwork-ai migrate legacy --yes" } })).rejects.toThrow(/this call is blocked/);
   });
 
-  it("with a broken config, blocks commits only instead of every tool call", async () => {
+  it("with a broken config, blocks every watched call and leaves unwatched ones alone", async () => {
     const project = tempDir();
     cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
     writeFileSync(join(project, ".groundwork/config.json"), '{ "guards": ["no-ai-trailers"], }');
@@ -241,8 +241,9 @@ describe("OpenCode guard plugin", () => {
     console.warn = () => {};
     try {
       await expect(before({ tool: "read", input: { path: "a.ts" } })).resolves.toBeUndefined();
-      await expect(before({ tool: "shell", input: { command: "ls" } })).resolves.toBeUndefined();
+      await expect(before({ tool: "shell", input: { command: "ls" } })).rejects.toThrow(/config\.json/);
       await expect(before({ tool: "shell", input: { command: "git commit -m 'Fix'" } })).rejects.toThrow(/config\.json/);
+      await expect(before({ tool: "write", input: { path: ".groundwork/guards/run.mjs", content: "" } })).rejects.toThrow(/config\.json/);
     } finally {
       console.warn = warn;
     }

@@ -45,7 +45,8 @@ Load only the files it lists under Load.
         "hooks": [
           {
             "type": "command",
-            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs\\" claude-code"
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs\\" claude-code",
+            "onFailure": "block"
           }
         ]
       }

@@ -86,15 +86,18 @@ function checkConfig(action, abs) {
   } catch {
     return { block: false }; // already broken: the runner blocks commits until the human fixes it
   }
-  if (before.setup !== "done") return { block: false }; // setup is still writing it
   const text = after(action, abs);
-  if (text === undefined) return { block: true, reason: `This edits ${CONFIG} in a way Groundwork can't check. ${ASK}` };
   let next;
-  try {
-    next = parseJson(text);
-  } catch {
-    return { block: true, reason: `This would leave ${CONFIG} as invalid JSON, which stops guards and blocks every commit. Fix the edit.` };
+  if (text !== undefined) {
+    try {
+      next = parseJson(text);
+    } catch {
+      // Even during setup: an unreadable config stops the guards, and they then block every call.
+      return { block: true, reason: `This would leave ${CONFIG} as invalid JSON, which stops the guards and blocks every call. Fix the edit.` };
+    }
   }
+  if (before.setup !== "done") return { block: false }; // setup is still writing it
+  if (next === undefined) return { block: true, reason: `This edits ${CONFIG} in a way Groundwork can't check. ${ASK}` };
   const lost = weakenedConfig(before, next);
   if (lost.length === 0) return { block: false };
   return { block: true, reason: `This change to ${CONFIG} would ${lost.join(" and ")}. ${ASK}` };
@@ -123,8 +126,18 @@ function checkSettings(action, abs, rel) {
       .flatMap((entry) => (entry?.hooks ?? []).map((h) => h?.command ?? ""))
       .filter((c) => c.includes(".groundwork/"));
   const kept = new Set(commands(next));
-  if (commands(before).every((c) => kept.has(c))) return { block: false };
-  return { block: true, reason: `This would take Groundwork's hooks out of ${rel}, so guards and session start stop running. ${ASK}` };
+  if (!commands(before).every((c) => kept.has(c))) {
+    return { block: true, reason: `This would take Groundwork's hooks out of ${rel}, so guards and session start stop running. ${ASK}` };
+  }
+  // onFailure: "block" makes Claude Code block a call when the guard can't run at all.
+  const blocking = (s) =>
+    Object.values(s.hooks ?? {})
+      .flat()
+      .flatMap((entry) => (entry?.hooks ?? []).filter((h) => h?.onFailure === "block").map((h) => h?.command ?? ""))
+      .filter((c) => c.includes(".groundwork/"));
+  const stillBlocking = new Set(blocking(next));
+  if (blocking(before).every((c) => stillBlocking.has(c))) return { block: false };
+  return { block: true, reason: `This would let tool calls through when Groundwork's guard can't run (onFailure in ${rel}). ${ASK}` };
 }
 
 function checkWrite(action, project) {
@@ -205,6 +218,36 @@ export function commandWriteTargets(command) {
   return targets;
 }
 
+// Groundwork's own files and folders. Removing or moving a folder above one of them takes the guards
+// (or their settings) away, so the next call would run unchecked.
+const HARNESS_PATHS = [
+  ".groundwork/guards",
+  ".groundwork/hooks",
+  ".groundwork/.approvals",
+  ".groundwork/config.json",
+  ".groundwork/.legacy-cards.json",
+  ".claude/settings.json",
+  ".claude/settings.local.json",
+  ".opencode/plugins",
+];
+const REMOVE_OR_MOVE = new Set(["rm", "rmdir", "rd", "mv", "del", "erase", "move", "ren", "rename", "remove-item", "move-item", "rename-item"]);
+
+// The paths a recognized delete or move command takes away: its file arguments (for mv, the source
+// too). Like commandWriteTargets, this reads the command's text; it isn't a full shell parser.
+export function removedOrMoved(command) {
+  const targets = [];
+  for (const segment of command.split(/[;&|\n]/)) {
+    const words = segment.trim().split(/\s+/).filter(Boolean);
+    let k = 0;
+    while (k < words.length && /^[A-Za-z_]\w*=/.test(words[k])) k += 1;
+    const name = (words[k] ?? "").toLowerCase();
+    const args = words.slice(k + 1);
+    if (name === "git" && ["rm", "mv"].includes((args[0] ?? "").toLowerCase())) targets.push(...fileArgs(args.slice(1)));
+    else if (REMOVE_OR_MOVE.has(name)) targets.push(...fileArgs(args));
+  }
+  return targets;
+}
+
 // In PR integration, main changes only through a reviewed pull request. A push that updates main: an
 // explicit main/master refspec, --all or --mirror, or a bare `git push` while on main.
 const MAIN = /^(?:[^:]*:)?(?:refs\/heads\/)?(?:main|master)$/;
@@ -239,13 +282,13 @@ function integrationIsPr(project) {
 }
 
 // Whether setup has finished. Until it has, the agent writes config.json freely, the same way the
-// Write and Edit tools already may; after, shell edits to it are the human's. A config that can't
-// be read counts as done, so a broken one can't open the door.
+// Write and Edit tools already may; after, shell edits to it are the human's. A config that is
+// missing or can't be read counts as done, so removing or breaking it can't open the door.
 function setupIsDone(project) {
   try {
     const file = resolve(project, CONFIG);
-    const config = existsSync(file) ? parseJson(readFileSync(file, "utf8")) : {};
-    return config.setup === "done";
+    if (!existsSync(file)) return true;
+    return parseJson(readFileSync(file, "utf8")).setup === "done";
   } catch {
     return true;
   }
@@ -292,6 +335,13 @@ function checkCommand(action, project) {
   }
   if (MODE_SWITCH.test(command)) {
     return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
+  }
+  for (const target of removedOrMoved(command)) {
+    const rel = projectPath(project, target).toLowerCase();
+    const inside = HARNESS_PATHS.find((path) => rel === "" || path.startsWith(`${rel}/`));
+    if (inside) {
+      return { block: true, reason: `This shell command removes or moves a folder that holds Groundwork's own files (${inside}). ${ASK}` };
+    }
   }
   const setupDone = setupIsDone(project);
   for (const target of commandWriteTargets(command)) {

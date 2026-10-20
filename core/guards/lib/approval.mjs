@@ -223,24 +223,24 @@ export function approvalMatches(project, id, md) {
   if (!expected) return { ok: false, reason: `the last human approval has no record for ${id}` };
   const currentHead = head(project);
   if (!currentHead || record.head !== currentHead) {
-    return { ok: false, reason: "the branch moved since the approval; ask the human to approve the current work again" };
+    return { ok: false, reason: "the branch moved since the approval; show the human what changed since they approved, then ask them to approve the current state with /gw-approve only if they accept it" };
   }
   const currentWork = workFingerprint(project);
   if (!currentWork || record.work !== currentWork) {
-    return { ok: false, reason: "the code changed since the approval, or couldn't be read; ask the human to approve the current work again" };
+    return { ok: false, reason: "the code changed since the approval, or couldn't be read; show the human what changed since they approved, then ask them to approve the current state with /gw-approve only if they accept it" };
   }
   if (expected.card !== cardFingerprint(md)) {
-    return { ok: false, reason: "the card changed since the approval, beyond status and History; ask the human to approve again" };
+    return { ok: false, reason: "the card changed since the approval, beyond status and History; show the human what changed since they approved, then ask them to approve the current state with /gw-approve only if they accept it" };
   }
   if ((expected.knowledge ?? "") !== knowledgeFingerprint(project, id)) {
     return {
       ok: false,
-      reason: "the spec, a decision, or the task's declared context changed since the approval; ask the human to approve again",
+      reason: "the spec, a decision, or the task's declared context changed since the approval; show the human what changed since they approved, then ask them to approve the current state with /gw-approve only if they accept it",
     };
   }
   const evidence = evidenceFingerprints(project, md);
   if (JSON.stringify(expected.evidence ?? {}) !== JSON.stringify(evidence)) {
-    return { ok: false, reason: "the linked evidence changed since the approval; ask the human to approve again" };
+    return { ok: false, reason: "the linked evidence changed since the approval; show the human what changed since they approved, then ask them to approve the current state with /gw-approve only if they accept it" };
   }
   return { ok: true };
 }

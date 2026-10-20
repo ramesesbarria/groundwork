@@ -72,7 +72,26 @@ that's Bash, PowerShell, Write, Edit, MultiEdit and NotebookEdit; in OpenCode, i
 and patch tools. A determined agent can still get around a local hook through something the hook
 doesn't see or can't read in a command: an unwatched tool, a package script, an alias, Git plumbing.
 The approval record is a local file, and the guard keeps the agent from writing it, but it isn't
-cryptographic proof that you typed the approval. CI and pull-request review are the backstop.
+cryptographic proof that you typed the approval. CI and pull-request review are the backstop, for
+the checks you've set up there.
+
+**When the guard can't run, the call is blocked.** An unreadable tool call, a missing or broken
+`config.json`, or a guard that fails all block every watched call until you repair it. So does
+moving or deleting `.groundwork/`. In Claude Code, a runner that can't start at all is blocked
+through the hook's `"onFailure": "block"`, which needs Claude Code 2.1.295 or later. In OpenCode,
+a session that starts with the guards missing blocks commits, file writes and shell changes to
+Groundwork's files, and warns on other commands. The repair steps are on the
+[Claude Code](/docs/adapters/claude-code#hooks) page.
+
+**Shell commands are read, not parsed fully.** The guard recognizes common ways of changing or
+removing Groundwork's files and the folders that hold them (`rm`, `mv`, redirects, `sed -i`,
+PowerShell's item commands, Node's write calls, and more). A command it doesn't recognize, or a
+script in another language, isn't checked.
+
+**Restoring an earlier Git state can undo setup.** Protection of `config.json` starts when setup is
+marked done. Checking out or resetting to a commit from before that point (or stashing an
+uncommitted setup change) brings back a config where setup isn't done, and the agent can then change
+it freely. The reflog shows that it happened; it doesn't stop it.
 
 **What evidence checks prove.** `groundwork check` verifies that linked evidence exists and is not
 empty, and that declared context dependencies match their recorded hashes. The solo commit gate

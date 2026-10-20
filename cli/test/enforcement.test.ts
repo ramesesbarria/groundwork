@@ -1,6 +1,6 @@
 // The built-in checks in the guard runner: protect-harness and commit-gate.
 import { afterEach, describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -157,6 +157,65 @@ describe("protect-harness", SLOW, () => {
     expect(hook(done, bash("echo {} > .groundwork/config.json")).status).toBe(2);
   });
 
+  it("blocks removing or moving a folder that holds Groundwork's files, and allows unrelated moves", async () => {
+    const dir = await project();
+    const powershell = (command: string) => ({ tool_name: "PowerShell", tool_input: { command } });
+    for (const input of [
+      bash("mv .groundwork .gw-moved"),
+      bash("rm -rf .groundwork"),
+      bash("rm -rf ./.groundwork/"),
+      bash("git rm -r -q .groundwork"),
+      bash("mv .claude .claude-old"),
+      bash("rm -rf .opencode"),
+      bash("rm -rf ."),
+      powershell("Rename-Item .groundwork gw-old"),
+      powershell("Remove-Item -Recurse -Force .groundwork"),
+      powershell("Move-Item -Path .groundwork -Destination ..\\gw"),
+    ]) {
+      const result = hook(dir, input);
+      expect(result.status, JSON.stringify(input)).toBe(2);
+      expect(result.stderr).toMatch(/removes or moves a folder that holds Groundwork's own files/);
+    }
+    for (const command of [
+      "mv src/a.js src/b.js",
+      "rm -rf node_modules dist",
+      "mv .groundwork/cards/1.1-a.md .groundwork/cards/1.1-b.md",
+      "rm -rf .groundwork/evidence/1.1",
+      "cp -r .groundwork backup",
+    ]) {
+      expect(hook(dir, bash(command)).status, command).toBe(0);
+    }
+  });
+
+  it("keeps completed setup from being undone through the watched tools", async () => {
+    const dir = await project();
+    expect(hook(dir, edit(".groundwork/config.json", '"setup": "done"', '"setup": "pending"')).stderr).toMatch(/mark setup as not done/);
+    expect(hook(dir, write(".groundwork/config.json", "{}")).status).toBe(2);
+    expect(hook(dir, bash("rm .groundwork/config.json")).status).toBe(2);
+    expect(hook(dir, bash("git checkout HEAD -- .groundwork/config.json")).status).toBe(2);
+    // A config removed in a way the shell check doesn't recognize is a broken install, not setup again.
+    renameSync(join(dir, ".groundwork/config.json"), join(dir, "config.bak"));
+    for (const input of [write(".groundwork/config.json", '{ "setup": "pending", "enforce": { "commitGate": false } }'), bash("git status")]) {
+      const result = hook(dir, input);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toMatch(/config\.json can't be read \(it is missing\), so this install is broken/);
+    }
+  });
+
+  it("refuses leaving config.json as invalid JSON, even during setup", async () => {
+    const pending = await project({ setup: "pending" });
+    expect(hook(pending, write(".groundwork/config.json", "{ nope")).stderr).toMatch(/invalid JSON/);
+    expect(hook(pending, write(".groundwork/config.json", '{ "setup": "pending" }')).status).toBe(0);
+  });
+
+  it("blocks taking onFailure off Groundwork's guard hook", async () => {
+    const dir = await project();
+    const settings = readFileSync(join(dir, ".claude/settings.json"), "utf8");
+    expect(hook(dir, edit(".claude/settings.json", ',\n            "onFailure": "block"', "")).stderr).toMatch(/onFailure/);
+    expect(hook(dir, edit(".claude/settings.json", '"onFailure": "block"', '"onFailure": "continue"')).status).toBe(2);
+    expect(hook(dir, write(".claude/settings.json", settings.replace(',\n            "onFailure": "block"', ""))).status).toBe(2);
+  });
+
   it("treats reads of harness files as reads, even with redirects, pipes and arrows around them", async () => {
     const dir = await project();
     // The three exact commands the four-arm run lost to false positives (EXPERIMENTS.md finding 2).
@@ -290,6 +349,8 @@ describe("commit-gate", SLOW, () => {
     writeFileSync(join(dir, "src/new.ts"), "export const added = 2;\n");
     git(dir, "add", "-A");
     expect(hook(dir, commitCard).stderr).toMatch(/code changed since the approval/);
+    // Recovery is review, not a reflex: the human sees what changed before approving the new state.
+    expect(hook(dir, commitCard).stderr).toMatch(/show the human what changed since they approved, then ask them to approve the current state with \/gw-approve only if they accept it/);
   });
 
   it("ties approval to the reviewed code, card and evidence; conversation and rejection do not count", async () => {

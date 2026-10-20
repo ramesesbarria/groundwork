@@ -359,6 +359,27 @@ describe("groundwork upgrade", () => {
     expect(output).toMatch(/npx groundwork-ai init/);
   });
 
+  it("recovers an untracked install whose guard files are damaged or missing", async () => {
+    const dir = tempDir();
+    const { ask } = answers();
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    write(dir, ".groundwork/SPEC.md", "# My spec\n");
+    const original = read(dir, ".groundwork/guards/lib/commit-gate.mjs");
+    // A damaged guard is an edit upgrade keeps; deleting it lets upgrade write it again.
+    rmSync(join(dir, ".groundwork/guards/lib/commit-gate.mjs"));
+    rmSync(join(dir, ".groundwork/guards/run.mjs"));
+    expect((await run(["upgrade", "--yes"], { cwd: dir, ask })).output).toMatch(/create +\.groundwork\/guards\/run\.mjs/);
+    expect(read(dir, ".groundwork/guards/lib/commit-gate.mjs")).toBe(original);
+    // config.json is project state, not a managed file: init recreates it when it's missing, alone.
+    const settings = read(dir, ".claude/settings.json");
+    rmSync(join(dir, ".groundwork/config.json"));
+    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    expect(output).toMatch(/create +\.groundwork\/config\.json/);
+    expect(config(dir).setup).toBe("pending");
+    expect(read(dir, ".groundwork/SPEC.md")).toBe("# My spec\n");
+    expect(read(dir, ".claude/settings.json")).toBe(settings);
+  });
+
   it("is listed in the CLI help and the README", async () => {
     expect((await run(["--help"])).output).toMatch(/upgrade/);
     expect(readme).toContain("`npx groundwork-ai upgrade`");

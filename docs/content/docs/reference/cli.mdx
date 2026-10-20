@@ -119,8 +119,15 @@ in CI). It reports:
   file.
 - **Evidence encoding** — evidence saved as UTF-16 (what Windows PowerShell 5.1's `>` writes),
   which git and GitHub treat as binary.
-- **Config** — a `config.json` that isn't valid JSON, since guards then block every commit.
-- **Missing wires** — a guard listed in config without a file, a hook missing from settings, an
+- **Config** — a `config.json` that is missing or isn't valid JSON, since the guards then block
+  every call.
+- **Guard scripts** — a guard or hook script that won't load (a merge conflict left in it, say),
+  with how to get it back.
+- **Claude Code** — the installed version, found with `claude --version` (or
+  `GROUNDWORK_CLAUDE_CODE_VERSION`); one older than 2.1.295 is a problem, because the guard hook's
+  `onFailure` needs it, and an undetected one is reported as unknown.
+- **Missing wires** — a guard listed in config without a file, a hook missing from settings, a
+  guard hook without `"onFailure": "block"`, an
   adapter file that drifted from what Groundwork would generate, `CLAUDE.md` that doesn't load
   `AGENTS.md`.
 - **Version** — when the project's files are older than the CLI, with the upgrade command.
