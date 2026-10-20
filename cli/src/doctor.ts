@@ -280,7 +280,12 @@ export const CLAUDE_CODE_MIN = "2.1.295";
 function claudeCodeVersion(): string | undefined {
   let text = process.env.GROUNDWORK_CLAUDE_CODE_VERSION;
   if (text === undefined) {
-    const result = spawnSync("claude", ["--version"], { encoding: "utf8", timeout: 10_000, shell: process.platform === "win32" });
+    // On Windows `claude` may be a .cmd shim, which needs a shell; a single command string avoids
+    // Node's warning about passing arguments through one (DEP0190).
+    const result =
+      process.platform === "win32"
+        ? spawnSync("claude --version", { encoding: "utf8", timeout: 10_000, shell: true })
+        : spawnSync("claude", ["--version"], { encoding: "utf8", timeout: 10_000 });
     text = result.status === 0 ? result.stdout : "";
   }
   return text.match(/\d+\.\d+\.\d+/)?.[0];
