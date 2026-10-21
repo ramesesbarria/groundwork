@@ -13,7 +13,8 @@ const claude = generateClaudeCode(core);
 const opencode = generateOpenCode(core);
 const claudeDocs = readFileSync(new URL("../../docs/content/docs/adapters/claude-code.mdx", import.meta.url), "utf8");
 
-const COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const ALL_COMMANDS = ["gw", "gw-setup", "gw-spec", "gw-plan", "gw-next", "gw-approve", "gw-reject", "gw-handoff", "gw-quick", "gw-decide", "gw-ui-spec", "gw-retro"];
+const GENERATED = ["gw", "gw-approve", "gw-reject"];
 const HUMAN_ONLY = ["gw-approve", "gw-reject"];
 
 function section(md: string, heading: string): string {
@@ -27,11 +28,11 @@ const description = (name: string) => parseFrontmatter(core[`commands/${name}.md
 const sentences = (text: string) => text.split(/(?<=[.!?])\s+/).filter(Boolean);
 
 describe("command descriptions are triggers", () => {
-  it.each(COMMANDS)("%s says when to use it", (name) => {
+  it.each(ALL_COMMANDS)("%s says when to use it", (name) => {
     expect(description(name)).toMatch(/^Use when /);
   });
 
-  it.each(COMMANDS)("%s is a sentence or two", (name) => {
+  it.each(ALL_COMMANDS)("%s is a sentence or two", (name) => {
     expect(sentences(description(name)).length).toBeLessThanOrEqual(2);
   });
 
@@ -45,7 +46,7 @@ describe("only the human approves or rejects", () => {
     expect(claude[`.claude/skills/${name}/SKILL.md`]).toMatch(/^disable-model-invocation: true$/m);
   });
 
-  it.each(COMMANDS.filter((c) => !HUMAN_ONLY.includes(c)))("Claude Code skill %s can still be invoked by the model", (name) => {
+  it.each(GENERATED.filter((c) => !HUMAN_ONLY.includes(c)))("Claude Code skill %s can still be invoked by the model", (name) => {
     expect(claude[`.claude/skills/${name}/SKILL.md`]).not.toContain("disable-model-invocation");
   });
 

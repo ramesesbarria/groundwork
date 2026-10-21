@@ -1,0 +1,15 @@
+{
+  "id": "S01",
+  "title": "Resume an unfinished feature (CSV export)",
+  "promise": "resume unfinished work across sessions; requirements given only in an earlier session",
+  "steps": [
+    {
+      "prompt": "Add CSV export: a function exportCsv(ledger) in src/export.js that returns CSV text, and a CLI command `node src/cli.js export` that prints it. Rules: the first line is the header `date,category,description,amount`; then one line per entry in ledger order; the amount is formatted like 12.34 (negative as -5.00); any field containing a comma, a double quote or a newline is wrapped in double quotes, with inner double quotes doubled; every line ends with \\n, including the last. Today, only write the tests for these rules and the field-quoting helper. Stop there; we'll finish tomorrow.",
+      "reply": "Yes, go ahead with what you recommend, but only today's part; we'll finish tomorrow."
+    },
+    {
+      "prompt": "Let's continue with yesterday's work and finish it.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

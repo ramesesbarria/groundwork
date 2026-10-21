@@ -17,9 +17,11 @@ npx groundwork-ai <command>
 | [`adapter add`](#adapter-add) | Add or refresh an AI tool adapter |
 | [`status`](#status) | Show the phase, cards by status, what's ready and what's blocked |
 | [`doctor`](#doctor) | Check harness health and the context budget |
-| [`check`](#check) | Check cards against the workflow's rules |
+| [`check`](#check) | Check cards against the workflow's rules and task context |
+| [`reassess`](#reassess) | Record the context versions a task has just been checked against |
+| [`migrate`](#migrate) | Record pre-approval done cards for the one-time legacy migration |
 | [`mode`](#mode) | Show or change when you approve the work |
-| [`retro`](#retro) | Collect signals of repeated mistakes for `/gw-retro` |
+| [`retro`](#retro) | Collect signals of repeated mistakes for `gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
 
 `npx groundwork-ai --version` prints the version; `npx groundwork-ai help` prints usage.
@@ -104,9 +106,11 @@ npx groundwork-ai doctor
 Checks the install and the context budget, and **exits 1 when it finds a problem** (so it can run
 in CI). It reports:
 
-- **Always loaded** — what every session carries, part by part, against `tokenBudget`: `AGENTS.md`,
-  `CLAUDE.md`, the skill, command and subagent lists your tool keeps in context, and the
-  session-start lines. With advice when it's over.
+- **Always loaded** — an estimate (characters ÷ 4) of what every session carries, part by part,
+  against `tokenBudget`: `AGENTS.md`, `CLAUDE.md`, the skill and subagent lists your tool keeps in
+  context, and the session-start lines. OpenCode's command descriptions aren't counted: in an
+  OpenCode 2.0.32 `opencode run --standalone` check they didn't reach the model. With advice when
+  it's over.
 - **Startup cost** — what a `/gw` session and each role read before touching any code: the
   always-loaded files, the command or role file, HANDOFF and the current card. Your AI tool's own
   instructions come on top (about 8.5k tokens in OpenCode with DeepSeek, measured).
@@ -115,8 +119,15 @@ in CI). It reports:
   file.
 - **Evidence encoding** — evidence saved as UTF-16 (what Windows PowerShell 5.1's `>` writes),
   which git and GitHub treat as binary.
-- **Config** — a `config.json` that isn't valid JSON, since guards then block every commit.
-- **Missing wires** — a guard listed in config without a file, a hook missing from settings, an
+- **Config** — a `config.json` that is missing or isn't valid JSON, since the guards then block
+  every call.
+- **Guard scripts** — a guard or hook script that won't load (a merge conflict left in it, say),
+  with how to get it back.
+- **Claude Code** — the installed version, found with `claude --version` (or
+  `GROUNDWORK_CLAUDE_CODE_VERSION`); one older than 2.1.295 is a problem, because the guard hook's
+  `onFailure` needs it, and an undetected one is reported as unknown.
+- **Missing wires** — a guard listed in config without a file, a hook missing from settings, a
+  guard hook without `"onFailure": "block"`, an
   adapter file that drifted from what Groundwork would generate, `CLAUDE.md` that doesn't load
   `AGENTS.md`.
 - **Version** — when the project's files are older than the CLI, with the upgrade command.
@@ -127,25 +138,81 @@ in CI). It reports:
 ## check
 
 ```bash
-npx groundwork-ai check          # every card
-npx groundwork-ai check 1.2      # one card
+npx groundwork-ai check                       # every card
+npx groundwork-ai check 1.2                   # one card
+npx groundwork-ai check --task 1.2 --base origin/main   # team context check
 ```
 
 Checks cards against the workflow's rules and **exits 1 when one breaks them**, so `/gw-approve`,
 the commit gate and CI can all rely on it:
 
 - the status is a real one, and every status change recorded in History is one the workflow allows
-- a card waiting for approval or done has Evidence, every file it links to exists, and every
-  acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
+- a card waiting for approval or done has Evidence, every file it links to exists and is not empty,
+  and every acceptance criterion is ticked or has its reason after it (`- [ ] <criterion> — <why>`)
 - in `per-card` mode, a done card's History has the "approved by human" line
+- the card is within the size limit (≈1,500 tokens), the same rule the commit gate applies; a card
+  waiting for review or approval is measured with room for the lines approval adds. Done cards that
+  are committed and unchanged are left out of the size rule.
 
-`doctor` runs the same checks and lists what it finds as problems.
+These card rules apply to every card, including old done ones; see [migrate](#migrate) for cards
+that predate the approval rule.
+
+When a task has `.groundwork/work/<id>/context.json`, `--base <ref>` also reports branch freshness
+and declared context changes separately. The context check covers the current `gw/<id>` task,
+`--task <id>`, and tasks whose cards the branch changed, even when they are `done`; other tasks'
+context isn't checked. `check` is read-only.
+
+With `integration: "pr"` in `config.json`, a done card doesn't need the "approved by human" line:
+pull-request review is the approval. See [Teams and pull requests](/docs/guides/teams). What `check`
+can and can't prove about evidence is in
+[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+
+`doctor` runs the same card checks and lists what it finds as problems.
+
+## reassess
+
+```bash
+npx groundwork-ai reassess 1.2 --target origin/main
+npx groundwork-ai reassess 1.2 --target origin/main --dep decision:0001
+npx groundwork-ai reassess 1.2 --target origin/main --drop decision:0001
+```
+
+Records the local content and the upstream version a task has been checked against in
+`.groundwork/work/<id>/context.json`. Use it after reading a changed decision or specification and
+reconciling the code and card — not just to clear a warning. It does not run tests, and recording an
+acknowledgment does not prove the change was understood.
+
+The first run needs at least one `--dep`; later runs update the recorded snapshots. The original base
+commit is preserved. If a dependency is missing locally, `reassess` refuses unless `--drop` removes
+it from the task's dependency list intentionally. A stored path is not rename tracking: `--dep`
+re-resolves the reference to its current path.
+
+## migrate
+
+```bash
+npx groundwork-ai migrate legacy --dry-run
+npx groundwork-ai migrate legacy --yes
+npx groundwork-ai migrate legacy --yes --reviewed   # after checking the cards listed under review
+```
+
+Records a snapshot of done cards that predate the approval rule in `.groundwork/.legacy-cards.json`.
+It exempts only the historical “approved by human” requirement: a recorded card still fails on
+missing or empty evidence, invalid records, or stale context. It does not add an approval line or
+evidence, and it does not record active cards.
+
+A done status is not enough. Git has to show that the card, unchanged, was last committed before the
+approval rule (`.groundwork/guards/lib/approval.mjs`) entered the project. A card that isn't
+committed, changed since its last commit, or was committed with or after the rule is skipped: new
+work needs an approval. When Git can't show the history (no repository, or Git ignores the card), the
+card is listed under `review`; check each one is old work, then add `--reviewed`. Running it again
+never widens the record, and a recorded card loses the exemption if its content changes. The
+manifest is locked against agent writes, and the guard blocks the agent from running `migrate`.
 
 ## mode
 
 ```bash
 npx groundwork-ai mode             # show the current approval mode
-npx groundwork-ai mode at-end      # per-card, per-phase or at-end
+npx groundwork-ai mode per-phase   # per-card or per-phase (at-end is parked for v1)
 ```
 
 Changes `approvalMode` in `.groundwork/config.json`. It's the command you run yourself: the agent
@@ -160,7 +227,7 @@ npx groundwork-ai retro
 
 Reads git history and Groundwork's own files, and writes `.groundwork/retro.md`: reverts, fixes
 committed soon after a card, rejections, send-backs, judgment calls that were later
-rejected, and a count per lesson cited. It only reports — `/gw-retro` turns the signals into
+rejected, and a count per lesson cited. It only reports — `gw-retro` turns the signals into
 proposed changes, with your approval.
 
 ## uninstall

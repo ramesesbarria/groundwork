@@ -13,6 +13,12 @@ depends_on: []
      leaves it unticked with the reason: "- [ ] <criterion> — <why>". -->
 - [ ]
 
+## Affects
+<!-- Optional: dependencies or areas this card touches. -->
+
+## Unresolved
+<!-- Optional: what is still open. -->
+
 ## Human checks
 <!-- Optional: what only a person can see or judge (a Tab walk, a focus ring). One "- [ ] <what to
      open, do and see>" per criterion the reviewer can't prove; ticked with the date when confirmed. -->
@@ -28,10 +34,9 @@ depends_on: []
 
 ## History
 <!-- One short line per event: date, what happened, and why. Every role rereads this card, so keep
-     lines to a sentence or two; details go in the evidence files. `groundwork retro` and `doctor` read these formats exactly:
+     lines to a sentence or two; details go in the evidence files. Formats:
      - YYYY-MM-DD <from> → <to>: <why>   (every status change, e.g. "testing → implementing: 4 failing tests saved")
      - YYYY-MM-DD rejected: <reason>
      - YYYY-MM-DD review → implementing: <problems>
      - YYYY-MM-DD approved by human
-     - YYYY-MM-DD call: <what> — <why> — <cost if wrong>
-     Anything else: "YYYY-MM-DD <what happened>". -->
+     - YYYY-MM-DD call: <what> — <why> — <cost if wrong> -->

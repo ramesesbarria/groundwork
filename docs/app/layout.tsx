@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://ramesesbarria.github.io/groundwork/'),
   title: { default: 'Groundwork', template: '%s · Groundwork' },
   description:
-    'Spec, proof, approval: a workflow your AI agent can’t skip. The project layer for Claude Code, OpenCode and any AI coding tool.',
+    'Shared project context for developers and their coding agents: spec, decisions, plan, evidence and handoffs in your repo, for Claude Code, OpenCode and any AI coding tool.',
   icons: { icon: asset('/favicon.svg') },
 };
 

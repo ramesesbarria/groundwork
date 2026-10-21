@@ -8,6 +8,7 @@
 // It stops accidental and lazy changes and makes deliberate ones visible. A determined agent with a
 // shell can still find a way around it; that's what `groundwork check` in CI is for.
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
@@ -15,6 +16,7 @@ const parseJson = (text) => JSON.parse(text.replace(/^﻿/, ""));
 
 // Files an agent may not change once they exist.
 const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/];
+const LEGACY_MANIFEST = /^\.groundwork\/\.legacy-cards\.json$/;
 // The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
 // can see what it does.
 const PLUGINS = /^\.opencode\/plugins(\/|$)/;
@@ -23,8 +25,14 @@ const SETTINGS = /^\.claude\/settings(\.local)?\.json$/;
 const CONFIG = ".groundwork/config.json";
 
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
+// The legacy migration is a one-time human decision: it exempts old cards from the approval rule.
+const MIGRATE = /\b(?:npm|npx|pnpm|yarn|node|bun|groundwork(?:-ai)?)\b[^\n;&|]*\bmigrate\b/i;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
 const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;
+// Running the prompt hook directly would let an agent write its own approval record.
+const APPROVAL_HOOK = /\b(?:node|bun)\b[^\n;&|]*\buser-prompt\.mjs\b/i;
+const COMMIT = /\bgit\b[\s\S]*\bcommit\b/;
+const PROTECTED_COMMIT_WRITE = /^\.groundwork\/(?:cards|evidence|work|\.approvals|spec\.md|decisions)(?:\/|$)|^\.groundwork\/private(?:\/|$)|^\.groundwork\/\.legacy-cards\.json$/;
 
 const ASK = "Only the human changes Groundwork's own setup. Tell them what you wanted to change and why, and ask them to make the change themselves.";
 
@@ -60,6 +68,12 @@ export function weakenedConfig(before, next) {
   if (next.approvalMode !== undefined && next.approvalMode !== mode && next.approvalMode !== "per-card") {
     lost.push(`switch approvalMode to ${next.approvalMode}, which changes when you approve the work`);
   }
+  // PR integration hands approval to PR review and drops the local approval gate. Going back to local
+  // is stricter; any other switch is the human's.
+  const integration = before.integration ?? "local";
+  if (next.integration !== undefined && next.integration !== integration && next.integration !== "local") {
+    lost.push(`switch integration to ${next.integration}, which drops the local approval gate`);
+  }
   if (before.autoCommit === false && next.autoCommit !== false) lost.push("turn automatic commits back on, which you turned off");
   if (before.setup === "done" && next.setup !== "done") lost.push("mark setup as not done");
   return lost;
@@ -72,15 +86,18 @@ function checkConfig(action, abs) {
   } catch {
     return { block: false }; // already broken: the runner blocks commits until the human fixes it
   }
-  if (before.setup !== "done") return { block: false }; // setup is still writing it
   const text = after(action, abs);
-  if (text === undefined) return { block: true, reason: `This edits ${CONFIG} in a way Groundwork can't check. ${ASK}` };
   let next;
-  try {
-    next = parseJson(text);
-  } catch {
-    return { block: true, reason: `This would leave ${CONFIG} as invalid JSON, which stops guards and blocks every commit. Fix the edit.` };
+  if (text !== undefined) {
+    try {
+      next = parseJson(text);
+    } catch {
+      // Even during setup: an unreadable config stops the guards, and they then block every call.
+      return { block: true, reason: `This would leave ${CONFIG} as invalid JSON, which stops the guards and blocks every call. Fix the edit.` };
+    }
   }
+  if (before.setup !== "done") return { block: false }; // setup is still writing it
+  if (next === undefined) return { block: true, reason: `This edits ${CONFIG} in a way Groundwork can't check. ${ASK}` };
   const lost = weakenedConfig(before, next);
   if (lost.length === 0) return { block: false };
   return { block: true, reason: `This change to ${CONFIG} would ${lost.join(" and ")}. ${ASK}` };
@@ -109,26 +126,40 @@ function checkSettings(action, abs, rel) {
       .flatMap((entry) => (entry?.hooks ?? []).map((h) => h?.command ?? ""))
       .filter((c) => c.includes(".groundwork/"));
   const kept = new Set(commands(next));
-  if (commands(before).every((c) => kept.has(c))) return { block: false };
-  return { block: true, reason: `This would take Groundwork's hooks out of ${rel}, so guards and session start stop running. ${ASK}` };
+  if (!commands(before).every((c) => kept.has(c))) {
+    return { block: true, reason: `This would take Groundwork's hooks out of ${rel}, so guards and session start stop running. ${ASK}` };
+  }
+  // onFailure: "block" makes Claude Code block a call when the guard can't run at all.
+  const blocking = (s) =>
+    Object.values(s.hooks ?? {})
+      .flat()
+      .flatMap((entry) => (entry?.hooks ?? []).filter((h) => h?.onFailure === "block").map((h) => h?.command ?? ""))
+      .filter((c) => c.includes(".groundwork/"));
+  const stillBlocking = new Set(blocking(next));
+  if (blocking(before).every((c) => stillBlocking.has(c))) return { block: false };
+  return { block: true, reason: `This would let tool calls through when Groundwork's guard can't run (onFailure in ${rel}). ${ASK}` };
 }
 
 function checkWrite(action, project) {
   for (const path of action.paths ?? [action.path]) {
     if (!path) continue;
     const rel = projectPath(project, path);
+    const key = rel.toLowerCase();
     const abs = resolve(project, path);
-    if (APPROVALS.test(rel)) {
+    if (APPROVALS.test(key)) {
       return { block: true, reason: "Approvals are recorded from the human's own messages, never written by the agent." };
     }
-    if (PLUGINS.test(rel)) {
+    if (PLUGINS.test(key)) {
       return { block: true, reason: `${rel} is inside Groundwork's OpenCode plugin folder, which runs outside the guards. ${ASK}` };
     }
-    if (LOCKED.some((re) => re.test(rel)) && existsSync(abs)) {
+    if (LOCKED.some((re) => re.test(key)) && existsSync(abs)) {
       return { block: true, reason: `${rel} is part of Groundwork's guards and hooks. ${ASK}` };
     }
+    if (LEGACY_MANIFEST.test(key)) {
+      return { block: true, reason: `The legacy-card migration record is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
+    }
     const one = action.paths && action.paths.length > 1 ? { kind: "write", path } : action;
-    const result = rel === CONFIG ? checkConfig(one, abs) : SETTINGS.test(rel) ? checkSettings(one, abs, rel) : { block: false };
+    const result = key === CONFIG ? checkConfig(one, abs) : SETTINGS.test(key) ? checkSettings(one, abs, rel) : { block: false };
     if (result.block) return result;
   }
   return { block: false };
@@ -187,14 +218,77 @@ export function commandWriteTargets(command) {
   return targets;
 }
 
+// Groundwork's own files and folders. Removing or moving a folder above one of them takes the guards
+// (or their settings) away, so the next call would run unchecked.
+const HARNESS_PATHS = [
+  ".groundwork/guards",
+  ".groundwork/hooks",
+  ".groundwork/.approvals",
+  ".groundwork/config.json",
+  ".groundwork/.legacy-cards.json",
+  ".claude/settings.json",
+  ".claude/settings.local.json",
+  ".opencode/plugins",
+];
+const REMOVE_OR_MOVE = new Set(["rm", "rmdir", "rd", "mv", "del", "erase", "move", "ren", "rename", "remove-item", "move-item", "rename-item"]);
+
+// The paths a recognized delete or move command takes away: its file arguments (for mv, the source
+// too). Like commandWriteTargets, this reads the command's text; it isn't a full shell parser.
+export function removedOrMoved(command) {
+  const targets = [];
+  for (const segment of command.split(/[;&|\n]/)) {
+    const words = segment.trim().split(/\s+/).filter(Boolean);
+    let k = 0;
+    while (k < words.length && /^[A-Za-z_]\w*=/.test(words[k])) k += 1;
+    const name = (words[k] ?? "").toLowerCase();
+    const args = words.slice(k + 1);
+    if (name === "git" && ["rm", "mv"].includes((args[0] ?? "").toLowerCase())) targets.push(...fileArgs(args.slice(1)));
+    else if (REMOVE_OR_MOVE.has(name)) targets.push(...fileArgs(args));
+  }
+  return targets;
+}
+
+// In PR integration, main changes only through a reviewed pull request. A push that updates main: an
+// explicit main/master refspec, --all or --mirror, or a bare `git push` while on main.
+const MAIN = /^(?:[^:]*:)?(?:refs\/heads\/)?(?:main|master)$/;
+function pushesMain(command, project) {
+  for (const segment of command.split(/[;&|\n]/)) {
+    const words = segment.trim().split(/\s+/).filter(Boolean);
+    const at = words.indexOf("push");
+    if (at < 1 || !words.slice(0, at).includes("git")) continue;
+    const args = words.slice(at + 1).map(unquote);
+    if (args.some((a) => a === "--all" || a === "--mirror")) return true;
+    const refs = args.filter((a) => !a.startsWith("-")).slice(1);
+    if (refs.some((ref) => MAIN.test(ref))) return true;
+    if (refs.length === 0) {
+      try {
+        const branch = execFileSync("git", ["branch", "--show-current"], { cwd: project, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+        if (MAIN.test(branch)) return true;
+      } catch {
+        // not a repository: nothing to push
+      }
+    }
+  }
+  return false;
+}
+
+function integrationIsPr(project) {
+  try {
+    const file = resolve(project, CONFIG);
+    return existsSync(file) && parseJson(readFileSync(file, "utf8")).integration === "pr";
+  } catch {
+    return false;
+  }
+}
+
 // Whether setup has finished. Until it has, the agent writes config.json freely, the same way the
-// Write and Edit tools already may; after, shell edits to it are the human's. A config that can't
-// be read counts as done, so a broken one can't open the door.
+// Write and Edit tools already may; after, shell edits to it are the human's. A config that is
+// missing or can't be read counts as done, so removing or breaking it can't open the door.
 function setupIsDone(project) {
   try {
     const file = resolve(project, CONFIG);
-    const config = existsSync(file) ? parseJson(readFileSync(file, "utf8")) : {};
-    return config.setup === "done";
+    if (!existsSync(file)) return true;
+    return parseJson(readFileSync(file, "utf8")).setup === "done";
   } catch {
     return true;
   }
@@ -203,13 +297,56 @@ function setupIsDone(project) {
 function checkCommand(action, project) {
   const command = action.command;
   if (UNINSTALL.test(command)) return { block: true, reason: `Uninstalling Groundwork is the human's call. ${ASK}` };
+  if (MIGRATE.test(command)) {
+    return { block: true, reason: `Recording legacy-card exemptions is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
+  }
+  if (APPROVAL_HOOK.test(command)) {
+    return { block: true, reason: "Approvals are recorded from the human's own messages, never by the agent. Ask the human to run /gw-approve." };
+  }
+  if (/\bgit\b[^\n;&|]*\bupdate-index\b/.test(command)) {
+    return { block: true, reason: `Changing Git's index flags would hide a staged change from the commit gate. ${ASK}` };
+  }
+  if (COMMIT.test(command)) {
+    const protectedTarget = commandWriteTargets(command).find((target) => PROTECTED_COMMIT_WRITE.test(projectPath(project, target).toLowerCase()));
+    if (protectedTarget) {
+      return {
+        block: true,
+        reason: `A commit command can't change card, evidence, knowledge or private files in the same step (${protectedTarget}). Change the card first, then commit in a separate step.`,
+      };
+    }
+    const file = command.match(/(?:^|\s)(?:-F|--file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))/);
+    if (file) {
+      const path = (file[1] ?? file[2] ?? file[3]).replace(/\\/g, "/");
+      if (/\bcd\s|[^-]\b-C\b/.test(command)) {
+        return { block: true, reason: "Commit message files must be read from the project folder. Run the commit as a separate step without cd or git -C." };
+      }
+      const written = commandWriteTargets(command).some((target) => target.replace(/\\/g, "/") === path);
+      if (written) return { block: true, reason: "A commit command can't write its own message file in the same step. Write it first, then commit." };
+    }
+  }
+  if (/\bgit\b[^\n;&|]*\badd\b/i.test(command) && /\.groundwork[\\/]private[\\/]/i.test(command)) {
+    return { block: true, reason: "Groundwork's private files must stay out of git. Don't stage them." };
+  }
+  if (integrationIsPr(project) && pushesMain(command, project)) {
+    return {
+      block: true,
+      reason: "In PR integration, main changes only through a reviewed pull request. Push your task branch (e.g. `git push -u origin gw/<id>`), open a pull request, and stop for review.",
+    };
+  }
   if (MODE_SWITCH.test(command)) {
     return { block: true, reason: `Changing when the human approves is their call. Give them the exact command to run themselves, e.g. \`! ${command.trim()}\` in Claude Code.` };
   }
+  for (const target of removedOrMoved(command)) {
+    const rel = projectPath(project, target).toLowerCase();
+    const inside = HARNESS_PATHS.find((path) => rel === "" || path.startsWith(`${rel}/`));
+    if (inside) {
+      return { block: true, reason: `This shell command removes or moves a folder that holds Groundwork's own files (${inside}). ${ASK}` };
+    }
+  }
   const setupDone = setupIsDone(project);
   for (const target of commandWriteTargets(command)) {
-    const rel = projectPath(project, target);
-    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel);
+    const rel = projectPath(project, target).toLowerCase();
+    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel) || LEGACY_MANIFEST.test(rel);
     const configAfterSetup = rel === CONFIG && setupDone; // setup writing its own config isn't the agent changing the harness
     if (locked || configAfterSetup) {
       return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };

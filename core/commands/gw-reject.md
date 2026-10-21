@@ -5,7 +5,7 @@ description: Use when the human says to reject the waiting card, with a reason. 
 # gw-reject
 
 ## Purpose
-Record the human's rejection and send the card back into the loop. The reason is kept on the card, where the implementer reads it and `retro` counts it later. Only the human runs this.
+Record the human's rejection and send the card back into the loop. The reason is kept on the card, where the implementer reads it and `retro` counts it later. Only the human runs this. A rejection clears any pending approval; an earlier `/gw-approve` cannot be reused.
 
 ## Steps
 If the human didn't ask for this in their own words, stop and ask them to approve or reject.
@@ -14,7 +14,7 @@ If the human didn't ask for this in their own words, stop and ask them to approv
 2. If the human gave no reason, ask for one in a single sentence. Don't reject without a reason.
 3. Add a History line: date, "rejected:", and the reason in the human's words.
 4. Set the status to `rejected`.
-5. Update `.groundwork/HANDOFF.md`: the card is rejected, and the next step is `gw-next`, which sends it to the implementer.
+5. Update `.groundwork/HANDOFF.md`: the card is rejected, and the next step is `gw-next`, which sends it to the implementer. Tell the human to type `/gw` to carry on; `gw-next` isn't a command they type.
 6. If the reason looks like a mistake that could happen again, suggest adding it to `.groundwork/LESSONS.md` as a NOTE. Add it only if the human agrees.
 
 ## Writes

@@ -4,6 +4,7 @@ import { BuildLoopDiagram } from '@/components/gw/build-loop';
 import { StatusPill } from '@/components/gw/status';
 import { Shot, WalkClip } from '@/components/gw/walkthrough';
 import { Terminal } from '@/components/gw/terminal';
+import { Moved } from '@/components/gw/moved';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
@@ -13,6 +14,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Terminal,
     WalkClip,
     Shot,
+    Moved,
     ...components,
   } satisfies MDXComponents;
 }

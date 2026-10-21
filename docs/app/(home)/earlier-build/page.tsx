@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { CardCostBars, ContextChart, CrossoverExplorer } from '@/components/gw/charts';
 import { ButtonLink, Section, Stat, StatGrid } from '@/components/gw/section';
 import { Source } from '@/components/gw/source';
+import { StatusPill, type Status } from '@/components/gw/status';
 import { Terminal } from '@/components/gw/terminal';
+import { Shot, WalkClip } from '@/components/gw/walkthrough';
 import {
   appRepoUrl,
   appUrl,
@@ -17,12 +19,14 @@ import {
   roles,
   runnerPhase1Turns,
   startup,
+  transcriptsUrl,
   usd,
 } from '@/lib/data/calculator';
+import { type Session, sessions } from '@/lib/data/sessions';
 import { blobUrl } from '@/lib/shared';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Building a calculator with Groundwork: the proof' },
+  title: { absolute: 'Earlier build (pre-1.0): a calculator built with Groundwork' },
   description:
     'One real build with Groundwork, measured call by call: what it cost, where the tokens went, what didn’t stay flat, and what changed because of it.',
 };
@@ -48,24 +52,111 @@ const takeaways = [
   {
     href: '#honest',
     title: 'The honest catch.',
-    body: 'On an app this small, one plain chat would likely be cheaper. Groundwork pays off as a project grows past what one chat can hold.',
+    body: 'On an app this small, one plain chat would likely be cheaper. The model below predicts Groundwork pays off as a project grows past what one chat can hold; no long-horizon run has measured that yet.',
   },
 ];
 
-export default function ProofPage() {
+// The walkthrough: the phase 1 main chat, one clip per step. Quotes are word for word.
+const clips = [
+  { step: '1 · Spec', file: 'spec-questions.mp4', quote: 'First question, the scope one:', after: 'the answer is “Four basic operations”, the recommended option.', line: 1371 },
+  { step: '1 · Spec', file: 'spec-written.mp4', quote: 'Pressing = when there’s no pending calculation — say, just the number 5 on screen — should do what?', after: 'one of the last details, before the spec is written.', line: 2636 },
+  { step: '2 · Plan', file: 'plan-confirm.mp4', quote: 'Does this plan look right?', after: 'answered “Plan looks good”.', line: 4705 },
+  { step: '2 · Plan', file: 'plan-cards-written.mp4', quote: 'Planning is done:', after: 'two phases, six cards, and card 1.1 next.', line: 5447 },
+  { step: '2 · Plan', file: 'plan-committed.mp4', quote: 'Committed planning: 693fff8.', after: 'then the runner lines up card 1.1.', line: 5614 },
+  { step: '3 · Build', file: 'tester-launched.mp4', quote: 'Card started. Handing it to the tester now (a subagent, so its work stays separate from mine):', line: 5828 },
+  { step: '3 · Build', file: 'implementer-launched.mp4', quote: 'Failing state confirmed exactly as reported (MODULE_NOT_FOUND for ../src/calc.js, exit 1). Handing card 1.1 to the implementer:', line: 6102 },
+  { step: '4 · Approve', file: 'approval-stop.mp4', quote: 'Card 1.1 — Number entry is built and waiting for your approval.', after: 'with the reviewer’s caveats listed.', line: 6505 },
+  { step: '4 · Approve', file: 'approved-commit.mp4', quote: 'Approved and committed:', after: '78565bd, [1.1] Number entry. Next up is card 1.2, Operations and equals.', line: 6925 },
+];
+
+const line = (path: string, n: number) => `${blobUrl(path)}?plain=1#L${n}`;
+const p1 = 'transcripts/phase-1/main/transcript.md';
+const p2 = 'transcripts/phase-2/main/transcript.md';
+const r11 = 'transcripts/phase-1/subagents/1.1-reviewer/transcript.md';
+
+// Moments worth reading first, in the order they happened. Quotes are verbatim.
+const moments: { where: string; quote: string; href: string; status?: Status }[] = [
+  { where: 'Runner · spec', quote: 'First question, the scope one:', href: line(p1, 1371) },
+  { where: 'Runner · plan', quote: 'Does this plan look right?', href: line(p1, 4705) },
+  { where: 'Runner · card 1.1', quote: 'Card started. Handing it to the tester now (a subagent, so its work stays separate from mine):', href: line(p1, 5828), status: 'testing' },
+  { where: 'Runner · card 1.1', quote: 'Failing state confirmed exactly as reported … Handing card 1.1 to the implementer:', href: line(p1, 6102), status: 'implementing' },
+  { where: 'Reviewer · card 1.1', quote: 'Verdict: PASS — card 1.1 set to awaiting-approval (not done; waiting for your approval)', href: line(r11, 2992), status: 'review' },
+  { where: 'Reviewer · card 1.1', quote: 'Live browser check — attempted, not possible', href: line(r11, 2997) },
+  { where: 'Runner · card 1.1', quote: 'Card 1.1 — Number entry is built and waiting for your approval.', href: line(p1, 6505), status: 'waiting' },
+  { where: 'Runner · card 1.1', quote: 'Approved and committed: 78565bd — [1.1] Number entry', href: line(p1, 6925), status: 'done' },
+  { where: 'Runner · phase 1 retro', quote: 'L-001 · Hand each role its own status rules', href: line(p1, 9955) },
+  { where: 'New chat · phase 2', quote: 'Where things stand: Phase 1 (arithmetic engine) is approved and the retro is done. Next is phase 2, card 2.1 Page and keypad', href: line(p2, 1184) },
+];
+
+const roleLabel: Record<Session['role'], string> = {
+  runner: 'Runner (main chat)',
+  tester: 'Tester',
+  implementer: 'Implementer',
+  reviewer: 'Reviewer',
+};
+
+const fmt = (x: number) => x.toLocaleString('en-US');
+
+function SessionTable({ phase }: { phase: number }) {
+  const rows = sessions.filter((s) => s.phase === phase);
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border">
+      <table className="w-full min-w-[640px] text-left text-sm">
+        <thead className="bg-surface font-mono text-xs text-muted">
+          <tr>
+            <th className="px-4 py-2.5 font-medium">Session</th>
+            <th className="px-3 py-2.5 text-right font-medium">Calls</th>
+            <th className="px-3 py-2.5 text-right font-medium">Starts at</th>
+            <th className="px-3 py-2.5 text-right font-medium">Peak</th>
+            <th className="px-3 py-2.5 text-right font-medium">Cost</th>
+            <th className="px-4 py-2.5 font-medium" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {rows.map((s) => (
+            <tr key={s.path} className="hover:bg-surface/60">
+              <td className="px-4 py-2.5">
+                <span className="font-mono text-muted">{s.card ?? '—'}</span>{' '}
+                <span className={s.role === 'runner' ? 'font-semibold' : undefined}>{roleLabel[s.role]}</span>
+              </td>
+              <td className="px-3 py-2.5 text-right font-mono tabular-nums">{s.calls}</td>
+              <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmt(s.first)}</td>
+              <td className="px-3 py-2.5 text-right font-mono tabular-nums">{fmt(s.peak)}</td>
+              <td className="px-3 py-2.5 text-right font-mono tabular-nums">${s.cost.toFixed(4)}</td>
+              <td className="px-4 py-2.5 text-right">
+                <Source href={blobUrl(s.path)}>transcript</Source>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function EarlierBuildPage() {
   return (
     <main className="flex-1">
       <header className="dot-grid border-b border-border">
         <div className="page-container py-16 sm:py-24">
-          <p className="type-label mb-4">The proof</p>
-          <h1 className="type-display max-w-4xl">Building a calculator with Groundwork.</h1>
+          <p className="type-label mb-4">Earlier build (pre-1.0) · September 2026</p>
+          <h1 className="type-display max-w-4xl">Building a calculator with an earlier Groundwork.</h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
             One real build across 20 sessions, measured call by call. Every number here comes from OpenCode’s own token
             accounting and links to the raw row it came from, including the ones that don’t flatter it.
           </p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+            It ran on a pre-1.0 Groundwork, before approval binding, the three-command surface and the team path.
+            It shows where the tokens went on one small app; it isn’t a comparison against working without
+            Groundwork. For that, see the{' '}
+            <Link href="/docs/results" className="text-foreground underline underline-offset-4">
+              v1 results
+            </Link>
+            .
+          </p>
           <p className="mt-4 font-mono text-xs text-muted">{model} · measured 2026-09-26</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href="/receipts">Read every session →</ButtonLink>
+            <ButtonLink href="#clips">Watch it in clips ↓</ButtonLink>
             <ButtonLink href={appUrl} variant="secondary">
               Try the calculator ↗
             </ButtonLink>
@@ -91,7 +182,7 @@ export default function ProofPage() {
         </ol>
         <p className="mt-4 text-sm text-muted">
           Don’t take our word for it: every number links to its raw data, and{' '}
-          <Link href="/receipts" className="text-foreground underline underline-offset-4">
+          <Link href="#receipts" className="text-foreground underline underline-offset-4">
             every session is readable in full →
           </Link>
         </p>
@@ -403,19 +494,65 @@ export default function ProofPage() {
       </Section>
 
       <Section
+        id="clips"
+        label="The build, in clips"
+        title="From the first question to the first approved card."
+        why="Short clips of the actual session. Each caption quotes the transcript and links to the line."
+      >
+        <div className="grid gap-x-8 lg:grid-cols-2">
+          {clips.map((c) => (
+            <div key={c.file}>
+              <p className="type-label mt-6">{c.step}</p>
+              <WalkClip file={c.file} quote={c.quote} after={c.after} line={c.line} />
+            </div>
+          ))}
+        </div>
+        <p className="type-label mt-10">The finished app</p>
+        <Shot src="/calculator.png" alt="The finished calculator" title="calculator-groundwork" />
+      </Section>
+
+      <Section
         id="receipts"
         label="Receipts"
         title="Every session, as it ran."
         why="Everything on this page can be checked against the actual conversations, word for word."
         className="pb-28"
       >
-        <div className="flex flex-col gap-6 rounded-xl border border-border bg-surface/60 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-sm leading-relaxed text-muted">
-            Two main chats and 18 role sessions, exported from OpenCode and left unedited. Start with ten key moments, or
-            open any session in full.
-          </p>
-          <ButtonLink href="/receipts">Read the receipts →</ButtonLink>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted">
+          Two main chats and 18 role sessions, exported from OpenCode’s session API and left unedited except one redacted
+          email address. Start with ten key moments, or open any session in full.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <ButtonLink href={transcriptsUrl}>Transcripts on GitHub ↗</ButtonLink>
         </div>
+        <ol className="mt-8 space-y-px overflow-hidden rounded-xl border border-border bg-border">
+          {moments.map((mo, i) => (
+            <li key={i} className="grid gap-2 bg-background p-4 sm:grid-cols-[2.5rem_11rem_1fr_auto] sm:items-center sm:gap-4">
+              <span className="font-mono text-xs text-muted">{String(i + 1).padStart(2, '0')}</span>
+              <span className="text-xs text-muted">{mo.where}</span>
+              <span className="font-mono text-[13px] leading-relaxed">
+                “{mo.quote}”
+                {mo.status && <StatusPill status={mo.status} className="ml-2" />}
+              </span>
+              <Source href={mo.href}>read</Source>
+            </li>
+          ))}
+        </ol>
+        <h3 className="type-heading mt-12 mb-2 text-xl">Phase 1 · cards 1.1–1.4: one main chat, twelve role sessions.</h3>
+        <p className="mb-6 max-w-2xl text-sm text-muted">
+          The main chat also exported these transcripts, so its peak and cost include that. Every role session starts
+          near 9k tokens.
+        </p>
+        <SessionTable phase={1} />
+        <h3 className="type-heading mt-12 mb-2 text-xl">Phase 2 · cards 2.1–2.2: a new main chat, six role sessions.</h3>
+        <p className="mb-6 max-w-2xl text-sm text-muted">
+          The new chat picked up from the handoff file at 9.2k tokens. It also deployed the app to GitHub Pages.
+        </p>
+        <SessionTable phase={2} />
+        <p className="mt-6 text-xs text-muted">
+          Numbers from <code className="font-mono">checks/session-costs.mjs</code> on the exported sessions. Absolute
+          Windows paths appear as they were in the sessions.
+        </p>
       </Section>
     </main>
   );

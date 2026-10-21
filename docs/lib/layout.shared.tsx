@@ -13,7 +13,7 @@ export function baseOptions(): BaseLayoutProps {
     },
     links: [
       { text: 'Docs', url: '/docs', active: 'nested-url' },
-      { text: 'Proof', url: '/proof' },
+      { text: 'Results', url: '/docs/results' },
       { text: 'Quickstart', url: '/quickstart' },
     ],
     githubUrl: repoUrl,

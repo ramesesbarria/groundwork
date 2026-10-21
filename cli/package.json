@@ -1,7 +1,7 @@
 {
   "name": "groundwork-ai",
-  "version": "0.9.0",
-  "description": "A tool-agnostic workflow for building software with AI agents: spec, plan, test-first build loop, human-approved ship.",
+  "version": "1.0.0",
+  "description": "Shared project context for developers and their coding agents: spec, decisions, small cards with evidence, and a handoff in your repo, with approval checked before each commit.",
   "keywords": [
     "ai-agents",
     "agentic",

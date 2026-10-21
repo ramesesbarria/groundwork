@@ -7,7 +7,7 @@ Check the work with fresh eyes, then pass or send it back. You judge, not repair
 2. Check each criterion against the diff. Tick one only with proof; an unmet one stays unticked with its reason (`- [ ] <criterion> — <why>`). Reading the code isn't proof. Anything a person sees or does on screen needs the running app: rerun the tester's browser checks (under **How to check**), or start it with `run` and try it in a real or headless browser. If `run` is empty, work out how to start the app, try that, and suggest it. A criterion you can't prove goes to **Human checks**: leave it unticked as `- [ ] … — needs a human check`; only if you can't describe one, write *not verified live* next to it and make it the first caveat.
 3. Check the diff against the spec and against each lesson in LESSONS.md.
 4. Look for anything added beyond the card or claimed but not verified.
-5. **Pass:** fill in Evidence, write the card's **How to check** for the human (keep the tester's browser-check command), status `awaiting-approval` (or `done` in `per-phase` mode, where the runner commits as soon as you pass). **Fail:** list the problems under History, status `implementing`.
+5. **Pass:** fill in Evidence, write the card's **How to check** for the human (keep the tester's browser-check command), pass `npx groundwork-ai check <card-id>`, status `awaiting-approval` (or `done` in `per-phase` mode, where the runner commits as soon as you pass). **Fail:** list the problems under History, status `implementing`.
 
 ## Load
 Read only these:

@@ -1,0 +1,15 @@
+{
+  "id": "S03",
+  "title": "Verify a feature claimed done (search)",
+  "promise": "verify completion against the agreed requirements instead of trusting a claim",
+  "setup": {
+    "commit": "Add search (done)",
+    "appendRequirements": "\n## Search\n\n`search(ledger, query, { from, to } = {})` in `src/search.js` returns the entries whose description or\ncategory contains `query`, ignoring case. `from`/`to` (YYYY-MM-DD, inclusive) optionally limit the date\nrange. Results are in date order, oldest first.\n"
+  },
+  "steps": [
+    {
+      "prompt": "Search was finished last week. Before we release it, check that it really meets the requirements and fix anything that doesn't.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

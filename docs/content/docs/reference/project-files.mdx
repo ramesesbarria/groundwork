@@ -45,7 +45,7 @@ AGENTS.md                     # what every session starts with (short, always lo
 | `config.json` | The settings described in [Configuration](/docs/reference/configuration) | `gw-setup`, `gw-decide`, you |
 
 Three things stay out of git (`.groundwork/.gitignore`): `retro.md`, the raw report `npx groundwork-ai retro`
-writes for `/gw-retro`; `.approvals/`, where Claude Code's hook records your latest message for
+writes for `gw-retro`; `.approvals/`, where Claude Code's hook records your latest message for
 the commit gate; and `private/`, for anything secret the agent needs to know (a password, a key, a
 surprise). Everything else in `.groundwork/` is committed, so the agent is told to keep secrets
 out of the spec, cards and handoff.

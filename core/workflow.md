@@ -2,7 +2,7 @@
 
 How a card goes from idea to commit. This works in any AI tool. Adapters only add shortcuts.
 
-**The runner** is the main session: the one you type `gw-next` into. It picks cards and hands them to each role (`.groundwork/roles/`) in turn.
+**The runner** is the main session, where `/gw` runs `gw-next`. It picks cards and hands them to each role (`.groundwork/roles/`) in turn.
 
 ## The loop
 
@@ -13,11 +13,11 @@ How a card goes from idea to commit. This works in any AI tool. Adapters only ad
 5. **Approve.** The runner stops with what changed, how to check it, and caveats; the human approves or rejects (when, depends on `approvalMode`).
 6. **Commit.** After approval the runner commits and moves on.
 
-Small, low-risk changes skip this loop: use `gw-quick` (one pass, no card, checks must still pass).
+Small, low-risk changes skip this loop: use `gw-quick` (no card; checks still pass).
 
 ## Card statuses
 
-A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-approval` → `done` (in `at-end` mode, `implementing` → `built` first); the runner starts it, and a card sent back is `rejected` until the runner picks it up again. Before you change a status, read `.groundwork/reference/statuses.md`: who may make each change, and the plain labels to use with the human. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
+A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-approval` → `done` (in `at-end` mode, `implementing` → `built` first); the runner starts it, and a card sent back is `rejected` until the runner picks it up again. Before you change a status, read `.groundwork/reference/statuses.md`: who may change it and the plain labels. Every change gets one line under the card's History, in the formats shown in `.groundwork/templates/card.md`.
 
 ## Approval
 
@@ -25,13 +25,15 @@ A card goes `todo` → `testing` → `implementing` → `review` → `awaiting-a
 
 - **`per-card`** (default): the runner stops at `awaiting-approval`. The human approves or rejects each card.
 - **`per-phase`**: cards that pass review are committed one by one without stopping. When the phase's last card is done, the runner stops and the human reviews the phase. They can reject any card, which goes back into the loop. Nothing is pushed until the phase is approved.
-- **`at-end`**: the runner builds every card itself, straight through, committing each as a checkpoint once it's `built` with its test output; one review covers them all, then the human approves once. Follow `.groundwork/guides/at-end.md`.
+- **`at-end`** (legacy only): the runner builds every card itself, straight through, committing each as a checkpoint once it's `built` with its test output; one review covers them all, then the human approves once. Follow `.groundwork/guides/at-end.md`.
 
 **No evidence, no approval.** A card can't be approved while its Evidence section is empty or links to a missing file. Evidence is saved in `.groundwork/evidence/<card-id>/` and linked from the card.
 
 **What to save:** the command you ran, its summary line (e.g. "42 passed, 3 failed"), and the failures, about the last 30 lines at most. Not the full output: evidence is committed, so keep each file short enough to read. Write evidence with your file-write tool or `node -e`, never shell redirection (`>`, `Out-File`): Windows PowerShell 5.1 writes UTF-16, which git treats as binary.
 
-**After approval** the runner sets the card to `done`, updates HANDOFF, and commits the card's changes as `[<card-id>] <card title>` (or the config's `commitFormat`) with a short body, then moves on. Only the runner commits, never a role, and never before approval (or before review passes, in `per-phase` mode; or as an unreviewed checkpoint, in `at-end` mode). If `autoCommit` is `false`, it never commits: it tells the human what to commit. The commit gate refuses a card commit while the card isn't `done` or fails `groundwork check`.
+**After approval** the runner sets the card to `done`, updates HANDOFF, and commits the card as `[<card-id>] <card title>` (or the config's `commitFormat`). Only the runner commits, never a role, and never before approval. If `autoCommit` is `false`, it says what to commit. The gate refuses a card commit that isn't `done`, fails `check`, or changed since approval.
+
+Non-card commits use `[no-card] <reason>`, `[quick]`, `[setup]`, `[plan]` or `[docs]`. A tag covers only its kind of change, and none carries card or evidence work; only the `at-end` approval commit may mark approved cards done.
 
 ## Experience
 `experience` in `.groundwork/config.json` sets how much you explain. Read it each time (nothing else stores it), so it can change mid-project.
@@ -61,7 +63,7 @@ Every call is shown at approval, so nothing is decided out of sight.
 
 ## HANDOFF
 
-`.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. Update it:
+`.groundwork/HANDOFF.md` is the current state, overwritten each time, not a log. On branch `gw/<id>`, the current state is `.groundwork/work/<id>/HANDOFF.md` instead, so parallel tasks keep separate records. Update it:
 - at **every role change**,
 - after every approval or rejection,
 - **before you stop** for any reason, including when you're running out of context or usage.

@@ -13,6 +13,17 @@ const ROLE_TOOLS: Record<string, string[]> = {
 // while `/gw-approve` still works (code.claude.com/docs/en/skills, checked 2026-09-24).
 const HUMAN_ONLY = new Set(["gw-approve", "gw-reject"]);
 
+// Every line Groundwork writes under "## Claude Code" in CLAUDE.md, now or in an earlier version. A
+// CLAUDE.md made only of these is Groundwork's own: upgrade refreshes it and uninstall removes it.
+// Add the pattern here when the generator below gains a line.
+export const CLAUDE_MD_LINES: RegExp[] = [
+  /^Groundwork commands are skills: \/[\w-]+(?:, \/[\w-]+)*\.$/, // 0.3
+  /^Groundwork commands are skills\. Start with \/gw: it says where things stand and runs the next step\.$/,
+  /^The others: \/[\w-]+(?:, \/[\w-]+)*\.$/,
+  /^Other helpers live in \.groundwork\/commands\/; \/gw reads the one it needs\.$/,
+  /^When a command says to run a role, use its subagent: gw-[\w-]+(?:, gw-[\w-]+)*\.$/,
+];
+
 // Pure: core files in, Claude Code files out. Generated files point to the core instead of
 // copying it, so .groundwork/ stays the single source of truth.
 export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {
@@ -55,12 +66,16 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
     "## Claude Code",
     `Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.`,
     `The others: ${commands.filter((c) => c.name !== "gw").map((c) => `/${c.name}`).join(", ")}.`,
+    "Other helpers live in .groundwork/commands/; /gw reads the one it needs.",
     `When a command says to run a role, use its subagent: ${roles.map((r) => `gw-${r.name}`).join(", ")}.`,
     "",
   ].join("\n");
 
   // Guards: every shell command and file write goes through the runner, which applies the guards
-  // listed in .groundwork/config.json. Exit code 2 blocks the action.
+  // listed in .groundwork/config.json. Exit code 2 blocks the action. Claude Code lets a call through
+  // when a hook fails any other way (it can't start, crashes, times out), unless the hook sets
+  // onFailure: "block", added in Claude Code 2.1.295 (code.claude.com/docs/en/hooks, "Block the
+  // action when a hook fails"; changelog 2.1.295). Older versions ignore the field.
   // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF. Claude Code
   // adds a SessionStart hook's plain-text output as context (code.claude.com/docs/en/hooks).
   out[".claude/settings.json"] =
@@ -75,8 +90,8 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
           ],
           PreToolUse: [
             {
-              matcher: "Bash|Write|Edit|MultiEdit|NotebookEdit",
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code' }],
+              matcher: "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code', onFailure: "block" }],
             },
           ],
           // Fires only on the human's own messages, so the commit gate can tell a human approval

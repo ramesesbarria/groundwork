@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { CopyCommand } from '@/components/gw/copy-command';
 import { Stage } from '@/components/gw/how-it-works';
 import { ButtonLink } from '@/components/gw/section';
@@ -20,7 +21,6 @@ const commands = [
   ['/gw', 'Start, or carry on where you left off. The only one you need to remember.'],
   ['/gw-approve', 'Accept the finished work. It gets saved to your project’s history.'],
   ['/gw-reject', 'Send it back, with a reason. It goes around again.'],
-  ['/gw-quick', 'A small change or bug fix, without the full process.'],
 ];
 
 export default function QuickstartPage() {
@@ -120,7 +120,7 @@ export default function QuickstartPage() {
 
       <section className="page-container pb-14">
         <p className="type-label mb-3">Cheat sheet</p>
-        <h2 className="type-heading">Four commands cover almost everything.</h2>
+        <h2 className="type-heading">Three commands cover almost everything.</h2>
         <dl className="mt-6 max-w-3xl divide-y divide-border overflow-hidden rounded-xl border border-border">
           {commands.map(([cmd, what]) => (
             <div key={cmd} className="grid gap-1 bg-background px-5 py-3.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
@@ -129,6 +129,14 @@ export default function QuickstartPage() {
             </div>
           ))}
         </dl>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
+          For anything else, just ask in plain words. A typo or a small bug fix takes the quick path, without a card;
+          a bigger change gets a card. Working with a team? See{' '}
+          <Link className="text-foreground underline" href="/docs/guides/teams">
+            teams and pull requests
+          </Link>
+          .
+        </p>
       </section>
 
       <section className="page-container pb-28">
@@ -138,8 +146,8 @@ export default function QuickstartPage() {
           </p>
           <div className="flex shrink-0 flex-wrap gap-3">
             <ButtonLink href="/docs">Read the docs →</ButtonLink>
-            <ButtonLink href="/docs/guides/walkthrough" variant="secondary">
-              Watch a real build
+            <ButtonLink href="/docs/results" variant="secondary">
+              See the results
             </ButtonLink>
           </div>
         </div>

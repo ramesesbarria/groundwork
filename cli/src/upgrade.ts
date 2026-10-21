@@ -3,14 +3,16 @@
 // own AGENTS.md and CLAUDE.md) is never touched. Groundwork's own files are replaced, unless the user
 // changed one since Groundwork wrote it: then theirs stays and the new version is written next to it
 // as <file>.new. Command keys a newer version added are put into the config empty.
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import { ADAPTERS, GITATTRIBUTES, isManaged, isProjectFile, locateCore, planAdapter, planInit, stampVersion, type Adapter } from "./init.js";
 import { VERSION } from "./version.js";
+import { keptHelperNote, retiredHelperFiles } from "./retired.js";
+import { CLAUDE_MD_LINES } from "./adapters/claude-code.js";
 import { parseJson, readProjectConfig } from "./config.js";
-import { editState, readManifest, recordFiles } from "./manifest.js";
+import { alreadyMerged, editState, readManifest, recordFiles, recordOffered } from "./manifest.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -29,11 +31,18 @@ const RETIRED_AGENTS: [string, string][] = [
   [".opencode/agents/gw-planner.md", "You are the Groundwork planner."],
 ];
 
-// A CLAUDE.md made entirely of lines Groundwork generates, so replacing it loses nothing of the user's.
+// A CLAUDE.md made entirely of lines Groundwork generates, each once, so replacing or removing it loses
+// nothing of the user's.
 export function isGeneratedClaudeMd(text: string): boolean {
   const lines = text.trim().split(/\r?\n/);
   if (lines[0] !== "@AGENTS.md" || lines[1] !== "" || lines[2] !== "## Claude Code") return false;
-  return lines.slice(3).every((line) => /^(Groundwork commands are skills|The others:|When a command says to run a role)/.test(line));
+  const used = new Set<RegExp>();
+  return lines.slice(3).every((line) => {
+    const pattern = CLAUDE_MD_LINES.find((re) => re.test(line));
+    if (!pattern || used.has(pattern)) return false;
+    used.add(pattern);
+    return true;
+  });
 }
 
 type Commands = { commands?: Record<string, string> };
@@ -118,8 +127,10 @@ function decide(cwd: string, files: PlannedFile[]): Step[] {
     const current = readFileSync(path, "utf8");
     if (sameText(current, file.content)) continue;
     const state = editState(manifest, file.path, current);
-    if (state === "edited") steps.push({ file, action: "keep" });
-    else steps.push({ file, action: "replace", unknown: state === "unknown" && file.path !== "CLAUDE.md" });
+    if (state === "edited") {
+      // Offered before and merged by the user (they deleted the .new file): their version stands.
+      if (!alreadyMerged(cwd, manifest, file)) steps.push({ file, action: "keep" });
+    } else steps.push({ file, action: "replace", unknown: state === "unknown" && file.path !== "CLAUDE.md" });
   }
   return steps;
 }
@@ -155,7 +166,10 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     .filter((line) => !line.includes("unchanged"))
     .map((line) => line.replace(/^ {2}exists {5}(.*) \(would ask before overwriting\)$/, "  replace    $1"));
   const retiredAgents = RETIRED_AGENTS.filter(([path, marker]) => existsSync(join(io.cwd, path)) && readFileSync(join(io.cwd, path), "utf8").includes(marker)).map(([path]) => path);
-  const removals = [...retiredPaths.filter((path) => existsSync(join(io.cwd, path))), ...retiredAgents].map((path) => `  remove     ${path}`);
+  const helpers = retiredHelperFiles(io.cwd);
+  const retiredHelpers = helpers.filter((file) => file.generated).map((file) => file.path);
+  const keptHelpers = helpers.filter((file) => !file.generated).map((file) => file.path);
+  const removals = [...retiredPaths.filter((path) => existsSync(join(io.cwd, path))), ...retiredAgents, ...retiredHelpers].map((path) => `  remove     ${path}`);
   const restamp = config !== undefined && config.version !== VERSION;
 
   if (steps.length === 0 && otherChanges.length === 0 && removals.length === 0 && additions.length === 0 && !restamp) {
@@ -192,12 +206,17 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     writeFileSync(target, file.content);
   }
   const { lines } = await applyFiles(others, auto, false);
-  for (const path of [...retiredPaths, ...retiredAgents]) rmSync(join(io.cwd, path), { recursive: true, force: true });
+  for (const path of [...retiredPaths, ...retiredAgents, ...retiredHelpers]) rmSync(join(io.cwd, path), { recursive: true, force: true });
+  for (const path of retiredHelpers.filter((p) => p.endsWith("/SKILL.md"))) {
+    const dir = join(io.cwd, dirname(path));
+    if (existsSync(dir) && readdirSync(dir).length === 0) rmSync(dir, { recursive: true });
+  }
   if (config !== undefined) {
     const updated = withCommands(readFileSync(configPath, "utf8"), newCommands);
     writeFileSync(configPath, stampVersion(setup ? withSetup(updated, setup) : updated, VERSION));
   }
   recordFiles(io.cwd, managed, VERSION);
+  recordOffered(io.cwd, steps.filter((s) => s.action === "keep").map((s) => s.file), VERSION);
 
   const kept = steps.filter((s) => s.action === "keep");
   const unknown = steps.filter((s) => s.unknown);
@@ -205,9 +224,20 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     newCommands.length > 0
       ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`]
       : [];
+  const adapterKept = kept.filter(({ file }) => file.path.startsWith(".claude/") || file.path.startsWith(".opencode/"));
   const notes = [
+    ...(keptHelpers.length > 0
+      ? [`Kept: ${keptHelpers.map(keptHelperNote).join("; ")}.`]
+      : []),
     ...(kept.length > 0
       ? [`You changed ${kept.length} of Groundwork's files, so they were kept. Compare each with its .new file, merge what you want, then delete the .new file.`]
+      : []),
+    ...(adapterKept.length > 0
+      ? [
+          `The active adapter still loads your preserved file${adapterKept.length === 1 ? "" : "s"}: ` +
+            `${adapterKept.map(({ file }) => file.path).join(", ")}. The .new version is not active. ` +
+            "Merge it, or remove your edit and run upgrade again, before relying on adapter changes in this release.",
+        ]
       : []),
     ...(unknown.length > 0
       ? ["This project had no record of the files Groundwork last wrote (it's from before that was tracked), so its files were replaced. If you had edited any, `git diff` shows it. From now on, edits are kept."]
@@ -225,6 +255,7 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
       ...fillIn,
       ...(notes.length > 0 ? ["", ...notes] : []),
       "",
+      "Commit Groundwork's updated files separately before the next card, e.g. `[setup] Upgrade Groundwork`, so they don't mix with card work.",
       "Run `npx groundwork-ai doctor` to check the result.",
     ].join("\n"),
   };

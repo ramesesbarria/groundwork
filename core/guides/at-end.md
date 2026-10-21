@@ -1,4 +1,6 @@
-# Building straight through (`at-end` mode)
+# Building straight through (`at-end` mode, parked for v1)
+
+This guide is kept for projects that already use `at-end`. New projects use `per-card` or `per-phase`.
 
 The human chose to review once, at the end: usually a deadline. You build every card yourself, in order, without stopping. One review covers them all, then the human approves once. Nothing is rounded up: a card you built is `built`, not `done`, until the review and the human say so.
 
@@ -14,10 +16,10 @@ The human chose to review once, at the end: usually a deadline. You build every 
 ## When every card is built: the end review
 1. **One reviewer run** over all `built` cards: `.groundwork/roles/reviewer.md`, as a subagent if your tool has them. Hand it the list of card paths and the diff since the plan was committed. It reviews each card the way its role file says: reruns the checks, ticks each criterion it has seen proof of, writes How to check, and sets each card `awaiting-approval` or back to `implementing` with the problems.
 2. **Fix what it sends back**, as in step 3 above, mark the card `built` again, and rerun the review for those cards only. After 3 round trips on a card, stop and ask the human.
-3. **Stop for the human** with one summary for the whole build: what changed, how to try it, caveats, any open human checks, and every `call:` line. Ask them to run `gw-approve` (all cards at once) or `gw-reject` with the cards and reasons.
+3. **Stop for the human** with one summary for the whole build: what changed, how to try it, caveats, any open human checks, and every `call:` line. Ask them to run `/gw-approve all` (or list every card id) or `/gw-reject` with the cards and reasons.
 
 ## Approving (`gw-approve`)
-Every card waiting for approval gets `gw-approve` steps 2 and 4 at once; list any that fail the check, and approve the rest only if the human says so. Confirm or waive every open human check across the cards in one pass. Then one commit with the approved cards' files and HANDOFF, message `Approve cards <first>–<last>` (no card ID: each card already has its checkpoint commit), and one recap per phase in JOURNAL.
+Every card waiting for approval gets `gw-approve` steps 2 and 4 at once; list any that fail the check, and approve the rest only if the human says so. Confirm or waive every open human check across the cards in one pass. Then one commit with the approved cards' files and HANDOFF, message `[no-card] Approve cards <first>-<last>` (each card already has its checkpoint commit), and one recap per phase in JOURNAL. The commit gate requires the `/gw-approve all` record for every card in that batch; an agent-written approval line alone isn't enough.
 
 ## Must not
 - Mark a card `done`, or tick its criteria, before the review and the human's approval.

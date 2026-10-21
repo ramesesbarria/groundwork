@@ -1,12 +1,13 @@
 // Guards (the GUARD level of the lessons ladder) and their Claude Code wiring.
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, cpSync } from "node:fs";
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { run } from "../src/index.js";
 import { mergeSettings } from "../src/settings.js";
+import { unmergeSettings } from "../src/uninstall.js";
 import { readCore } from "../src/core.js";
 import { generateClaudeCode } from "../src/adapters/claude-code.js";
 
@@ -110,12 +111,12 @@ describe("guard runner", () => {
 
     const blocked = hook({
       tool_name: "Bash",
-      tool_input: { command: "git commit -m 'x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" },
+      tool_input: { command: "git commit -m '[no-card] x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" },
     });
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toMatch(/attribution/i);
 
-    expect(hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } }).status).toBe(0);
+    expect(hook({ tool_name: "Bash", tool_input: { command: "git commit -m '[quick] Fix bug'" } }).status).toBe(0);
   });
 
   it("maps NotebookEdit and OpenCode patches to writes", async () => {
@@ -136,7 +137,7 @@ describe("guard runner", () => {
 });
 
 describe("guard runner fails safe", () => {
-  const trailer = { tool_name: "Bash", tool_input: { command: "git commit -m x -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } };
+  const trailer = { tool_name: "Bash", tool_input: { command: "git commit -m '[no-card] x' -m 'Co-Authored-By: Claude <noreply@anthropic.com>'" } };
   const listing = { tool_name: "Bash", tool_input: { command: "ls" } };
 
   function project(config: string, extraGuards: Record<string, string> = {}) {
@@ -144,12 +145,17 @@ describe("guard runner fails safe", () => {
     cpSync(guardsDir, join(dir, ".groundwork/guards"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/config.json"), config);
     for (const [name, code] of Object.entries(extraGuards)) writeFileSync(join(dir, `.groundwork/guards/${name}.mjs`), code);
-    return (input: object | string) =>
+    const hook = (input: object | string) =>
       spawnSync(process.execPath, [join(dir, ".groundwork/guards/run.mjs"), "claude-code"], {
+        cwd: dir,
         input: typeof input === "string" ? input : JSON.stringify(input),
         encoding: "utf8",
       });
+    dirs.set(hook, dir);
+    return hook;
   }
+  const dirs = new Map<unknown, string>();
+  const dirOf = (hook: unknown) => dirs.get(hook)!;
 
   it("reads a config that starts with a byte order mark", () => {
     const hook = project(`﻿${JSON.stringify({ guards: ["no-ai-trailers"] })}`);
@@ -158,33 +164,63 @@ describe("guard runner fails safe", () => {
     expect(result.stderr).toMatch(/attribution/i);
   });
 
-  it("blocks commits, and only commits, while config.json can't be parsed", () => {
+  it("blocks every watched call, not just commits, while config.json can't be parsed", () => {
     const hook = project('{ "guards": ["no-ai-trailers"], }');
-    const commit = hook(trailer);
-    expect(commit.status).toBe(2);
-    expect(commit.stderr).toContain("config.json");
-    const other = hook(listing);
-    expect(other.status).toBe(0);
-    expect(other.stderr).toContain("config.json");
+    for (const input of [trailer, listing, { tool_name: "Write", tool_input: { file_path: ".groundwork/guards/run.mjs", content: "" } }]) {
+      const result = hook(input);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("config.json");
+      expect(result.stderr).toContain("npx groundwork-ai doctor");
+    }
   });
 
-  it("still runs later guards when an earlier one throws, and blocks commits it couldn't check", () => {
+  it("reports a missing config.json as a broken install and blocks", () => {
+    const hook = project("{}");
+    rmSync(join(dirOf(hook), ".groundwork/config.json"));
+    const result = hook(listing);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/config\.json can't be read \(it is missing\), so this install is broken/);
+  });
+
+  it("still runs later guards when an earlier one throws, then blocks the calls it couldn't check", () => {
     const hook = project(JSON.stringify({ guards: ["broken", "no-ai-trailers"] }), {
       broken: 'export function check() { throw new Error("boom"); }',
     });
     const blocked = hook(trailer);
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toMatch(/attribution/i);
-    const clean = hook({ tool_name: "Bash", tool_input: { command: "git commit -m 'Fix bug'" } });
-    expect(clean.status).toBe(2);
-    expect(clean.stderr).toContain('"broken"');
-    expect(hook(listing).status).toBe(0);
+    for (const input of [{ tool_name: "Bash", tool_input: { command: "git commit -m '[quick] Fix bug'" } }, listing]) {
+      const result = hook(input);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain('"broken"');
+    }
   });
 
-  it("allows input it doesn't understand", () => {
+  it("blocks when Groundwork's own checks can't load", () => {
     const hook = project(JSON.stringify({ guards: ["no-ai-trailers"] }));
-    expect(hook("not json").status).toBe(0);
-    expect(hook("").status).toBe(0);
+    // A merge conflict left in a guard library, e.g. from merging an upgrade's .new by hand.
+    appendFileSync(join(dirOf(hook), ".groundwork/guards/lib/commit-gate.mjs"), "\n<<<<<<< ours\n");
+    for (const input of [listing, { tool_name: "Write", tool_input: { file_path: ".groundwork/guards/run.mjs", content: "" } }]) {
+      const result = hook(input);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toMatch(/built-in checks couldn't run/);
+    }
+  });
+
+  it("blocks input it can't read, without guessing what it does", () => {
+    const hook = project(JSON.stringify({ guards: ["no-ai-trailers"] }));
+    for (const input of ["not json", "", '{"tool_name":"Bash","tool_input":{"command":"ls"']) {
+      const result = hook(input);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toMatch(/couldn't read this tool call/);
+    }
+  });
+
+  it("blocks when the runner itself throws on input it accepted", () => {
+    const hook = project(JSON.stringify({ guards: ["no-ai-trailers"] }));
+    const result = hook({ tool_name: "MultiEdit", tool_input: { file_path: "a.txt", edits: { not: "a list" } } });
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/the guard failed/);
   });
 
   it("treats a guard name that looks like a path as invalid, never importing it", async () => {
@@ -253,6 +289,35 @@ describe("Claude Code wiring", () => {
     expect(JSON.stringify(merged)).toContain("run.mjs");
     const twice = mergeSettings(merged, JSON.parse(ours[".claude/settings.json"]));
     expect(twice).toEqual(merged);
+  });
+
+  it("the guard hook blocks the call when it can't run (onFailure), and only the guard hook does", () => {
+    const hooks = JSON.parse(ours[".claude/settings.json"]).hooks;
+    expect(hooks.PreToolUse[0].hooks[0].onFailure).toBe("block");
+    // A failed prompt or session-start hook must not swallow the human's message or the session.
+    expect(hooks.UserPromptSubmit[0].hooks[0].onFailure).toBeUndefined();
+    expect(hooks.SessionStart[0].hooks[0].onFailure).toBeUndefined();
+  });
+
+  it("upgrading settings from 1.0.0 and earlier adds onFailure to the one guard hook, and leaves a customized entry alone", () => {
+    const current = JSON.parse(ours[".claude/settings.json"]);
+    const old = structuredClone(current);
+    delete old.hooks.PreToolUse[0].hooks[0].onFailure;
+    const merged = mergeSettings(old, current);
+    const guardHooks = merged.hooks!.PreToolUse.flatMap((e) => e.hooks ?? []).filter((h) => h.command?.includes("run.mjs"));
+    expect(guardHooks).toEqual([current.hooks.PreToolUse[0].hooks[0]]);
+    expect(mergeSettings(merged, current)).toEqual(merged);
+
+    const customized = structuredClone(old);
+    customized.hooks.PreToolUse[0].hooks.push({ type: "command", command: "echo mine" });
+    expect(mergeSettings(customized, current).hooks!.PreToolUse).toEqual(customized.hooks.PreToolUse);
+  });
+
+  it("uninstall removes the guard hook whether or not it has onFailure", () => {
+    const current = JSON.parse(ours[".claude/settings.json"]);
+    const old = structuredClone(current);
+    delete old.hooks.PreToolUse[0].hooks[0].onFailure;
+    for (const settings of [current, old]) expect(JSON.stringify(unmergeSettings(settings))).not.toContain(".groundwork/");
   });
 
   it("mergeSettings refreshes Groundwork's own entry, e.g. a wider matcher, without duplicating it", () => {

@@ -1,10 +1,16 @@
 ---
 title: "Overview"
-description: "Groundwork is the project layer for building software with AI agents: it owns the spec, the cards, the evidence and the approvals, so any session can pick up where the last one stopped."
+description: "Groundwork is shared project context for developers and their coding agents: the spec, decisions, plan, evidence and handoffs live as files in your repo, so any session, tool or teammate can pick up where the last one stopped."
 ---
 
-Your AI tool writes the code. Groundwork gives it a process it can't skip, and keeps the state of
-the project in files instead of the chat:
+**Shared project context for developers and their coding agents.** Your AI tool writes the code.
+Groundwork keeps what the project knows in your repo, as plain files: the spec, the decisions and
+why they were made, the plan of small cards, the proof each card works, and a handoff saying where
+things stand. A new session, a different tool or a teammate starts from those files, not from a
+chat that's gone.
+
+Checks back this up. Hooks refuse a commit that names a card without its evidence and your
+approval, and `groundwork check` runs the same rules in CI.
 
 <BuildLoopDiagram />
 
@@ -18,23 +24,25 @@ Then open your AI tool in the project and type `/gw`.
 ## Where to start
 
 <Cards>
-  <Card title="Installation" href="/docs/getting-started/installation" description="Node 22+, one command, three tool choices." />
-  <Card title="Your first 10 minutes" href="/docs/getting-started/first-10-minutes" description="From /gw to your first approved card." />
-  <Card title="Walkthrough" href="/docs/guides/walkthrough" description="A real calculator build, clip by clip." />
-  <Card title="What it costs" href="/docs/concepts/cost" description="Where the tokens go, and when it pays off." />
+  <Card title="Installation" href="/docs/getting-started/installation" description="Node 22+, one command, three tool choices, then setup." />
+  <Card title="Your first 10 minutes" href="/docs/getting-started/first-10-minutes" description="From an idea to an approved card, and picking it up again later." />
+  <Card title="Teams and pull requests" href="/docs/guides/teams" description="Task branches, shared decisions, and PR review as the approval." />
+  <Card title="Evidence and approval" href="/docs/concepts/evidence-and-approval" description="What counts as proof, what's enforced, and where that stops." />
 </Cards>
 
-## New in 0.9.0
+## The three commands
 
-- **Human checks on cards.** Criteria only a person can judge (a Tab walk, a focus ring, narrow
-  layouts) become a `## Human checks` section: `status` and `check` list them, and approval asks you
-  to confirm or waive each. They never block a commit.
-  [Cards →](/docs/concepts/cards-and-phases)
-- **A tighter harness.** `protect-harness` judges shell commands by the files they write, so reads
-  no longer block; the commit gate refuses cards over 1,500 tokens until trimmed; evidence links
-  that look like patterns (`review-*`) get a clear message.
-  [Configuration →](/docs/reference/configuration#enforce)
-- **Retro catches every send-back**, including `implementing → testing` and `built → implementing`.
-  [Lessons ledger →](/docs/concepts/lessons-ledger)
-- From [0.8.1](/docs/adapters/opencode#human-only-commands): OpenCode's commit gate needs a message
-  from you since the last commit; subagent prompts don't count.
+| Type | When |
+|---|---|
+| `/gw` | Start, or carry on where you left off. It works out the next step. |
+| `/gw-approve` | Accept the finished work; it's committed. |
+| `/gw-reject` | Send it back, with a reason. |
+
+Everything else (a quick fix, a stack decision, a handoff) you ask for in plain words; `/gw` reads
+the helper it needs from `.groundwork/commands/`. [All commands →](/docs/reference/agent-commands)
+
+## Background
+
+[Results](/docs/results) summarizes a controlled comparison with and without Groundwork, for one
+agent and model: work that spans sessions held together better, at about 4× the API cost per task.
+[What it costs](/docs/concepts/cost) explains where the tokens go.

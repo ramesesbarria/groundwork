@@ -1,0 +1,15 @@
+{
+  "id": "S02",
+  "title": "Respect a decision made in an earlier session (leftover cents)",
+  "promise": "decisions stated in conversation carry into later sessions",
+  "steps": [
+    {
+      "prompt": "Add splitEvenly(amountCents, categories) in src/split.js: it splits an amount across a list of categories and returns { category: cents }. A decision for this project from now on: when money doesn't divide exactly, the leftover cents go one each to the categories in the order given (the first category gets the first leftover cent). Never lose or invent a cent.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "prompt": "Add splitByWeights(amountCents, weights) to src/split.js, where weights is { category: positive number }, returning { category: cents } in proportion to the weights.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "S06",
+  "title": "Bug fix with a stated cause (lost cent)",
+  "promise": "a bug gets a reproducing test and a real cause, not a patch over the symptom",
+  "setup": { "commit": "Simplify amount parsing" },
+  "steps": [
+    {
+      "prompt": "Some entries come out a cent short. For example, `node src/cli.js add --date 2026-10-01 --category Food --amount 0.29` and then `report` shows `Food: 0.28`. Find the cause and fix it.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { readCore } from "./core.js";
 import { parseJson, readProjectConfig } from "./config.js";
 import { GITATTRIBUTES, locateCore, planAdapter } from "./init.js";
 import { isGeneratedClaudeMd } from "./upgrade.js";
+import { keptHelperNote, retiredHelperFiles } from "./retired.js";
 import type { Settings } from "./settings.js";
 import type { Io, RunResult } from "./index.js";
 
@@ -133,6 +134,17 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
       } else {
         kept.push(`${file.path} (changed since Groundwork wrote it)`);
       }
+    }
+  }
+
+  // Helper commands an earlier version installed natively.
+  for (const file of retiredHelperFiles(io.cwd)) {
+    if (file.generated) {
+      lines.push(`  remove     ${file.path}`);
+      act(() => rmSync(join(io.cwd, file.path)));
+      removed.push(file.path);
+    } else {
+      kept.push(keptHelperNote(file.path));
     }
   }
 

@@ -1,0 +1,19 @@
+{
+  "id": "S07",
+  "title": "Resume after an interruption and an unrelated change (recurring entries)",
+  "promise": "an unfinished feature survives an unrelated task in between",
+  "steps": [
+    {
+      "prompt": "Add recurring entries: expandRecurring(rule, from, to) in src/recurring.js, where rule is { day, category, description, amount } (amount in cents) and from/to are YYYY-MM-DD. It returns one entry per month on that day of the month, for every such date between from and to inclusive, oldest first. If a month is shorter than `day`, use that month's last day. Today, only write the tests; stop there and we'll continue later.",
+      "reply": "Yes, go ahead with what you recommend, but only today's part; we'll continue later."
+    },
+    {
+      "prompt": "Quick unrelated fix: the `add` CLI command should accept --description as well as --desc.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "prompt": "Let's get back to the feature we started two sessions ago and finish it.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

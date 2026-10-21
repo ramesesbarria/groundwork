@@ -1,0 +1,20 @@
+name: Team demo
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  two-worktree-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Run the shared-context fixture with the local CLI
+        run: GW_CLI="node $GITHUB_WORKSPACE/cli/dist/bin.js" GW_ROOT="$GITHUB_WORKSPACE" bash demo/team-workflow.sh

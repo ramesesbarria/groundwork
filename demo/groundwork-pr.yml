@@ -1,0 +1,49 @@
+# Sample PR workflow for a project using Groundwork. Copy to .github/workflows/.
+#
+# The head job checks the real PR head. The merge job runs tests on the simulated merge result.
+# Do not run the freshness/context check on the merge ref: that ref contains main, so the ancestry
+# check would pass even when the PR head is behind.
+#
+# The check runs the groundwork-ai version locked in the project's own package-lock.json, so CI
+# and the developers use the same one. It needs groundwork-ai 1.0.0 or later, which has `check --base`:
+#   npm install --save-dev groundwork-ai@^1.0.0
+# To try an unreleased build, install the package under test instead of a published one:
+#   npm pack -w groundwork-ai            (in the Groundwork checkout)
+#   npm install --save-dev <path>/groundwork-ai-<version>.tgz
+name: Groundwork PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  head:
+    name: groundwork-head
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+      - run: npm ci
+      - run: npx --no-install groundwork-ai check --base origin/main
+
+  merge:
+    name: groundwork-merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci && npm test

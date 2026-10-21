@@ -2,32 +2,37 @@
 title: "Approval modes"
 ---
 
-In the default mode, **nothing is committed without your approval**, and a commit gate checks every
-card commit: the card must be done, with its evidence. How often you're asked is your choice.
+In the default `per-card` mode, **a card is committed only with its evidence and your explicit
+approval of the reviewed state**. Setup and other permitted cardless commits go through separate
+tagged paths, described in [evidence and approval](/docs/concepts/evidence-and-approval). The other
+modes ask for your approval at a different point, as the table shows; in each of them the commit
+gate checks that a card is done, with its evidence.
 
 | Mode | What happens |
 |---|---|
 | **`per-card`** (default) | The runner stops after every card. You approve or reject each one before its commit. |
 | **`per-phase`** | Cards that pass review commit on their own. When the phase's last card is done, the runner stops and you review the phase as a whole. |
-| **`at-end`** | For a deadline. The agent builds every card straight through, then one review covers them all, and you approve once. |
+| **`at-end`** | **Parked for v1.** Existing projects that already use it keep working; new projects should use `per-card` or `per-phase`. |
 
-During setup the agent asks in plain words — *"every piece of work, each milestone, or only once
-everything is built?"* If you're unsure, `new` users default to per-card, `experienced` to
-per-phase.
+During setup the agent asks in plain words - *"every piece of work, or each milestone?"* If you're
+unsure, `new` users default to per-card, `experienced` to per-phase. `at-end` is not offered for new
+projects.
 
 To change it later, run the command yourself:
 
 ```bash
-npx groundwork-ai mode at-end      # or per-card, per-phase; with no mode it shows the current one
+npx groundwork-ai mode per-card    # or per-phase; with no mode it shows the current one
 ```
 
 The agent isn't allowed to relax this on its own. If you ask it to skip the process, it gives you
 the command to run (in Claude Code, type it with `!` in front). It can always switch back to
 `per-card` for you.
 
-## Building straight through (`at-end`)
+## Building straight through (`at-end`, parked)
 
-When time is short, the full loop per card can be more than you want. In `at-end` mode:
+`at-end` is parked for v1: it is not offered during setup and not recommended for new projects.
+Existing projects that already use it keep the behavior below, including the `/gw-approve all` batch
+record. In `at-end` mode:
 
 - **The agent builds each card itself**, in order, without stopping: tests first, then the code,
   until the tests, lint and build pass. The test output is saved as the card's evidence.
@@ -36,8 +41,9 @@ When time is short, the full loop per card can be more than you want. In `at-end
   *built but not reviewed*.
 - **One review at the end.** When every card is built, a reviewer with fresh context goes over
   all of them, reruns the checks, and sends back anything that doesn't hold up.
-- **You approve once**, for the whole build. The commit gate still refuses a card without its
-  evidence.
+- **You approve once**, for the whole build: `/gw-approve all` records the batch. The commit gate
+  still refuses a card without its evidence and checks that batch record on the final approval
+  commit.
 
 It's less careful than reviewing card by card, and it says so: nothing is marked done until the
 review and you have seen it.
@@ -66,6 +72,17 @@ Approval refuses to run while the card's evidence is missing or empty — a test
 screenshot, the reviewer's verdict, all linked from the card. When a UI criterion truly can't be
 verified live, the reviewer must flag it *not verified live* and list it as the first caveat, so
 you know exactly what you're taking on trust.
+
+## What counts as approval
+
+Only your own `/gw-approve` records approval: `/gw-approve 1.2` for that card (or several IDs),
+or a bare `/gw-approve` when exactly one card is waiting. It has to open your message; a normal
+"looks good", a `/gw-reject`, or an "approved by human" line the agent writes doesn't count, and
+the agent asks you for the command instead. The approval covers the work as you saw it: if the code,
+the card, its evidence, the spec or a decision changes afterwards, the agent shows you what changed,
+and you approve the new state only if you accept it. The details, and the limits of what's enforced, are in
+[Evidence and approval](/docs/concepts/evidence-and-approval). In a team project, pull-request review
+is the approval instead: see [Teams and pull requests](/docs/guides/teams).
 
 ## Rejecting
 

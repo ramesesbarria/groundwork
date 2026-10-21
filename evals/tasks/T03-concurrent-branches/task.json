@@ -1,0 +1,31 @@
+{
+  "id": "T03",
+  "type": "team",
+  "title": "Two concurrent task branches; one merges first, the other must integrate it",
+  "promise": "concurrent work integrates cleanly, with both features intact",
+  "stages": [
+    {
+      "kind": "agent",
+      "clone": "A",
+      "task": "1.1",
+      "prompt": "You're working on task 1.1 ({taskRef}) on branch {branch}. Implement it fully, then commit and push the branch.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "kind": "agent",
+      "clone": "B",
+      "task": "1.2",
+      "prompt": "You're working on task 1.2 ({taskRef}) on branch {branch}. Implement it fully, then commit and push the branch.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    { "kind": "merge", "task": "1.2" },
+    {
+      "kind": "agent",
+      "clone": "A",
+      "task": "1.1",
+      "prompt": "Task 1.2 was merged into main. Get task 1.1 ({taskRef}) on branch {branch} ready for review: the branch must be up to date with main and its checks must pass ({checks}). Commit and push.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ],
+  "score": { "branchTask": "1.1", "hidden": ["accept", "context"] }
+}

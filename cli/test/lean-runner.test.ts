@@ -35,6 +35,12 @@ describe("roles", () => {
     const writes = section(core(`roles/${name}.md`), "Writes");
     expect(writes).toMatch(/History: one short line for your step, plus a `call:` line/);
     expect(writes).toMatch(/a report to the runner isn't enough/);
+    // Calls stay on the card, short; the reasoning behind them is kept in evidence, not trimmed away.
+    expect(writes).toMatch(/one sentence; longer reasoning goes in `\.groundwork\/evidence\/<card-id>\/calls\.md`/);
+  });
+
+  it("reviewer checks the card, size included, before the human is asked to approve", () => {
+    expect(core("roles/reviewer.md")).toMatch(/pass `npx groundwork-ai check <card-id>`, status `awaiting-approval`/);
   });
 
   it.each(["tester", "implementer", "reviewer"])("%s treats what isn't in its files as not agreed", (name) => {

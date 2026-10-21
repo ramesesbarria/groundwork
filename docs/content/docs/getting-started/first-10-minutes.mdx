@@ -3,8 +3,8 @@ title: "Your first 10 minutes"
 description: "Here's what a first session looks like, from an idea to a committed first card. The example: a page where a book club votes on next month's book."
 ---
 
-Want the longer version? The [recorded walkthrough](/docs/guides/walkthrough) follows a real build
-chapter by chapter.
+This picks up after [installation](/docs/getting-started/installation): you've run
+`npx groundwork-ai init`, typed `/gw` once, answered the setup questions and committed the setup.
 
 ## 1. Describe the idea
 
@@ -76,7 +76,20 @@ Agent: Committed [1.1] Book list page. Next up: card 1.2 Voting.
 Approval refuses while the evidence is missing, and so does the commit gate. Once approved, the card is marked done, the
 handoff is updated, and the changes are committed with the card's ID in the message.
 
+Not right? `/gw-reject` with a reason in your own words sends it back to the implementer; the reason
+stays on the card.
+
 Then `/gw` again for the next card. That's the whole loop.
+
+## 6. Come back later
+
+Close the chat, come back tomorrow, or open a different tool or model. A new session starts with a
+couple of lines from `.groundwork/HANDOFF.md`; type `/gw` and it reads the handoff and the current
+card, says where things stand, and carries on from the last finished step. Nothing has to be
+re-explained, because the plan, the decisions and the proof are files in your repo.
+
+Working with others, or on several branches at once? See
+[Teams and pull requests](/docs/guides/teams).
 
 ## Where everything lives
 
@@ -92,7 +105,7 @@ Then `/gw` again for the next card. That's the whole loop.
 
 ## Small changes skip the loop
 
-For a typo, a copy tweak, a config value, or a bug, `/gw-quick` makes the change in one pass — no
+For a typo, a copy tweak, a config value, or a bug, just ask: the quick path (`gw-quick`) makes the change in one pass — no
 card, no roles. Bugs still need a failing test and a stated cause before the fix. If a "quick" job
 grows past about three files or changes behavior people notice, the agent stops and suggests a
 card instead. [Right-sizing →](/docs/concepts/right-sizing)

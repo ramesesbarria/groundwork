@@ -1,8 +1,9 @@
 // `groundwork status` and `groundwork adapter add`.
 import { afterEach, describe, expect, it } from "vitest";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { run } from "../src/index.js";
 import { compareCardIds } from "../src/cards.js";
 
@@ -84,6 +85,21 @@ describe("groundwork status", () => {
     expect(output).toMatch(/no cards yet/i);
   });
 
+  it("reads the per-task handoff on branch gw/<id>", async () => {
+    const dir = await installed();
+    mkdirSync(join(dir, ".groundwork/work/1.2"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.2/HANDOFF.md"),
+      "# Handoff\n\n- **Phase:** 1\n- **Current card:** 1.2 Profile\n- **Status:** review\n- **Next step:** approve profile\n",
+    );
+    spawnSync("git", ["init", "-q"], { cwd: dir });
+    spawnSync("git", ["switch", "-q", "-c", "gw/1.2"], { cwd: dir });
+    const { code, output } = await run(["status"], { cwd: dir });
+    expect(code).toBe(0);
+    expect(output).toContain("1.2 Profile");
+    expect(output).toContain("approve profile");
+  });
+
   it("lists open human checks per card without failing", async () => {
     const dir = await installed();
     writeFileSync(
@@ -104,7 +120,7 @@ describe("groundwork adapter add", () => {
     const dir = await installed("none");
     const { code } = await run(["adapter", "add", "claude-code"], { cwd: dir, ask: answers().ask });
     expect(code).toBe(0);
-    expect(existsSync(join(dir, ".claude/skills/gw-next/SKILL.md"))).toBe(true);
+    expect(existsSync(join(dir, ".claude/skills/gw/SKILL.md"))).toBe(true);
     expect(readFileSync(join(dir, "CLAUDE.md"), "utf8")).toContain("@AGENTS.md");
   });
 
@@ -112,8 +128,8 @@ describe("groundwork adapter add", () => {
     const dir = await installed("claude-code");
     const { code } = await run(["adapter", "add", "opencode"], { cwd: dir, ask: answers().ask });
     expect(code).toBe(0);
-    expect(existsSync(join(dir, ".opencode/commands/gw-next.md"))).toBe(true);
-    expect(existsSync(join(dir, ".claude/skills/gw-next/SKILL.md"))).toBe(true);
+    expect(existsSync(join(dir, ".opencode/commands/gw.md"))).toBe(true);
+    expect(existsSync(join(dir, ".claude/skills/gw/SKILL.md"))).toBe(true);
   });
 
   it("is quiet when everything is up to date, and asks before overwriting a changed file", async () => {
@@ -123,21 +139,21 @@ describe("groundwork adapter add", () => {
     expect(first.asked).toEqual([]);
     expect(output).toMatch(/up to date/i);
 
-    writeFileSync(join(dir, ".claude/skills/gw-next/SKILL.md"), "my edit\n");
+    writeFileSync(join(dir, ".claude/skills/gw/SKILL.md"), "my edit\n");
     const second = answers("n");
     await run(["adapter", "add", "claude-code"], { cwd: dir, ask: second.ask });
-    expect(second.asked.some((q) => q.includes("gw-next/SKILL.md"))).toBe(true);
-    expect(readFileSync(join(dir, ".claude/skills/gw-next/SKILL.md"), "utf8")).toBe("my edit\n");
+    expect(second.asked.some((q) => q.includes("gw/SKILL.md"))).toBe(true);
+    expect(readFileSync(join(dir, ".claude/skills/gw/SKILL.md"), "utf8")).toBe("my edit\n");
   });
 
-  it("builds adapter files from the project's own .groundwork/", async () => {
+  it("keeps additional helpers in .groundwork/commands/ and exposes only the default surface", async () => {
     const dir = await installed("none");
-    writeFileSync(
-      join(dir, ".groundwork/commands/gw-custom.md"),
-      "---\nname: gw-custom\ndescription: A project-specific command added by the team.\n---\n# gw-custom\n",
-    );
+    const helper = join(dir, ".groundwork/commands/gw-custom.md");
+    writeFileSync(helper, "---\nname: gw-custom\ndescription: A project-specific command added by the team.\n---\n# gw-custom\n");
     await run(["adapter", "add", "claude-code"], { cwd: dir, ask: answers().ask });
-    expect(existsSync(join(dir, ".claude/skills/gw-custom/SKILL.md"))).toBe(true);
+    expect(existsSync(helper)).toBe(true);
+    expect(existsSync(join(dir, ".claude/skills/gw-custom/SKILL.md"))).toBe(false);
+    expect(existsSync(join(dir, ".claude/skills/gw/SKILL.md"))).toBe(true);
   });
 
   it("rejects an unknown adapter, and a project without Groundwork", async () => {

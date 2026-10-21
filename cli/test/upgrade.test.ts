@@ -233,6 +233,82 @@ describe("groundwork upgrade", () => {
     expect(output).toMatch(/Compare each with its \.new file/);
   });
 
+  it("keeps edited instructions, templates and config, and repeated upgrades do not clobber them", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+
+    const edited: Record<string, string> = {
+      "AGENTS.md": `${read(dir, "AGENTS.md")}\n- RULE: use pnpm only\n`,
+      ".groundwork/templates/card.md": `${read(dir, ".groundwork/templates/card.md")}\n<!-- project card note -->\n`,
+      ".groundwork/templates/AGENTS.md": `${read(dir, ".groundwork/templates/AGENTS.md")}\n<!-- project agents note -->\n`,
+      ".groundwork/workflow.md": `${read(dir, ".groundwork/workflow.md")}\nProject workflow note.\n`,
+    };
+    for (const [path, text] of Object.entries(edited)) write(dir, path, text);
+
+    const records: Record<string, string> = {
+      ".groundwork/SPEC.md": "# Spec\nA customized project.\n",
+      ".groundwork/HANDOFF.md": "# Handoff\n- **Current card:** 2.1 Custom\n",
+      ".groundwork/LESSONS.md": "# Lessons\n### L-001 · Mine\n",
+      ".groundwork/cards/2.1-custom.md": "---\nid: 2.1\ntitle: Custom\nphase: 2\nstatus: todo\ndepends_on: []\n---\n",
+      ".groundwork/decisions/0001-custom.md": "---\nid: 0001\ntitle: Custom\nstatus: accepted\n---\n",
+      ".groundwork/evidence/2.1/tests.txt": "7 passed\n",
+      ".groundwork/rules/reviewer.md": "- RULE: never mock the database\n",
+    };
+    for (const [path, text] of Object.entries(records)) write(dir, path, text);
+    const cfg = config(dir);
+    cfg.version = "0.0.1";
+    cfg.approvalMode = "per-phase";
+    cfg.experience = "experienced";
+    cfg.commands.test = "npm run my-test";
+    cfg.projectKey = { keep: true };
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+
+    const dry = await run(["upgrade", "--dry-run"], { cwd: dir, ask: answers().ask });
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/templates\/card\.md/);
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/templates\/AGENTS\.md/);
+    expect(dry.output).toMatch(/keep\s+\.groundwork\/workflow\.md/);
+    expect(config(dir).version).toBe("0.0.1");
+
+    const { code } = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(code).toBe(0);
+    for (const [path, text] of Object.entries(edited)) expect(read(dir, path), path).toBe(text);
+    for (const [path, text] of Object.entries(records)) expect(read(dir, path), path).toBe(text);
+    expect(read(dir, ".groundwork/templates/card.md.new")).toBe(core["templates/card.md"]);
+    expect(read(dir, ".groundwork/templates/AGENTS.md.new")).toBe(core["templates/AGENTS.md"]);
+    expect(read(dir, ".groundwork/workflow.md.new")).toBe(core["workflow.md"]);
+    const upgraded = config(dir);
+    expect(upgraded.version).toBe(VERSION);
+    expect(upgraded.approvalMode).toBe("per-phase");
+    expect(upgraded.experience).toBe("experienced");
+    expect(upgraded.commands.test).toBe("npm run my-test");
+    expect(upgraded.projectKey).toEqual({ keep: true });
+
+    const again = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(again.code).toBe(0);
+    for (const [path, text] of Object.entries(edited)) expect(read(dir, path), path).toBe(text);
+    for (const [path, text] of Object.entries(records)) expect(read(dir, path), path).toBe(text);
+    expect(read(dir, ".groundwork/templates/card.md.new")).toBe(core["templates/card.md"]);
+    expect(existsSync(join(dir, ".groundwork/templates/card.md.new.new"))).toBe(false);
+  });
+
+  it("says when a preserved adapter file's .new version is not active", async () => {
+    const dir = tempDir();
+    await run(["init", "--adapter", "opencode"], { cwd: dir, ask: answers().ask });
+    const plugin = ".opencode/plugins/groundwork-guards.js";
+    write(dir, plugin, `${read(dir, plugin)}\n// project edit\n`);
+    const cfg = config(dir);
+    cfg.version = "0.0.1";
+    write(dir, ".groundwork/config.json", JSON.stringify(cfg, null, 2) + "\n");
+
+    const { output } = await run(["upgrade", "--yes"], { cwd: dir, ask: answers().ask });
+    expect(output).toMatch(/active adapter still loads your preserved file/);
+    expect(output).toContain(plugin);
+    expect(output).toMatch(/\.new version is not active/);
+    expect(read(dir, plugin)).toContain("// project edit");
+    expect(read(dir, `${plugin}.new`)).toContain("Plugin.define");
+    expect(existsSync(join(dir, ".groundwork/.manifest.json"))).toBe(true);
+  });
+
   it("gives each role a rules file that upgrades never touch", async () => {
     const dir = await v03Project();
     rmSync(join(dir, ".groundwork/rules"), { recursive: true });
@@ -281,6 +357,27 @@ describe("groundwork upgrade", () => {
     const { code, output } = await run(["upgrade"], { cwd: tempDir(), ask: answers().ask });
     expect(code).toBe(1);
     expect(output).toMatch(/npx groundwork-ai init/);
+  });
+
+  it("recovers an untracked install whose guard files are damaged or missing", async () => {
+    const dir = tempDir();
+    const { ask } = answers();
+    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    write(dir, ".groundwork/SPEC.md", "# My spec\n");
+    const original = read(dir, ".groundwork/guards/lib/commit-gate.mjs");
+    // A damaged guard is an edit upgrade keeps; deleting it lets upgrade write it again.
+    rmSync(join(dir, ".groundwork/guards/lib/commit-gate.mjs"));
+    rmSync(join(dir, ".groundwork/guards/run.mjs"));
+    expect((await run(["upgrade", "--yes"], { cwd: dir, ask })).output).toMatch(/create +\.groundwork\/guards\/run\.mjs/);
+    expect(read(dir, ".groundwork/guards/lib/commit-gate.mjs")).toBe(original);
+    // config.json is project state, not a managed file: init recreates it when it's missing, alone.
+    const settings = read(dir, ".claude/settings.json");
+    rmSync(join(dir, ".groundwork/config.json"));
+    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    expect(output).toMatch(/create +\.groundwork\/config\.json/);
+    expect(config(dir).setup).toBe("pending");
+    expect(read(dir, ".groundwork/SPEC.md")).toBe("# My spec\n");
+    expect(read(dir, ".claude/settings.json")).toBe(settings);
   });
 
   it("is listed in the CLI help and the README", async () => {

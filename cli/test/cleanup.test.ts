@@ -21,10 +21,13 @@ describe("cuts and cleanup", () => {
     expect(read("cli/src/index.ts")).not.toMatch(/planned but not implemented/);
   });
 
-  it("the README promises no benchmarks or evals", () => {
-    const mentions = read("README.md").split("\n").filter((line) => /\bevals?\b|benchmark/i.test(line));
-    for (const line of mentions) {
-      expect(line, "benchmark or eval mentions must be an honest 'none yet'").toMatch(/\bno\b|\bnot\b|yet|never|none/i);
-    }
+  it("the README's evaluation claims stay in its Results section, scoped to what was tested", () => {
+    const readme = read("README.md");
+    const start = readme.indexOf("## Results");
+    const results = readme.slice(start, readme.indexOf("\n## ", start + 1));
+    expect(results).toMatch(/OpenCode 2\.0\.32 with DeepSeek Flash/);
+    expect(results).toMatch(/can't show how others behave/);
+    const outside = readme.replace(results, "").split("\n").filter((line) => /\bevals?\b|benchmark|\d+ of \d+/i.test(line));
+    for (const line of outside) expect(line, "evaluation claims belong in ## Results").toMatch(/^\| `evals\/`/);
   });
 });

@@ -4,6 +4,7 @@ import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFile
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
+import { claudeCodeCompatibility } from "../src/doctor.js";
 
 const temps: string[] = [];
 afterEach(() => {
@@ -43,6 +44,49 @@ describe("groundwork doctor", () => {
     expect(code).toBe(0);
     expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\)/);
     expect(output).toMatch(/no problems/i);
+  });
+
+  it("reports the Claude Code version against the one the guard hook's onFailure needs", async () => {
+    const { output } = await doctor(await installed());
+    expect(output).toMatch(/Claude Code: +2\.1\.304 \(blocks tool calls when the guard can't run\)/);
+    expect((await doctor(await installed("opencode"))).output).not.toMatch(/Claude Code:/);
+  });
+
+  it("calls a Claude Code too old for onFailure a problem, and an undetected one unknown", () => {
+    const old = claudeCodeCompatibility("2.1.290");
+    expect(old.problem).toMatch(/Claude Code 2\.1\.290 lets tool calls through .* needs 2\.1\.295 or later/);
+    const unknown = claudeCodeCompatibility(undefined);
+    expect(unknown.problem).toBeUndefined();
+    expect(unknown.line).toMatch(/version unknown\. Groundwork needs 2\.1\.295 or later/);
+    expect(claudeCodeCompatibility("2.1.295").problem).toBeUndefined();
+  });
+
+  it("flags a guard hook that doesn't block when the guard can't run", async () => {
+    const dir = await installed();
+    const path = join(dir, ".claude/settings.json");
+    const settings = JSON.parse(readFileSync(path, "utf8"));
+    delete settings.hooks.PreToolUse[0].hooks[0].onFailure;
+    writeFileSync(path, JSON.stringify(settings, null, 2));
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(1);
+    expect(output).toMatch(/guard hook doesn't set "onFailure": "block"/);
+  });
+
+  it("names a guard script that won't load, and how to get it back", async () => {
+    const dir = await installed();
+    appendFileSync(join(dir, ".groundwork/guards/lib/harness.mjs"), "\n<<<<<<< ours\n");
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(1);
+    expect(output).toMatch(/\.groundwork\/guards\/lib\/harness\.mjs can't load .* so the guards block every call/);
+    expect(output).toMatch(/delete it and run `npx groundwork-ai upgrade`/);
+  });
+
+  it("reports a missing config.json as a broken install", async () => {
+    const dir = await installed();
+    rmSync(join(dir, ".groundwork/config.json"));
+    const { code, output } = await doctor(dir);
+    expect(code).toBe(1);
+    expect(output).toMatch(/config\.json is missing, so this install is broken and the guards block every call/);
   });
 
   it("reads a config saved with a byte order mark", async () => {
@@ -96,10 +140,10 @@ describe("groundwork doctor", () => {
 
   it("flags adapter files that differ from what the core would generate", async () => {
     const dir = await installed();
-    writeFileSync(join(dir, ".claude/skills/gw-next/SKILL.md"), "stale\n");
+    writeFileSync(join(dir, ".claude/skills/gw/SKILL.md"), "stale\n");
     const { code, output } = await doctor(dir);
     expect(code).toBe(1);
-    expect(output).toContain(".claude/skills/gw-next/SKILL.md");
+    expect(output).toContain(".claude/skills/gw/SKILL.md");
     expect(output).toMatch(/npx groundwork-ai adapter add claude-code/);
   });
 
@@ -167,8 +211,8 @@ describe("groundwork doctor", () => {
     );
     const { code, output } = await doctor(dir);
     expect(code).toBe(1);
-    expect(output).toMatch(/Card 1\.1 is ≈\d+ tokens, over 1500, and every role rereads it/);
-    expect(output.match(/over 1500/g)).toHaveLength(1); // reported once, not again through checkProject
+    expect(output).toMatch(/Card 1\.1: it's ≈\d+ tokens, over 1500: every role rereads it/);
+    expect(output.match(/over 1500/g)).toHaveLength(1); // the shared card rule, reported once
   });
 
   it("suggests moving detail out of a History or Evidence line over 200 characters", async () => {
@@ -214,5 +258,17 @@ describe("groundwork doctor", () => {
     mkdirSync(join(dir, ".groundwork/evidence/1.1"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/evidence/1.1/report.xml"), Buffer.from("﻿<ok/>", "utf16le"));
     expect((await doctor(dir)).output).toMatch(/1 evidence file is UTF-16/);
+  });
+
+  it("doesn't count OpenCode's command descriptions as always loaded: they don't reach the model", async () => {
+    const { output } = await doctor(await installed("opencode"));
+    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\): AGENTS\.md \d+, subagent list \d+, session start \d+$/m);
+    expect(output).not.toMatch(/command list/);
+  });
+
+  it("checks an installed OpenCode adapter, which it used to skip", async () => {
+    const dir = await installed("opencode");
+    writeFileSync(join(dir, ".opencode/agents/gw-tester.md"), "changed\n");
+    expect((await doctor(dir)).output).toMatch(/\.opencode\/agents\/gw-tester\.md differs from what Groundwork would generate/);
   });
 });

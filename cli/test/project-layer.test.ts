@@ -5,10 +5,11 @@ import { readFileSync } from "node:fs";
 const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
 
 describe("the project layer", () => {
-  const firstScreen = () => readme.slice(0, readme.indexOf("## The problem"));
+  const firstScreen = () => readme.slice(0, readme.indexOf("## "));
 
-  it("names it and what it owns", () => {
-    expect(firstScreen()).toMatch(/project layer[^.]*owns[^.]*spec[^.]*cards[^.]*evidence[^.]*approv/i);
-    expect(firstScreen()).toMatch(/session/i);
+  it("names it, what it keeps, and who picks it up", () => {
+    expect(firstScreen()).toMatch(/shared project context/i);
+    expect(firstScreen()).toMatch(/spec[^.]*decisions[^.]*cards[^.]*proof[^.]*handoff/i);
+    expect(firstScreen()).toMatch(/session[^.]*teammate/i);
   });
 });

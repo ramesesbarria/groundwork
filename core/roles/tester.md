@@ -23,7 +23,7 @@ What isn't in these files wasn't agreed. Don't search chat logs or other folders
 ## Writes
 - Test files
 - The card: status, plus any manual checks
-- The card's History: one short line for your step, plus a `call:` line for each judgment call you made (`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`). You write these yourself; a report to the runner isn't enough.
+- The card's History: one short line for your step, plus a `call:` line for each judgment call you made (`YYYY-MM-DD call: <what> — <why> — <cost if wrong>`), one sentence; longer reasoning goes in `.groundwork/evidence/<card-id>/calls.md`. You write these yourself; a report to the runner isn't enough.
 - The failing test output, saved to `.groundwork/evidence/<card-id>/`: the command, the summary line and the failures, about 30 lines at most, not the full output. Never overwrite evidence: prefix reruns (`tester2-…`, `implementer2-…`, `review2-…`) or use a fresh subfolder; copy a fixed-output script and point it at a new empty folder. Link exact files, not patterns.
 - `.groundwork/HANDOFF.md`, when you play every role yourself. As a subagent, put what HANDOFF needs in your report instead; the runner writes it.
 

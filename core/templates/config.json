@@ -3,6 +3,7 @@
   "setup": "pending",
   "approvalMode": "per-card",
   "autoCommit": true,
+  "integration": "local",
   "experience": "new",
   "tokenBudget": 2000,
   "guards": ["no-ai-trailers"],

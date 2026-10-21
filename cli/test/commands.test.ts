@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { estimateTokens } from "../src/tokens.js";
+import { readCore } from "../src/core.js";
 
 const commandsDir = new URL("../../core/commands/", import.meta.url);
 const command = (name: string) => readFileSync(new URL(`${name}.md`, commandsDir), "utf8");
@@ -153,7 +155,44 @@ describe("gw-next", () => {
   });
 });
 
+describe("what the human is told to type", () => {
+  // Seen live: agents told the human to type /gw-next and /gw-retro, which aren't native commands.
+  const core = readCore(fileURLToPath(new URL("../../core/", import.meta.url)));
+  it("no installed file shows the human a slash command other than /gw, /gw-approve and /gw-reject", () => {
+    for (const [path, text] of Object.entries(core)) {
+      expect(text.match(/(?:^|[\s`(])\/gw-(?!approve\b|reject\b)[a-z-]+/m), path).toBeNull();
+    }
+  });
+
+  it("the CLI's own help names no slash command a person can't type", async () => {
+    const { run } = await import("../src/index.js");
+    expect((await run(["--help"])).output.match(/\/gw-(?!approve\b|reject\b)[a-z-]+/)).toBeNull();
+  });
+
+  it("after a rejection or a closed phase, the next step is /gw or an offer, not a helper to type", () => {
+    expect(command("gw-approve")).toMatch(/next phase is cheaper in a new session \(HANDOFF carries everything\), where `\/gw` offers a retro/);
+    expect(section(command("gw-reject"), "Steps")).toMatch(/Tell the human to type `\/gw` to carry on/);
+    expect(command("gw")).toMatch(/offer to run a retro \(`gw-retro`\) or carry on \(`gw-next`\)/);
+    expect(core["workflow.md"]).toMatch(/where `\/gw` runs `gw-next`/);
+  });
+
+  it("states the approval History line exactly as check reads it", async () => {
+    expect(core["reference/statuses.md"]).toMatch(/approval \(`awaiting-approval` → `done`\): write exactly `YYYY-MM-DD approved by human`/);
+    const { checkCard } = await import(pathToFileURL(fileURLToPath(new URL("../../core/guards/lib/cards.mjs", import.meta.url))).href);
+    const card = (line: string) =>
+      `---\nid: 1.1\ntitle: X\nphase: 1\nstatus: done\ndepends_on: []\n---\n## Acceptance criteria\n- [x] works\n\n## Evidence\n- none\n\n## History\n- 2026-10-20 review → awaiting-approval: passed\n${line}\n`;
+    const approvalProblem = (line: string) => checkCard(card(line), { approvalMode: "per-card" }).some((p: string) => /approved by human/.test(p));
+    expect(approvalProblem("- 2026-10-20 approved by human")).toBe(false);
+    expect(approvalProblem("- 2026-10-20 awaiting-approval → done: approved by human")).toBe(true); // what an agent wrote first
+  });
+});
+
 describe("gw-approve", () => {
+  it("treats a plain-words approval as a request to type the command, without touching the card", () => {
+    // Seen live: after "looks good, commit it" an agent marked the card done before the gate refused.
+    expect(section(command("gw-approve"), "Steps")).toMatch(/didn't ask for this by typing `\/gw-approve`, stop: change nothing and ask them to type it/);
+  });
+
   it("refuses when Evidence is empty or a linked file is missing", () => {
     const text = section(command("gw-approve"), "Steps");
     expect(text).toMatch(/refuse/i);

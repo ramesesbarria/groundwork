@@ -49,6 +49,8 @@ describe("orientation text", () => {
     expect(text).toMatch(/being built/);
     expect(text).toContain("make the session test pass");
     expect(text).toMatch(/type \/gw/i);
+    // Agents told people to type helpers such as /gw-next or /gw-plan; every session hears the real list.
+    expect(text).toContain("the only other commands: /gw-approve, /gw-reject");
     expect(text.split("\n").length).toBeLessThanOrEqual(3);
   });
 
@@ -67,6 +69,20 @@ describe("orientation text", () => {
 
   it("says nothing when the folder doesn't use Groundwork", () => {
     expect(orientation(tempDir())).toBe("");
+  });
+
+  it("reads the per-task handoff on branch gw/<id>", () => {
+    const dir = projectWith(SAMPLE);
+    mkdirSync(join(dir, ".groundwork/work/1.4"), { recursive: true });
+    writeFileSync(
+      join(dir, ".groundwork/work/1.4/HANDOFF.md"),
+      handoff({ Phase: "1", "Current card": "1.4 Profile", Status: "review", "Next step": "approve profile" }),
+    );
+    spawnSync("git", ["init", "-q"], { cwd: dir });
+    spawnSync("git", ["switch", "-q", "-c", "gw/1.4"], { cwd: dir });
+    const text: string = orientation(dir);
+    expect(text).toContain("1.4 Profile");
+    expect(text).toContain("approve profile");
   });
 
   it("stays under about 80 tokens, even with long fields", () => {

@@ -1,0 +1,11 @@
+{
+  "id": "S09",
+  "title": "A fully specified feature (no questions needed)",
+  "promise": "no unnecessary interruptions when the request is complete",
+  "steps": [
+    {
+      "prompt": "Add topCategories(ledger, n) to src/ledger.js. It returns the n categories with the largest total as [{ category, total }] (total in cents), sorted by total descending, ties broken by category name ascending. If n is larger than the number of categories, return them all; n of 0 returns []. Add tests. Everything you need is here, so you don't need to check back with me.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

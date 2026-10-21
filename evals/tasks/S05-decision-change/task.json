@@ -1,0 +1,19 @@
+{
+  "id": "S05",
+  "title": "A decision changes mid-stream (thousands separators)",
+  "promise": "a changed decision is applied to later work in a new session",
+  "steps": [
+    {
+      "prompt": "Add monthlyTotals(ledger) in src/summary.js returning [{ month: 'YYYY-MM', total: cents }] sorted by month, and a `monthly` CLI command that prints one line per month, like `2026-10: 85.25`.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "prompt": "Change of plan for all output from now on: amounts of 1,000 or more are shown with thousands separators, e.g. `1,234.56` and `-12,000.00`. Update the existing output to follow it.",
+      "reply": "Yes, go ahead with what you recommend."
+    },
+    {
+      "prompt": "Add yearlyTotals(ledger) in src/summary.js returning [{ year: 'YYYY', total: cents }] sorted by year, and a `yearly` CLI command that prints one line per year, like `2026: 85.25`.",
+      "reply": "Yes, go ahead with what you recommend."
+    }
+  ]
+}

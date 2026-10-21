@@ -1,6 +1,7 @@
 // `groundwork check`: the workflow's card rules, enforced by code.
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { run } from "../src/index.js";
@@ -76,6 +77,16 @@ describe("groundwork check", () => {
     expect(output).toMatch(/links to \.groundwork\/evidence\/1\.2\/tests\.txt, which doesn't exist/);
   });
 
+  it("fails an empty evidence file", async () => {
+    const dir = await project();
+    mkdirSync(join(dir, ".groundwork/evidence/1.2"), { recursive: true });
+    writeFileSync(join(dir, ".groundwork/evidence/1.2/tests.txt"), "");
+    card(dir, "1.2", "awaiting-approval", { evidence: "- Tests: [tests.txt](../evidence/1.2/tests.txt), 0 passed" });
+    const { code, output } = await check(dir, "1.2");
+    expect(code).toBe(1);
+    expect(output).toMatch(/Evidence file \.groundwork\/evidence\/1\.2\/tests\.txt is empty/);
+  });
+
   it.each([
     "`.groundwork/evidence/1.2/review2-*`",
     "`../evidence/1.2/review2-*`",
@@ -105,6 +116,14 @@ describe("groundwork check", () => {
 
   it("in per-phase mode, a done card needs no approval line", async () => {
     const dir = await project("per-phase");
+    evidence(dir, "1.1");
+    card(dir, "1.1", "done", { evidence: "- `.groundwork/evidence/1.1/tests.txt`" });
+    expect((await check(dir)).code).toBe(0);
+  });
+
+  it("in PR integration, a done card needs no local approval line", async () => {
+    const dir = await project();
+    writeFileSync(join(dir, ".groundwork/config.json"), JSON.stringify({ approvalMode: "per-card", integration: "pr", guards: [] }));
     evidence(dir, "1.1");
     card(dir, "1.1", "done", { evidence: "- `.groundwork/evidence/1.1/tests.txt`" });
     expect((await check(dir)).code).toBe(0);
@@ -183,12 +202,50 @@ describe("the shared card rules", () => {
     expect(over.join(" ")).toMatch(/details belong in the evidence files/);
   });
 
-  it("keeps the size limit out of check, since the commit gate enforces it", async () => {
+  it("reports an oversized card in check, before anyone approves it", async () => {
     const dir = await project();
     const head = "---\nid: 9.9\ntitle: Big\nphase: 9\nstatus: todo\ndepends_on: []\n---\n## Goal\n";
     writeFileSync(join(dir, ".groundwork/cards/9.9-big.md"), head + "x".repeat(6001 - head.length));
     const { code, output } = await check(dir, "9.9");
-    expect(code).toBe(0);
-    expect(output).not.toMatch(/over 1500/);
+    expect(code).toBe(1);
+    expect(output).toMatch(/≈1501 tokens, over 1500/);
+    expect(output).toMatch(/keep every call/);
+  });
+
+  it("counts the lines approval will add while a card waits for review or approval", async () => {
+    const rules = await cardRules();
+    const projectDir = mkdtempSync(join(tmpdir(), "groundwork-size-"));
+    temps.push(projectDir);
+    const cardAt = (status: string, tokens: number) => {
+      const head = `---\nid: 9.9\ntitle: Big\nphase: 9\nstatus: ${status}\ndepends_on: []\n---\n## Goal\n`;
+      return head + "x".repeat(tokens * 4 - head.length);
+    };
+    const waiting = rules.checkCard(cardAt("awaiting-approval", 1480), { projectDir }).join(" ");
+    expect(waiting).toMatch(/≈1530 tokens counting the ≈50 the approval lines will add, over 1500/);
+    expect(rules.checkCard(cardAt("review", 1480), { projectDir }).join(" ")).toMatch(/over 1500/);
+    expect(rules.checkCard(cardAt("awaiting-approval", 1450), { projectDir }).join(" ")).not.toMatch(/over 1500/);
+    // The approval adds about 150 characters: a card that passed while waiting still passes as done.
+    const approved = `${cardAt("done", 1450)}\n- 2026-10-19 awaiting-approval → done: approved by human\n- 2026-10-19 approved by human\n- 2026-10-19 human checks confirmed: 0; waived: 0 — none open\n`;
+    expect(rules.checkCard(approved, { projectDir, cardSize: true }).join(" ")).not.toMatch(/over 1500/);
+  });
+
+  it("leaves committed, unchanged done cards alone, and checks a done card not yet committed", async () => {
+    const dir = await project();
+    rmSync(join(dir, ".git"), { recursive: true });
+    const git = (...args: string[]) => execFileSync("git", ["-c", "user.name=T", "-c", "user.email=t@t", ...args], { cwd: dir, stdio: "ignore" });
+    git("init", "-q");
+    const big = (id: string) => {
+      card(dir, id, "done", { history: "- 2026-10-19 approved by human" });
+      const path = join(dir, `.groundwork/cards/${id}-card.md`);
+      writeFileSync(path, readFileSync(path, "utf8").replace("A thing works.", `A thing works. ${"y".repeat(6000)}`));
+    };
+    big("1.1");
+    git("add", "-A");
+    git("commit", "-qm", "old big card");
+    expect((await check(dir, "1.1")).output).not.toMatch(/over 1500/);
+    big("1.2");
+    const fresh = await check(dir, "1.2");
+    expect(fresh.code).toBe(1);
+    expect(fresh.output).toMatch(/over 1500/);
   });
 });
