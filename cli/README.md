@@ -4,7 +4,9 @@
 
 Groundwork keeps what your project knows in your repo, as plain files: the spec, decisions, a plan
 of small cards, the proof each card works, and a handoff. Any session, AI tool or teammate picks up
-from there. Hooks and CI check that a card isn't committed without its proof and your approval.
+from there. In the default per-card mode, hooks and CI check that a card is committed only with its
+proof and your explicit approval of the reviewed state; setup and other permitted cardless commits
+use separate tagged paths.
 Full documentation: [ramesesbarria.github.io/groundwork](https://ramesesbarria.github.io/groundwork/).
 
 ```bash

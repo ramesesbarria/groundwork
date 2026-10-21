@@ -2,8 +2,11 @@
 title: "Approval modes"
 ---
 
-In the default mode, **nothing is committed without your approval**, and a commit gate checks every
-card commit: the card must be done, with its evidence. How often you're asked is your choice.
+In the default `per-card` mode, **a card is committed only with its evidence and your explicit
+approval of the reviewed state**. Setup and other permitted cardless commits go through separate
+tagged paths, described in [evidence and approval](/docs/concepts/evidence-and-approval). The other
+modes ask for your approval at a different point, as the table shows; in each of them the commit
+gate checks that a card is done, with its evidence.
 
 | Mode | What happens |
 |---|---|

@@ -79,8 +79,8 @@ export default function HomePage() {
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
           Your agent writes the code. Groundwork keeps the spec, the decisions, the plan, the proof and the handoff in
-          your repo, so any session, tool or teammate can pick up where the last one stopped, and checks that a card
-          isn’t committed without its proof and your approval.
+          your repo, so any session, tool or teammate can pick up where the last one stopped. In the default
+          per-card mode, a card is committed only with its proof and your explicit approval of the reviewed state.
         </p>
       </section>
 

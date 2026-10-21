@@ -10,8 +10,9 @@
 Your AI agent writes the code. Groundwork keeps what the project knows in your repo, as plain files:
 the spec, the decisions and why they were made, a plan of small cards, the proof each card works,
 and a handoff saying where things stand. The next session, a different tool or a teammate starts
-from those files instead of a chat that's gone. Hooks and CI check the parts that matter, so a card
-isn't committed without its proof and your approval.
+from those files instead of a chat that's gone. Hooks and CI check the parts that matter: in the
+default per-card mode, a card is committed only with its proof and your explicit approval of the
+reviewed state. Setup and other permitted cardless commits go through separate tagged paths.
 
 ![An OpenCode session: /gw sets the project up, interviews for the spec, and writes the plan of cards.](https://ramesesbarria.github.io/groundwork/demo-first-session.gif)
 
