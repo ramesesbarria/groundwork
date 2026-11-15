@@ -1,24 +1,27 @@
 ---
-title: "What it costs, and when it pays off"
+title: "What it costs"
+description: "What project memory adds to a session, what the optional flow adds on top, and the one comparison we have."
 ---
 
-Groundwork spends tokens to keep the project's knowledge in files: a tester, an implementer and a
-reviewer per card, evidence, and a handoff. That buys reliability across sessions, at a price.
+## Project memory: a small, fixed cost
 
-## The short answer
+Memory adds two things to a session, and both are bounded:
 
-In a [controlled comparison](/docs/results) (OpenCode 2.0.32 with DeepSeek Flash, short tasks on a
-small project, scored by hidden tests):
+- **Always loaded:** `AGENTS.md`, plus the one-line descriptions your tool keeps for skills and
+  subagents. `doctor` estimates it (characters ÷ 4) and checks it against `tokenBudget` (2,000). On a
+  fresh install it reported about **510 tokens** for Claude Code and **440** for OpenCode and plain
+  markdown.
+- **The brief:** what a session start loads, capped by `budgets.brief` (1,500 by default). On a fresh
+  install it was about 145 tokens; in a small project with a handoff, a decision and a map, about
+  290. `doctor` shows both numbers for your project.
 
-- **Work that spanned sessions succeeded more often**: 13 of 15 runs with Groundwork, 7 of 15
-  without.
-- **A typical solo task cost about 4× as much in API spend and took about 3× as long**: median
-  $0.091 and 389 s, against $0.021 and 138 s.
-- **Self-contained tasks didn't improve.** Both ways solved all of them, and Groundwork cost more.
+These are estimates, not measurements of any model's real prompt. Everything else (decision records,
+lessons, the journal) is read only when a step needs it, and [`compact`](/docs/concepts/budgets-and-compaction)
+keeps the loaded set under its budgets.
 
-So Groundwork pays off when knowledge has to outlive a session: work you come back to, decisions
-later steps must respect, a teammate picking up a task. For a quick one-off change, a plain session
-is cheaper. Other models and tools may differ; this is one agent and one model.
+What memory saves is harder to put a number on: a session that would have re-read the repository, or
+asked you to re-explain, starts from the handoff, the map and the decisions instead. That saving has
+not been measured.
 
 ## Why a long chat gets expensive
 
@@ -26,70 +29,59 @@ A model has no memory between calls. Each call sends everything so far: the tool
 the conversation, every file read, every command's output and, with thinking models, often the
 reasoning too.
 
-Say a session starts with **S** tokens (the tool's own instructions), and each unit of work (a card,
-say) adds **h** tokens of history over **m** model calls. By the time it's on unit *j*, each call
-re-reads about **S + j·h** tokens. Over **N** units:
+Say a session starts with **S** tokens (the tool's own instructions), and each unit of work adds **h**
+tokens of history over **m** model calls. By the time it's on unit *j*, each call re-reads about
+**S + j·h** tokens. Over **N** units:
 
 ```text
 re-read ≈ m·N·S  +  m·h·N²/2
 ```
 
-The second term is the problem. It grows with the square of N: twice the work re-reads four times
-as much. It also has a hard ceiling. Once **S + N·h** passes the model's context window, the
-tool compacts or truncates the chat, and whatever the plan was lives only in a summary.
+The second term is the problem. It grows with the square of N: twice the work re-reads four times as
+much. It also has a hard ceiling. Once **S + N·h** passes the model's context window, the tool
+compacts or truncates the chat, and whatever the plan was lives only in a summary.
 
-## Why Groundwork stays roughly flat per card
-
-Groundwork runs each card as fresh sessions (tester, implementer, reviewer) where the tool supports
-subagents. Each one reads the same bounded slice: its role file, the card, HANDOFF, and only the code
-the card touches. The state that has to survive lives in files, not in the chat. So each card costs
-about:
-
-```text
-re-read per card ≈ 3 · m · (S + b + h/2)      (b = the card's slice of the project)
-total            ≈ N × that
-```
-
-That's linear in N, as long as **b** stays bounded, which is what each role's "Read only these"
-list and the spec's Codebase map are for. What still varies is the work in the card: a card that
-needs a browser check costs more than one that adds a function.
-
-This is a model of where tokens go, not a measured saving: the comparison above used tasks of one
-to three sessions, too short to show it. A long-horizon evaluation hasn't been run.
-
-## The one part that grows: the runner
-
-The runner (the main chat that hands cards to the roles) is itself a chat, and it grows like one.
-The fix is the same idea again: **start a fresh session each phase.** HANDOFF carries everything the
-next session needs, and `/gw` picks it up. Groundwork suggests a fresh session when a phase closes,
-and keeps the runner light: short hand-offs, no rerunning checks between roles, one-line status
-edits.
-
-## What every session pays up front
-
-Before a session does anything, it has read its tool's own instructions plus Groundwork's files. A
-fresh install adds about **780 tokens** to every Claude Code session and about **570** to every
-OpenCode session (`AGENTS.md`, the command and subagent lists, and the session-start lines).
-
-`npx groundwork-ai doctor` shows Groundwork's part for your project: what `/gw` and each role load
-before touching any code, and any card long enough to be worth trimming, since every role rereads
-it.
+Memory's answer is to keep the state that has to survive in files, so a fresh session (after a
+phase, a task, or a compaction) starts small and loses nothing: the handoff carries what the next
+session needs. This is a model of where tokens go, not a measured saving.
 
 ## Keeping your own runs cheap
 
-- **Start a new session each phase**, or whenever the chat has run long. `/gw` resumes from HANDOFF.
-- **Keep cards short.** History and Evidence lines of a sentence or two; details go in the evidence
-  files.
-- **Mind the thinking level.** High reasoning settings can dominate the bill. The
-  [`models`](/docs/reference/configuration#models-per-role) setting can give mechanical roles a cheaper
-  model or setting.
-- **Name what tests look for** in UI cards (an id, label or role), so the tester doesn't have to
-  search for it.
+- **Start a new session** when a task finishes or the chat has run long. The brief resumes it.
+- **Keep the memory files short.** `doctor` fails a file over its budget; `compact` archives what
+  it can.
+- **Mind the thinking level.** High reasoning settings can dominate the bill.
+
+## What the flow adds
+
+With the optional [flow](/docs/flow) on, each card runs as fresh sessions for a tester, an
+implementer and a reviewer, with evidence and a handoff at each change. That buys reliability across
+sessions, at a price. In the [controlled comparison](/docs/results), which was run on 1.0 with the
+flow on (OpenCode 2.0.32 with DeepSeek Flash, short tasks on a small project, scored by hidden tests):
+
+- **Work that spanned sessions succeeded more often**: 13 of 15 runs with Groundwork, 7 of 15 without.
+- **A typical solo task cost about 4× as much in API spend and took about 3× as long**: median
+  $0.091 and 389 s, against $0.021 and 138 s.
+- **Self-contained tasks didn't improve.** Both ways solved all of them, and Groundwork cost more.
+
+None of this has been re-measured for 2.0 or for memory alone. Other models and tools may differ.
+
+With the flow on, a fresh install's always-loaded part is bigger: `doctor` reported about 730 tokens
+for Claude Code, 530 for OpenCode and 440 for plain markdown, because of the subagent and skill lists.
+`doctor` also shows what `/gw` and each role load before touching any code, and any card long enough
+to be worth trimming, since every role rereads it.
+
+### Where it didn't stay flat: the runner
+
+The flow runs each card as fresh sessions where the tool supports subagents, so each role reads a
+bounded slice. The main chat that hands cards to the roles (the runner) is itself a chat, and it grows
+like one. The fix is the same idea again: **start a fresh session each phase.** The handoff carries
+everything the next session needs, and `/gw` picks it up.
 
 ## Measure your own run
 
 Most AI tools keep a record of every model call: a usage or stats command, a session export, or
-session files on disk. Paste this into your tool, in the project folder, after a phase or two:
+session files on disk. Paste this into your tool, in the project folder, after a few sessions:
 
 ```text
 Measure what this project's Groundwork run cost, using the records this tool keeps about its own
@@ -99,17 +91,12 @@ number isn't recorded, write "not recorded". Don't change any files.
 1. Find where this tool records token usage per model call (a usage or stats command, a session
    export, or its session files on disk). Say exactly where you read from, and which fields you
    used for each number below.
-2. List every session that worked on this project: the main chat (the runner) and each subagent
-   (tester, implementer, reviewer). Match each subagent to its card using .groundwork/cards/.
+2. List every session that worked on this project: the main chat and each subagent.
 3. For each session: model calls; context at the first call and at the largest call (context =
    everything the model was sent for that call, cached or not); context re-read (the sum over all
    calls); fresh tokens (not served from cache: uncached input, output and reasoning); reasoning
    tokens; and cost.
 4. Split the main chat by what I asked for, so work that wasn't building (an export, a deploy)
    can be set aside.
-5. Finish with three tables: per session, per card (all three roles), and per role, each with a
-   total row.
+5. Finish with a table per session, with a total row.
 ```
-
-The first-call context of each role session should stay about the same from the first card to the
-last; the runner's is the one to watch.

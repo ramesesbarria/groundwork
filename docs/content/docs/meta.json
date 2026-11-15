@@ -3,10 +3,9 @@
   "pages": [
     "index",
     "why",
-    "results",
     "---Getting started---",
     "...getting-started",
-    "---Concepts---",
+    "---Project memory---",
     "...concepts",
     "---Guides---",
     "...guides",
@@ -14,7 +13,10 @@
     "...reference",
     "---Adapters---",
     "...adapters",
+    "---The flow (optional)---",
+    "...flow",
     "---More---",
+    "results",
     "faq",
     "glossary"
   ]

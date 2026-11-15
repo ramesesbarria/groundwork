@@ -54,6 +54,8 @@ npm ci --prefix docs
 npm run docs:dev      # then open http://localhost:3000/groundwork
 ```
 
+If the site stops building after the repo moved or the dependencies changed (a `Cannot find package` error naming an old path), run `npm run clean --prefix docs`: the Turbopack cache in `docs/.next` stores absolute paths.
+
 Pages are MDX files in `docs/content/docs/`. Some CLI tests read them to keep the docs in step with
 the product, so run `npm test` after editing docs too.
 

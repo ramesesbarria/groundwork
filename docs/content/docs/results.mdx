@@ -1,7 +1,14 @@
 ---
 title: "Results"
-description: "What a controlled comparison showed about Groundwork: one agent, one model, short tasks, scored by hidden tests."
+description: "What a controlled comparison showed, run on Groundwork 1.0 with the flow on: one agent, one model, short tasks, scored by hidden tests. Not rerun for 2.0."
 ---
+
+<Callout type="warn" title="Measured on 1.0, not on 2.0">
+This comparison was run on Groundwork 1.0, which was the development flow: spec, cards, three roles and
+approval gates. In 2.0 that flow is optional and project memory is the default. The evaluation has **not**
+been rerun for 2.0, so none of these numbers describes memory alone. They describe the flow, which still
+exists and is turned on with `groundwork flow on`.
+</Callout>
 
 We ran the same coding agent with and without Groundwork on the same tasks and scored every run
 with tests the agent never saw. This page summarizes it; the full report, design and per-run data
@@ -46,7 +53,7 @@ way. If you distrust the corrections, use 24/30.
 
 ## When it's worth the cost
 
-Groundwork pays off when a project's knowledge has to outlive a session: work you come back to,
+In this comparison the flow helped when a project's knowledge had to outlive a session: work you come back to,
 decisions that later steps must respect, or a teammate picking up a task. On a one-off change you
 finish in one sitting, a plain session was as good and cheaper. The team scenarios didn't separate
 the arms: a careful plain workflow handled them too.

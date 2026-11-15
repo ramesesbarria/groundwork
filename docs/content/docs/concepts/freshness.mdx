@@ -1,0 +1,64 @@
+---
+title: "Freshness"
+description: "Every load compares the handoff's stamp with the repository and gives one verdict, with the concrete delta."
+---
+
+A handoff written by a model at the end of its context can go stale without anyone noticing. So a
+handoff is never taken on trust: every time one is loaded (`brief`, the session-start hook,
+`status`, `doctor`) its stamp is compared with the repository, and you get one verdict.
+
+## The verdicts
+
+In this order of precedence:
+
+| Verdict | Meaning |
+|---|---|
+| `diverged` | The stamped commit no longer exists, or isn't an ancestor of HEAD (a rebase, a reset, another branch). When there is a merge base, both sides are counted and the commits after the split are listed |
+| `stale` | Older than `staleAfterDays` (14 by default), whatever git says. If it is also behind, the delta is still given |
+| `behind` | The stamped commit is an ancestor of HEAD and commits landed since. Up to 8 are listed, with the files that changed |
+| `fresh` | Written at HEAD, or only `.groundwork/` changed since |
+| `unstamped` | No `updated` and no `head`: nothing to compare. A handoff from before 2.0, or one never checkpointed |
+
+Notes are added to any verdict: the branch changed since the stamp; files the Now and Next sections
+name are among the changed files; the map, the decisions or the lessons changed since it was written
+(the `deps` fingerprints); and uncommitted files.
+
+Commits that touch only `.groundwork/` aren't counted, so committing the handoff doesn't make it
+behind. Without git, only the age is checked.
+
+## An example
+
+Two commits landed after the last checkpoint:
+
+```text
+Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits landed after it was written, changing 3 files.
+  - 6a1a0f1 feat: logout endpoint
+  - 2fce619 feat: session endpoint
+  Changed files: src/api/logout.ts, src/api/session.ts, src/login.ts
+  Files its Now/Next sections name have changed since: src/login.ts.
+  Trust the code over the handoff where they disagree, then save an updated handoff.
+```
+
+The agent now knows the handoff predates two commits and that one of the files it names has changed,
+so it checks its Next step against the code before acting.
+
+## What a verdict does and doesn't mean
+
+- **Freshness is about the repository, not the truth.** A handoff stamped at HEAD is `fresh` even
+  if its prose is wrong. An explicit `checkpoint` with no changes restamps it on the agent's word,
+  which is why it warns when the text is unchanged since an older commit.
+- **An automatic checkpoint doesn't restamp what nobody touched.** The hooks run `checkpoint` when a
+  turn ends, but a handoff whose text didn't change stays `behind`, and the agent is asked to save it.
+- **Paths in prose are found by pattern.** "Files its Now and Next sections name" catches backticked
+  paths and bare ones with a slash or a 2 to 5 letter extension.
+
+## Where you see it
+
+| Where | What |
+|---|---|
+| Session start | The brief's first lines, in Claude Code and OpenCode via hooks |
+| [`brief`](/docs/reference/cli#brief) | The full verdict and delta, also as `--json` |
+| [`status`](/docs/reference/cli#status) | One line |
+| [`doctor`](/docs/reference/cli#doctor) | A suggestion when it is behind; a problem only if the handoff is malformed |
+
+`staleAfterDays` is in [configuration](/docs/reference/configuration).

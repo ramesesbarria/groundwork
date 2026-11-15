@@ -1,0 +1,81 @@
+---
+title: "Parallel agents"
+description: "One writer per handoff: workers each get their own, and a ledger records who is doing what, so parallel agents never conflict in git."
+---
+
+Two agents writing one handoff overwrite each other, and two branches editing it conflict at merge.
+So the rule is **one writer per handoff**.
+
+## Which handoff a session uses
+
+In order:
+
+1. `--worker <id>`, or the `GROUNDWORK_WORKER` environment variable.
+2. A `.groundwork/work/<branch-as-slug>/HANDOFF.md` that exists for the current branch (also
+   `work/<id>/` on a 1.x `gw/<id>` branch).
+3. A **linked git worktree**, which is always a worker, named after its branch.
+4. Otherwise the root `.groundwork/HANDOFF.md`.
+
+The root handoff belongs to the session in the main checkout. Worker sessions write only their own
+file, and a worker's checkpoint writes neither the root handoff nor the journal.
+
+## Starting and finishing a worker
+
+From the main checkout:
+
+```bash
+npx groundwork-ai worker start auth-tests --goal "Write the auth test suite" --branch feat/auth-tests
+```
+
+This adds a line to **Workers in flight** in the root handoff and a row to `.groundwork/work/LEDGER.md`,
+and tells the worker how to save: `npx groundwork-ai checkpoint --worker auth-tests --now "…" --next "…"`.
+In a linked worktree `--worker` isn't needed: `checkpoint` and `brief` pick the worker's handoff
+automatically.
+
+When the work is verified and merged:
+
+```bash
+npx groundwork-ai worker done auth-tests --outcome "accepted: 14 tests rerun, merged"
+```
+
+This removes the line from Workers in flight, logs the outcome in the ledger, and sets the worker's
+`state: done`. `worker list` shows the workers that have a handoff. `worker start` and `worker done`
+are refused in a linked worktree, since they write the root handoff.
+
+The ledger is a log of events (start, done) with the date and commit:
+
+```markdown
+| Worker | Date | Event | Detail | Commit |
+|---|---|---|---|---|
+| auth-tests | 2026-11-15 | start | Write the auth test suite (branch feat/auth-tests) | 6a1a0f1 |
+```
+
+## What the main session sees
+
+The brief and `status` list the active workers, each with its own next step. Before merging a
+worker's branch, read its handoff and rerun its checks yourself: a worker's `Now` is its own report,
+not a verification.
+
+A worker's own session briefs itself with `npx groundwork-ai brief --worker <id>`, or just `brief` in
+its worktree. A worker with no handoff yet reads as missing until it saves one.
+
+## Concurrent writes
+
+A checkpoint takes `.groundwork/.lock` (a stale lock is taken over after 15 seconds) and writes through
+a temporary file and a rename. An automatic checkpoint stands back if the lock is held; an explicit one
+writes anyway and warns.
+
+**Two sessions sharing one handoff get a warning, not a refusal.** If a different session stamped the
+same handoff within the last 30 minutes, `checkpoint` warns and says to give one of them a worker id. It
+still writes: nothing in the memory layer blocks work. Whether it should refuse instead is an open
+question in the design record.
+
+## Limits
+
+- A linked worktree is always a worker. Someone working alone in one gets
+  `work/<branch>/HANDOFF.md`; `--root` writes the root handoff instead.
+- Two live sessions writing one handoff have not been observed against a real tool.
+
+With the [flow](/docs/flow) on, the pull-request path builds on the same files: each task branch has
+its own handoff, and [pull-request review is the approval](/docs/flow/pull-requests). For working
+as a team without the flow, see [Teams](/docs/guides/teams).

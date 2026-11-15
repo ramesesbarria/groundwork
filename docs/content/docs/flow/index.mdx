@@ -1,0 +1,78 @@
+---
+title: "The flow (optional)"
+description: "The development workflow from Groundwork 1.0, kept as an add-on to project memory: a spec, small cards with evidence, three roles, and your approval before each commit."
+---
+
+Groundwork 1.0 was a development workflow. In 2.0 the product is [project memory](/docs), and this
+workflow is an optional layer on top of it. It still works as 1.0 described it: [V1.md](https://github.com/ramesesbarria/groundwork/blob/main/V1.md)
+in the repository is its contract.
+
+## What it adds
+
+- A **spec** in `.groundwork/SPEC.md`, written from your answers to specific questions.
+- A **plan** of phases and small [cards](/docs/flow/cards-and-phases), each with a checklist for "done".
+- A [build loop](/docs/flow/the-build-loop): a tester writes failing tests, an implementer makes them
+  pass, a reviewer reruns everything, each in a fresh session where the tool supports subagents.
+- [Evidence and approval](/docs/flow/evidence-and-approval): a card is committed only with its
+  proof and, in the default per-card mode, your explicit approval of the reviewed state
+  (`/gw-approve`, or `/gw-reject` with a reason). [Approval modes](/docs/flow/approval-modes) lets you
+  approve once per phase instead.
+- [Right-sizing](/docs/flow/right-sizing): a typo takes the quick path, a feature gets a plan.
+- Guards, a commit gate and CI checks (`groundwork check`) that refuse a commit without its
+  evidence, and [pull-request review as the approval](/docs/flow/pull-requests) for teams.
+
+## Turn it on or off
+
+```bash
+npx groundwork-ai init --flow      # on a new install
+npx groundwork-ai flow on          # on an existing one
+npx groundwork-ai flow off         # remove it
+npx groundwork-ai flow             # show which
+```
+
+The choice is the `flow` key in `.groundwork/config.json`. `flow on` installs the flow's files and
+rewires each installed adapter; `flow off` removes Groundwork's own flow files and keeps what the
+project made: the spec, cards, evidence and rules. `flow off` is a command for you to run, not the
+agent: with the flow on, the guard refuses the agent's attempt. `flow off` leaves `AGENTS.md` alone,
+so its "How we work" section still describes the flow until you edit it; the command says so.
+
+A project upgraded from 1.x keeps the flow on: see [Upgrading from 1.x](/docs/getting-started/upgrading).
+
+## How it sits on top of memory
+
+Memory and flow share the same files. The handoff gains a `## Flow` section (the phase, the current
+card and its status); `/gw` and the roles save through `checkpoint`, so the handoff is stamped and
+checked for freshness like any other. The brief gains a line about the card in progress, and the
+commit gate lets the files memory keeps (journal, map, decisions index, worker ledger, archives)
+ride along in `[docs]` and `[plan]` commits. Cards, evidence, the spec and decision records are
+restricted exactly as before, and none of the memory files is part of what an approval is bound to.
+
+With the flow on, the guard also locks `.groundwork/lib/` (the hooks import it) and counts
+`flow: false` in `config.json` as weakening the setup.
+
+With the flow off, no installed file and no text a session is given mentions cards, roles or
+approvals; a test checks this for every adapter.
+
+## What it looks like
+
+This recording is of the flow on 1.0: `/gw` sets the project up, interviews for the spec and writes
+the plan of cards. The commands and the card steps are the same in 2.0; the install and the session
+start differ.
+
+![An OpenCode session on 1.0 with the flow on: /gw sets the project up, interviews for the spec, and writes the plan of cards.](https://ramesesbarria.github.io/groundwork/demo-first-session.gif)
+
+## Where to go next
+
+<Cards>
+  <Card title="The build loop" href="/docs/flow/the-build-loop" description="One card, three roles, then your approval." />
+  <Card title="Cards and phases" href="/docs/flow/cards-and-phases" description="What a card is and how phases group them." />
+  <Card title="Evidence and approval" href="/docs/flow/evidence-and-approval" description="What counts as proof, what is enforced, and where that stops." />
+  <Card title="Approval modes" href="/docs/flow/approval-modes" description="Approve every card, or each phase." />
+  <Card title="Right-sizing" href="/docs/flow/right-sizing" description="Try, quick or card: process cost matched to the change." />
+  <Card title="Teams and pull requests" href="/docs/flow/pull-requests" description="Task branches, shared decisions, review as the approval." />
+</Cards>
+
+The flow's commands (`/gw-approve`, `/gw-reject`, and `gw-setup`, `gw-spec`, `gw-plan`, `gw-next`,
+`gw-quick`, `gw-decide`, `gw-ui-spec`, `gw-handoff`, `gw-retro` by name) are in
+[Agent commands](/docs/reference/agent-commands). The terminal commands that belong to the flow
+(`check`, `reassess`, `migrate`, `mode`, `retro`) are in the [CLI reference](/docs/reference/cli).

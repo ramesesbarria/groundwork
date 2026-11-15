@@ -5,6 +5,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "clean": "node -e \"for (const d of ['.next','.source']) require('fs').rmSync(d,{recursive:true,force:true})\"",
     "types:check": "next typegen && tsc --noEmit"
   },
   "dependencies": {
