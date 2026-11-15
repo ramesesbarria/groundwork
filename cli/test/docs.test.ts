@@ -80,10 +80,27 @@ describe("docs site", () => {
     const targets = [...legacy.matchAll(/'(\/[\w/-]+)'/g)].map((m) => m[1]);
     expect(targets.length).toBeGreaterThan(2);
     for (const target of targets) {
-      const page = target.startsWith("/docs/")
-        ? join(content, `${target.slice("/docs/".length)}.mdx`)
-        : join(docs, "app", "(home)", target.slice(1), "page.tsx");
+      const page =
+        target === "/docs"
+          ? join(content, "index.mdx")
+          : target.startsWith("/docs/")
+            ? join(content, `${target.slice("/docs/".length)}.mdx`)
+            : join(docs, "app", "(home)", target.slice(1), "page.tsx");
       expect(existsSync(page), `old URL forwards to missing ${target}`).toBe(true);
+    }
+  });
+});
+
+describe("moved pages", () => {
+  it("every forwarding stub points at a page that exists and is not itself a stub", () => {
+    const stubs = pages.filter((page) => read(page).includes("<Moved "));
+    expect(stubs.length).toBeGreaterThan(0);
+    for (const stub of stubs) {
+      const to = read(stub).match(/<Moved to="([^"]+)"/)![1];
+      const name = to === "/docs" ? "index" : to.slice("/docs/".length);
+      const target = [`content/docs/${name}.mdx`, `content/docs/${name}/index.mdx`].find((file) => existsSync(join(docs, file)));
+      expect(target, `${stub} forwards to missing ${to}`).toBeDefined();
+      expect(read(target!), `${stub} forwards to another stub`).not.toContain("<Moved ");
     }
   });
 });

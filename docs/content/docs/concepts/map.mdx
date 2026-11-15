@@ -1,14 +1,10 @@
 ---
 title: "The map"
-description: "MAP.md says where things are in the codebase, so a session doesn't rediscover it every time."
+description: "Where things are in the codebase, so a new session doesn't explore your repo from scratch."
 ---
 
-**`.groundwork/MAP.md` is where things are:** the main folders, the entry points, where the tests
-live, and what looks one way and is another. A new session reads it instead of exploring the
-repository again.
-
-It is a map, not documentation: link, don't explain. Keep it under about 40 lines. Its budget is 800
-tokens by default.
+**`.groundwork/MAP.md` says where things are:** the main folders, the entry points, the tests, and
+the traps. A new session reads it instead of touring your repo again.
 
 ```markdown
 # Map
@@ -29,22 +25,13 @@ tokens by default.
 
 ## Who writes it
 
-The agent does. There is no `map` command that drafts it from the repository. On a first `/gw`, if the
-map isn't filled in, the agent reads the manifest, the folder layout and the tests (not every source
-file) and fills it in. It marks each item *found* (seen in a file) or *guessed*, and keeps it true
-when things move. You can edit it like any file.
+Your agent, on the first `/gw`. It marks each item *found* or *guessed*, and updates the map when
+things move. There is no `map` command; you can edit the file yourself.
+
+Keep it under about 40 lines. Link, don't explain.
 
 ## What `doctor` checks
 
-- It exists and is filled in, not just the template's comments.
-- The paths it names in `backticks` still exist. A moved or deleted file is reported.
-- It is within its token budget (`budgets.map`).
-
-The brief includes the map, and the handoff's stamp records a fingerprint of it, so a session is told
-when the map changed after the handoff was written.
-
-## Projects that already had a codebase map
-
-In 1.x the map was a section of `SPEC.md`, written only for existing projects. In 2.0 every project has
-`MAP.md`. An upgraded project's old section stays where it is; `upgrade` creates a `MAP.md` from the template next
-to it, and the agent can move the content across. See [Existing projects](/docs/guides/existing-projects).
+- The map is filled in.
+- The paths it names still exist.
+- It is within its budget (800 tokens by default).

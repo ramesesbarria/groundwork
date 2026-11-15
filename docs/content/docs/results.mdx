@@ -1,74 +1,54 @@
 ---
 title: "Results"
-description: "What a controlled comparison showed, run on Groundwork 1.0 with the flow on: one agent, one model, short tasks, scored by hidden tests. Not rerun for 2.0."
+description: "One comparison, run on Groundwork 1.0 with the flow on. Not rerun for 2.0."
 ---
 
 <Callout type="warn" title="Measured on 1.0, not on 2.0">
-This comparison was run on Groundwork 1.0, which was the development flow: spec, cards, three roles and
-approval gates. In 2.0 that flow is optional and project memory is the default. The evaluation has **not**
-been rerun for 2.0, so none of these numbers describes memory alone. They describe the flow, which still
-exists and is turned on with `groundwork flow on`.
+This was run on Groundwork 1.0, with the flow on. It has not been rerun for 2.0, so it says nothing
+about project memory alone.
 </Callout>
 
-We ran the same coding agent with and without Groundwork on the same tasks and scored every run
-with tests the agent never saw. This page summarizes it; the full report, design and per-run data
-are in the repository's [`evals/`](https://github.com/ramesesbarria/groundwork/tree/main/evals).
+We ran the same agent on the same tasks, with and without Groundwork, and scored every run with
+tests the agent never saw.
 
-<Callout title="What was tested">
-OpenCode 2.0.32 with DeepSeek Flash, on Windows, in October 2026. 10 solo tasks and 3 team scenarios
-on a small Node.js project, 3 runs each, with a scripted human who answers and approves by fixed
-rules. The scored runs used Groundwork builds from just before 1.0 (`e5c994c`, team suite also on
-`a6a0f2e`). One agent and model can't show how others behave.
-</Callout>
+**What was tested:** OpenCode 2.0.32 with DeepSeek Flash, October 2026. 10 solo tasks and 3 team
+scenarios on a small Node.js project, 3 runs each. One agent and model can't show how others behave.
 
-## The short version
+## What it showed
 
-- **Work that spans sessions held together better.** When requirements or decisions were given in
-  one session and needed in a later one, Groundwork runs succeeded 13 of 15 times; without it, 7 of
-  15.
-- **Self-contained tasks didn't improve.** Both arms solved all 12 single-session tasks.
-- **It costs more.** A typical solo task took about **4× the API cost** and **3× the time**, and the
-  human was asked to reply more often (mostly approvals).
+- **Work that spans sessions held together better:** 13 of 15 runs with Groundwork, 7 of 15 without.
+- **Work that fits in one session didn't improve:** both solved all 12.
+- **It costs more:** about 4× the API cost and 3× the time per solo task.
 
 | | Without | With Groundwork |
 |---|---|---|
 | Multi-session tasks (5 tasks × 3 runs) | 7/15 | **13/15** |
 | Single-session tasks (4 × 3) | 12/12 | 12/12 |
 | All solo tasks (10 × 3) | 22/30 | **28/30** |
-| Team scenarios (3 × 3), on the build that fixed a PR-mode defect | 9/9 | 9/9 |
+| Team scenarios (3 × 3) | 9/9 | 9/9 |
 | Median API cost per solo run | $0.021 | $0.091 |
 | Median time per solo run | 138 s | 389 s |
 
-A run succeeds only if every hidden acceptance, context and regression test passes. With three runs
-per task the differences are suggestive, not conclusive: continuity 13/15 vs 7/15 gives p = 0.05,
-all solo tasks p = 0.08 (Fisher's exact test).
+With three runs per task the differences are suggestive, not conclusive (multi-session p = 0.05,
+all solo tasks p = 0.08, Fisher's exact test).
 
-## Corrections, kept visible
+## What it doesn't show
 
-During scoring we found three problems in the evaluation harness, not in Groundwork: the scripted
-human missed some ways an agent asks for a reply, and sent one approval with a quoted card id. The
-affected runs (all on the Groundwork side) were rerun on the same build, and every original run is
-kept. As first scored, Groundwork was **24/30**; corrected, **28/30**; the baseline was 22/30 either
-way. If you distrust the corrections, use 24/30.
+- Project memory alone, or anything about 2.0.
+- Other agents or models.
+- Savings over a long project. Every task was 1 to 3 sessions on a small codebase.
 
-## When it's worth the cost
+## One correction
 
-In this comparison the flow helped when a project's knowledge had to outlive a session: work you come back to,
-decisions that later steps must respect, or a teammate picking up a task. On a one-off change you
-finish in one sitting, a plain session was as good and cheaper. The team scenarios didn't separate
-the arms: a careful plain workflow handled them too.
+Three bugs in the test harness, not in Groundwork, affected some Groundwork runs. Those runs were
+rerun on the same build and every original run is kept. First scored, Groundwork was 24/30;
+corrected, 28/30. The baseline was 22/30 either way.
 
-What this doesn't show: savings over a long project. Every task here was 1–3 sessions on a small
-codebase. That needs a long-horizon evaluation, which hasn't been run.
+## Check it yourself
 
-## Check the numbers
+The full report and every run are in
+[`evals/`](https://github.com/ramesesbarria/groundwork/tree/main/evals).
+`node evals/harness/aggregate.mjs` recomputes the numbers from `evals/runs.csv`.
 
-`evals/runs.csv` has one row per run, marking which runs the original and the corrected results use.
-`node evals/harness/aggregate.mjs` recomputes every number above from it, with no model calls. It
-checks the arithmetic; rerunning the experiment takes OpenCode, a DeepSeek key and the steps in
-[`evals/README.md`](https://github.com/ramesesbarria/groundwork/blob/main/evals/README.md).
-
-## Before 1.0
-
-An earlier, pre-1.0 version built a small calculator app, recorded call by call. It shows how the
-workflow runs and where tokens went, without a comparison: [Earlier build (pre-1.0)](/earlier-build).
+An earlier, pre-1.0 build of a small calculator app is recorded call by call on
+[its own page](/earlier-build).

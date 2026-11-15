@@ -1,34 +1,10 @@
 ---
 title: "Freshness"
-description: "Every load compares the handoff's stamp with the repository and gives one verdict, with the concrete delta."
+description: "Every session is told how far the handoff can be trusted, and exactly what changed since it was written."
 ---
 
-A handoff written by a model at the end of its context can go stale without anyone noticing. So a
-handoff is never taken on trust: every time one is loaded (`brief`, the session-start hook,
-`status`, `doctor`) its stamp is compared with the repository, and you get one verdict.
-
-## The verdicts
-
-In this order of precedence:
-
-| Verdict | Meaning |
-|---|---|
-| `diverged` | The stamped commit no longer exists, or isn't an ancestor of HEAD (a rebase, a reset, another branch). When there is a merge base, both sides are counted and the commits after the split are listed |
-| `stale` | Older than `staleAfterDays` (14 by default), whatever git says. If it is also behind, the delta is still given |
-| `behind` | The stamped commit is an ancestor of HEAD and commits landed since. Up to 8 are listed, with the files that changed |
-| `fresh` | Written at HEAD, or only `.groundwork/` changed since |
-| `unstamped` | No `updated` and no `head`: nothing to compare. A handoff from before 2.0, or one never checkpointed |
-
-Notes are added to any verdict: the branch changed since the stamp; files the Now and Next sections
-name are among the changed files; the map, the decisions or the lessons changed since it was written
-(the `deps` fingerprints); and uncommitted files.
-
-Commits that touch only `.groundwork/` aren't counted, so committing the handoff doesn't make it
-behind. Without git, only the age is checked.
-
-## An example
-
-Two commits landed after the last checkpoint:
+**Old notes can't pass as current.** Every time a handoff is loaded, Groundwork compares it with
+your repository and says what changed since.
 
 ```text
 Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits landed after it was written, changing 3 files.
@@ -39,26 +15,36 @@ Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits 
   Trust the code over the handoff where they disagree, then save an updated handoff.
 ```
 
-The agent now knows the handoff predates two commits and that one of the files it names has changed,
-so it checks its Next step against the code before acting.
+The agent knows the handoff is two commits old and that a file it names has changed, so it checks
+before acting.
 
-## What a verdict does and doesn't mean
+## The verdicts
 
-- **Freshness is about the repository, not the truth.** A handoff stamped at HEAD is `fresh` even
-  if its prose is wrong. An explicit `checkpoint` with no changes restamps it on the agent's word,
-  which is why it warns when the text is unchanged since an older commit.
-- **An automatic checkpoint doesn't restamp what nobody touched.** The hooks run `checkpoint` when a
-  turn ends, but a handoff whose text didn't change stays `behind`, and the agent is asked to save it.
-- **Paths in prose are found by pattern.** "Files its Now and Next sections name" catches backticked
-  paths and bare ones with a slash or a 2 to 5 letter extension.
+| Verdict | Meaning |
+|---|---|
+| `fresh` | Written at the current commit |
+| `behind` | Commits landed since. Up to 8 are listed, with the files they changed |
+| `diverged` | Its commit isn't in this branch's history: a rebase, a reset, another branch |
+| `stale` | Older than `staleAfterDays` (14 by default) |
+| `unstamped` | Never checkpointed, so there is nothing to compare |
+
+When more than one applies, `diverged` wins, then `stale`, then `behind`.
+
+A verdict can also note that the branch changed, that the map, decisions or lessons changed, or that
+there are uncommitted files.
 
 ## Where you see it
 
 | Where | What |
 |---|---|
-| Session start | The brief's first lines, in Claude Code and OpenCode via hooks |
-| [`brief`](/docs/reference/cli#brief) | The full verdict and delta, also as `--json` |
+| Session start | The first lines of the brief |
+| [`brief`](/docs/reference/cli#brief) | The full verdict; `--json` for scripts |
 | [`status`](/docs/reference/cli#status) | One line |
-| [`doctor`](/docs/reference/cli#doctor) | A suggestion when it is behind; a problem only if the handoff is malformed |
+| [`doctor`](/docs/reference/cli#doctor) | A suggestion when it is behind |
 
-`staleAfterDays` is in [configuration](/docs/reference/configuration).
+## Good to know
+
+- Commits that only touch `.groundwork/` don't count, so committing the handoff keeps it fresh.
+- Freshness checks the repository, not the prose. A handoff saved at the current commit is `fresh`
+  even if what it says is wrong.
+- Without git, only the age is checked.

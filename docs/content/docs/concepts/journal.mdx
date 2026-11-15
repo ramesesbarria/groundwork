@@ -1,11 +1,11 @@
 ---
 title: "The journal"
-description: "JOURNAL.md has one entry per checkpoint, derived from git: the commits and files since the last one."
+description: "What happened, commit by commit, written for you from git."
 ---
 
-**`.groundwork/JOURNAL.md` is a log, newest last.** Where the [handoff](/docs/concepts/handoff) says
-where things stand now, the journal says how they got there. `checkpoint` writes it from git, so
-the agent doesn't have to remember to.
+**`.groundwork/JOURNAL.md` is the project's log.** The [handoff](/docs/concepts/handoff) says where
+things stand now; the journal says how they got there. `checkpoint` writes it from git, so nobody
+has to remember to.
 
 ```markdown
 ## 2026-11-15 08:41 UTC · main @ 5c4bcc2 · claude-code
@@ -14,23 +14,12 @@ the agent doesn't have to remember to.
 - Next: Wire validation in src/login.ts, then add the first test
 ```
 
-An entry's heading has the time, the branch, the commit and the writing tool. Under it: the commits
-and the files changed since the journal's last entry, and the handoff's Now and Next at that moment.
+Each entry lists the commits and files since the last one, plus Now and Next at that moment.
 
-## How entries are made
+## Good to know
 
-- The journal has **its own cursor**: the commit in the heading of its last entry. So commits are
-  recorded even while the handoff's prose lags behind.
-- **No commits, no entry**, unless you pass `--note "<text>"` to `checkpoint`, which adds an entry
-  with that note.
+- No new commits, no entry. Force one with `checkpoint --note "<text>"`.
 - A [worker's](/docs/concepts/parallel-agents) checkpoint doesn't write the journal.
-- You may add entries of your own, such as a milestone recap: start each with `## `, keep it under
-  about 150 words, and link instead of copying.
-
-## Size
-
-The journal has a budget (`budgets.journal`, 2,500 tokens by default). When it is over,
-[`compact`](/docs/concepts/budgets-and-compaction) moves the oldest entries to
-`.groundwork/archive/JOURNAL-<year>.md`. Nothing is deleted.
-
-With the [flow](/docs/flow) on, the journal also gets a recap of each finished phase.
+- You can add your own entries. Start each with `## `.
+- Over its budget (2,500 tokens by default), [`compact`](/docs/concepts/budgets-and-compaction)
+  moves the oldest entries to `.groundwork/archive/`. Nothing is deleted.

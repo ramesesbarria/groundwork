@@ -1,21 +1,54 @@
 ---
 title: "The handoff"
-description: "HANDOFF.md says where the project stands right now, stamped by the CLI from git so a stale one can't pass for a fresh one."
+description: "Where the project stands right now, so the next session carries on instead of starting over."
 ---
 
-**`.groundwork/HANDOFF.md` is where the project stands right now.** It is overwritten at each save,
-not appended to: history lives in git and in the [journal](/docs/concepts/journal).
+**`.groundwork/HANDOFF.md` says where the project stands right now.** A session can end at any
+moment (a closed laptop, a usage limit, a switch to another tool) and the next one continues.
 
-It exists so that a session can end at any moment (a closed laptop, a usage limit, a crash, a switch
-to another tool) and the next one continues instead of starting over.
+## Save
 
-## What it holds
+```bash
+npx groundwork-ai checkpoint --now "Login form renders; validation not wired" --next "Wire validation in src/login.ts"
+```
+
+The agent writes two sentences. `checkpoint` adds the facts from git: time, commit, branch and who
+wrote it. It also adds an entry to the [journal](/docs/concepts/journal).
+
+Other ways to save:
+
+- Edit `HANDOFF.md`, then run `checkpoint` with no flags.
+- Add `--blockers`, `--failing`, `--workers` or `--notes` to fill the other sections. Sections you
+  don't name are kept.
+
+## Resume
+
+```bash
+npx groundwork-ai brief      # what a session start shows
+npx groundwork-ai status     # just Now, Next and the verdict
+```
+
+In supported tools the brief appears on its own at session start, with a
+[freshness verdict](/docs/concepts/freshness). Where the handoff and the code disagree, the code is right.
+
+## When it is saved
+
+| When | Who |
+|---|---|
+| A step finishes, or the session is about to stop | The agent; `AGENTS.md` and `/gw` tell it to |
+| A turn ends, before a compaction, at session end | Your tool's hooks, where the tool has those events |
+| Any time | You |
+
+A hook never invents a save. If nobody updated the handoff, it stays `behind` and the agent is asked,
+once per commit, to write it. Hooks never block your work.
+
+## What is in the file
 
 ```markdown
 ---
 schema: 2
 updated: 2026-11-15T08:41:12Z
-head: 5c4bcc2…                 (the full commit hash)
+head: 5c4bcc2…
 branch: main
 dirty: 0
 tool: claude-code
@@ -42,87 +75,25 @@ none
 ## Notes
 ```
 
-The block between the dashes is the **stamp**. You and your agent never type it: `checkpoint` writes
-it from git. The sections below it are the prose, which only a person or a model can write.
+The top block is the stamp. Nobody types it; `checkpoint` writes it.
+
+| Section | What goes there |
+|---|---|
+| Now (required) | What is in progress, and the last thing finished |
+| Next (required) | The very next action, specific enough to start on |
+| Blockers | What is stopping the work, or `none` |
+| Failing checks | Failing tests, lint or build commands, or `none` |
+| Workers in flight | [Parallel agents](/docs/concepts/parallel-agents) still going |
+| Notes | Anything the next session would otherwise rediscover |
 
 | Stamp key | What it records |
 |---|---|
 | `updated` | When it was saved |
-| `head`, `branch` | The commit and branch it was written against |
-| `dirty` | How many files were uncommitted, not counting `.groundwork/` |
+| `head`, `branch` | The commit and branch it was written at |
+| `dirty` | Uncommitted files, not counting `.groundwork/` |
 | `tool`, `model`, `session` | Who wrote it, when known |
-| `worker`, `state` | For a [worker's handoff](/docs/concepts/parallel-agents) only: its id, and `active` or `done` |
-| `body` | A fingerprint of the prose |
-| `deps` | Fingerprints of the map, decisions and lessons it was written against |
+| `worker`, `state` | Worker handoffs only: the id, and `active` or `done` |
+| `body`, `deps` | Fingerprints of the prose, and of the map, decisions and lessons |
 
-| Section | What belongs there |
-|---|---|
-| Now | What is in progress, and the last thing *finished*, specifically |
-| Next | The very next action, specific enough to start without reading anything else |
-| Blockers | What is stopping the work, or `none` |
-| Failing checks | Each failing test, lint or build command, or `none` |
-| Workers in flight | Parallel workers still going; [`worker`](/docs/reference/cli#worker) maintains it |
-| Notes | Anything the next session would otherwise have to rediscover |
-
-**Now** and **Next** are required; an empty section is written as `none`. Keep it short (its budget
-is 600 tokens by default) and link to files instead of copying them. With the [flow](/docs/flow) on,
-a `## Flow` section also holds the phase, the current card and its status.
-
-## Saving: `checkpoint`
-
-```bash
-npx groundwork-ai checkpoint --now "Login form renders; validation not wired" --next "Wire validation in src/login.ts"
-```
-
-The agent supplies only prose. `checkpoint` writes the stamp, appends a journal entry with the commits
-and files since the last one, and keeps the decisions index in step. Section flags (`--now`, `--next`,
-`--blockers`, `--failing`, `--workers`, `--notes`) replace that section and keep the others. With no
-flags it stamps the file as it is, so editing the handoff and running `checkpoint` is the other way
-to save.
-
-It refuses (exit 1) to stamp a handoff nobody has written, and warns when it restamps text that
-hasn't changed since an older commit, because that is the moment a stale handoff could be passed off
-as fresh. Writes go through a lock and a temporary file, so two writers can't interleave half a
-file.
-
-The writer is taken from `--tool`, `--model` and `--session`, then the `GROUNDWORK_TOOL`,
-`GROUNDWORK_MODEL` and `GROUNDWORK_SESSION` environment variables, then Claude Code's environment,
-then the session the session-start hook recorded within the last 12 hours.
-
-## When it is saved
-
-- **By the agent**, when a step finishes and before it stops. `AGENTS.md` and `/gw` say so.
-- **Automatically**, by the adapter's hooks: when a turn ends (`Stop`), before a compaction, and
-  when the session ends, in tools that have those events. The automatic checkpoint never claims what
-  it doesn't know: it doesn't restamp a handoff nobody touched, so that handoff stays
-  [`behind`](/docs/concepts/freshness), and the agent is asked, once per commit, to save it. Hooks
-  never block work.
-- **By hand**, whenever you like.
-
-A session that is killed runs no hook. The journal then gets its entry at the next session's first
-checkpoint, and the brief says the handoff is behind.
-
-## Resuming
-
-At session start the brief gives the agent the handoff and a [freshness verdict](/docs/concepts/freshness).
-`/gw` does the rest: say where things stand in a sentence or two, check a stale handoff's Next step
-against the code and the listed commits, and carry on. Where the handoff and the code disagree, the
-code is right.
-
-```bash
-npx groundwork-ai brief      # what a session start prints
-npx groundwork-ai status     # Now, Next and the verdict, without the rest
-```
-
-## Switching tools or models
-
-Because the state is files, not chat memory, a different tool or model reads the same handoff, map
-and decisions. Claude Code and OpenCode get the brief from their session-start hooks. Any other tool
-reads `AGENTS.md`, which says to run `npx groundwork-ai brief` first.
-
-## Handoffs from 1.x
-
-A handoff from before 2.0 (bullets such as `- **Next step:**`) is read through the same fields: Last
-step becomes Now, Next step becomes Next. It reads as `unstamped` until the first `checkpoint`,
-which rewrites it in the 2.0 layout without dropping anything: bullets with no section of their own
-go under Flow (with the flow on) or Notes. [Upgrading from 1.x](/docs/getting-started/upgrading).
+Keep it short: the budget is 600 tokens. `checkpoint` refuses to stamp a handoff nobody has written.
+With the [flow](/docs/flow) on, a `## Flow` section holds the phase, the current card and its status.

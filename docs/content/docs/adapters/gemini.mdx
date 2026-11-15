@@ -1,69 +1,65 @@
 ---
 title: "Gemini CLI"
+description: "Gemini CLI sessions start with your project's brief and save as you go."
 ---
 
-Groundwork's Gemini CLI adapter wires project memory into Gemini CLI: the brief at session start,
-checkpoints, and `/gw` commands. **It follows Gemini CLI's documentation and has not been run inside
-Gemini CLI.** Run `npx groundwork-ai doctor` after the first session.
-
-Google's docs carry a notice that Gemini CLI was replaced by Antigravity CLI on 2026-06-18 for
-unpaid-tier and Google One users; it stays available with paid API keys. Antigravity CLI is not
-covered by this adapter.
+In Gemini CLI, every session starts with the brief, and your work is saved after each response,
+before a compression and when the session closes. Type `/gw` to resume or save.
 
 ```bash
-npx groundwork-ai init --adapter gemini
+npx groundwork-ai init --adapter gemini     # or: npx groundwork-ai adapter add gemini
 ```
 
-Start Gemini CLI in the project root: hook commands are relative to it.
+Start Gemini CLI in the project root. Gemini CLI asks you to accept project hooks, and asks again
+when one changes.
 
-## What `init` adds
+Google's docs say Gemini CLI stays available with paid API keys, and that Antigravity CLI replaced it
+for other users. Antigravity CLI has no adapter.
+
+## What happens when
+
+| When | Hook | What happens |
+|---|---|---|
+| A session starts, resumes or is cleared | `SessionStart` | The [brief](/docs/reference/cli#brief) goes into the session |
+| The agent finishes a response | `AfterAgent` | A [checkpoint](/docs/reference/cli#checkpoint). If the handoff is behind, Gemini CLI retries with a reminder to save, once per commit |
+| Before a compression | `PreCompress` | A checkpoint only. The summary is not told what to keep |
+| The session ends | `SessionEnd` | A last checkpoint, best effort: the CLI does not wait for it |
+| You type `/gw` | Command | Resume from memory, or save |
+
+These hooks never block your work. After a compression nothing re-adds the brief, so `AGENTS.md`
+tells the agent to run `npx groundwork-ai brief`.
+
+## Files it writes
 
 | Path | What it is |
 |---|---|
-| `.gemini/settings.json` | The hooks below. An existing file is merged, not replaced |
-| `.gemini/hooks/groundwork.mjs` | A small script the hooks run. Gemini CLI shows plain stdout to the user only, so the script wraps Groundwork's text in `hookSpecificOutput.additionalContext` or `decision`/`reason` |
-| `.gemini/commands/gw*.toml` | Custom commands `/gw`, and with the flow `/gw-approve` and `/gw-reject`; each reads the core command file and passes `{{args}}` |
-| `GEMINI.md` | `@AGENTS.md` and one line about `/gw`. A `GEMINI.md` you already have gets the import added and keeps your text |
-| `.gemini/agents/gw-*.md` | With the flow: a subagent for the tester, implementer and reviewer |
+| `.gemini/settings.json` | The hooks. Merged into your file, never replaced |
+| `.gemini/hooks/groundwork.mjs` | A small script that hands Groundwork's text to Gemini CLI in the form it expects |
+| `.gemini/commands/gw.toml` | The `/gw` command |
+| `GEMINI.md` | Imports `AGENTS.md`. An existing `GEMINI.md` keeps your text |
 
-## What is automated
+## With the optional flow on
 
-| Moment | Gemini CLI event | What happens |
-|---|---|---|
-| Session starts, resumes or clears | `SessionStart` | The brief is added as context (`additionalContext`). Gemini CLI documents no compaction source here |
-| The agent finishes a response | `AfterAgent` | An automatic checkpoint; if the handoff is behind, `{"decision":"deny","reason"}` makes Gemini CLI retry with the reminder as the next prompt, once per commit |
-| Before compression | `PreCompress` | An automatic checkpoint only: the hook can only show the user a message |
-| Session ends | `SessionEnd` | A last automatic checkpoint (best effort: the CLI does not wait) |
+`init --flow` or `flow on` adds:
 
-No memory hook is fail-closed, and timeouts are 15 seconds or less (the setting is in milliseconds).
+| Added | What it does |
+|---|---|
+| `/gw-approve`, `/gw-reject` | Commands you type |
+| `.gemini/agents/gw-*.md` | Tester, implementer and reviewer subagents |
+| `BeforeTool` guard | Runs the commit gate, protects Groundwork's own files, and runs your guards for shell commands, `write_file` and `replace` |
 
-## What is instruction only
+What Gemini CLI does not enforce:
 
-- After a compression nothing re-adds the brief; `AGENTS.md` tells the agent to run
-  `npx groundwork-ai brief` and `GEMINI.md` loads `AGENTS.md`.
-- The compression summary is not told what to keep.
-
-## With the flow
-
-`init --adapter gemini --flow` adds a `BeforeTool` hook for `run_shell_command`, `write_file` and
-`replace`: the commit gate, the protection of Groundwork's own files and your guards. Exit code 2
-blocks the call and its message reaches the model. **What Gemini CLI does not enforce:**
-
-- **The guard is not fail-closed.** Gemini CLI treats a non-zero exit other than 2 as a warning and
-  carries on, so a guard that cannot start lets the call through. Other tools (MCP) aren't checked.
-- **Approvals are not bound to your message.** The recorder isn't wired, so the commit gate cannot tell
-  that a human approved. `/gw-approve` and `/gw-reject` are commands you type; the documentation does not
-  say whether the model can run one, so they are not marked human-only.
-- **The reviewer is told, not stopped.** Its tool allow-list is `read_file`, `grep_search` and
-  `run_shell_command` (it runs the checks), and the shell can write.
-- **Project hooks are fingerprinted.** A changed hook is untrusted until you accept it.
+| Gap | What it means |
+|---|---|
+| The guard is not fail-closed | A guard that can't start lets the call through. MCP tools aren't checked |
+| Approvals aren't bound to your message | The commit gate can't tell that a human approved |
+| The approval commands aren't human-only | The documentation doesn't say whether the model can run one |
+| The reviewer isn't read-only | It has a shell to run the checks, and a shell can write |
 
 `init --flow` and `flow on` print this list.
 
-`models` in `.groundwork/config.json` with a `gemini` key sets each subagent's `model`.
+## Status
 
-## Sources
-
-Read on 2026-11-15: `geminicli.com/docs/hooks/` and `/hooks/reference/`, `/docs/cli/custom-commands/`,
-`/docs/cli/gemini-md/`, `/docs/core/subagents/`, `/docs/tools/shell/`, `/docs/tools/file-system/` and
-`/docs/reference/configuration/`.
+Built from Gemini CLI's documentation, read on 2026-11-15. Not yet run inside a live Gemini CLI
+session. Run `npx groundwork-ai doctor` after your first one.

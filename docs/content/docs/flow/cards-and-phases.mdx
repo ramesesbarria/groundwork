@@ -1,20 +1,18 @@
 ---
 title: "Cards and phases"
+description: "A card is one small piece of work with a checklist for done. A phase is a group of cards that leaves something working."
 ---
 
 <Callout type="info" title="The flow (optional)">
-This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+Project memory works without this. Turn the flow on with `npx groundwork-ai flow on`.
 </Callout>
 
-**A card is one small piece of work with a checklist for "done". A phase is a group of cards that
-together leave something working.**
+A card is one small piece of work with a checklist for "done". A phase is a group of cards that
+together leave something working. The [build loop](/docs/flow/the-build-loop) takes one card at a time.
 
-The spec describes what you're building. The plan turns it into phases and cards. The build loop
-takes one card at a time.
+## A card
 
-## What a card looks like
-
-A card is a markdown file in `.groundwork/cards/`:
+A markdown file in `.groundwork/cards/`:
 
 ```md
 ---
@@ -45,21 +43,18 @@ A visitor can vote once for next month's book.
 
 | Section | Filled by | Purpose |
 |---|---|---|
-| Goal | planner | What's true when the card is done, in a sentence or two |
-| Acceptance criteria | planner (plus `gw-ui-spec` for UI) | Checkable statements; the tester turns each into a test |
-| How to check | reviewer | Plain steps for **you** to see it working, without reading a diff |
+| Goal | planner | What is true when the card is done |
+| Acceptance criteria | planner (and `gw-ui-spec` for UI) | Checkable statements; each becomes a test |
+| How to check | reviewer | Plain steps for you to see it working |
 | Evidence | tester, implementer, reviewer | Links to proof in `.groundwork/evidence/<card-id>/` |
 | History | everyone | One line per event, including rejections and judgment calls |
 
-**Each role writes its own History and `call:` lines**, in the same step as the work: a report
-to the runner isn't enough. Keep lines to a sentence or two. Every role rereads the card, so
-details belong in the evidence files, and `npx groundwork-ai doctor` flags cards that grow past
-about 1,500 tokens.
+Keep cards short: every role rereads them. `npx groundwork-ai doctor` flags a card past about 1,500
+tokens.
 
 ## Statuses
 
-The card's status says exactly where it is. Internally the workflow uses one set of names; you
-always see the plain labels.
+You always see the plain label.
 
 | Status | You see | Meaning |
 |---|---|---|
@@ -71,36 +66,26 @@ always see the plain labels.
 | `done` | done | Approved and committed |
 | `rejected` | sent back | You sent it back; it re-enters the loop |
 
-Only the transitions in the [workflow](/docs/flow/the-build-loop#statuses) are allowed, and each one
-leaves a History line.
+The allowed moves are in [the build loop](/docs/flow/the-build-loop#statuses).
 
-## Dependencies and picking order
+## Order
 
-Cards list what they need first:
+The runner picks the lowest-numbered card that is `todo` or `rejected` and whose `depends_on` cards
+are all `done`. `1.2` comes before `1.10`. A blocked card is never started; `/gw` says what blocks it.
 
-```yaml
-depends_on: [1.1]
-```
+## What a good plan looks like
 
-The runner always picks the **lowest-numbered card** whose status is `todo` or `rejected` and whose
-dependencies are all `done`. `1.2` comes before `1.10`. A card whose dependencies aren't ready is
-blocked, and `/gw` will say by what — it never starts work on top of unfinished work.
-
-## How the planner shapes a plan
-
-- **Smallest useful version first.** Anything else is a later phase, one line each.
-- **Each phase leaves something working**, or unlocks the next phase.
-- **Each card fits one session** through tester → implementer → reviewer.
-- **Every criterion is checkable**, by a test where possible. "Works well" isn't a criterion.
-  Logic that can run without the UI is planned into its own files so it gets real tests.
-- **Decisions come first.** A stack choice gets a decision record and your answer before cards
+- The smallest useful version comes first. The rest is a later phase.
+- Each phase leaves something working.
+- Each card fits one session.
+- Every criterion is checkable. "Works well" isn't one.
+- A stack choice gets a [decision record](/docs/concepts/decisions) and your answer before cards
   depend on it.
 
-On an existing project, the planner works one **change** at a time: only the open change in the
-spec, never the whole app. [Existing projects →](/docs/guides/existing-projects)
+On an [existing project](/docs/guides/existing-projects), the planner plans one change at a time,
+never the whole app.
 
-## Commits point back to cards
+## Commits
 
-Each approved card is committed as `[1.2] Voting` — or whatever `commitFormat` you set. So
-`git log` is the project's progress trail, and `groundwork retro` can find work that was fixed
-soon after it shipped.
+Each approved card is committed as `[1.2] Voting`, or in the `commitFormat` you set. `git log` becomes
+the project's progress trail.

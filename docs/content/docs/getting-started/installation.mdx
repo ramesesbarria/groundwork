@@ -1,93 +1,57 @@
 ---
 title: "Installation"
-description: "One command installs project memory in a git repo, for Claude Code, OpenCode, Codex, Cursor, Gemini CLI or any tool that reads AGENTS.md."
+description: "One command adds project memory to any git repo."
 ---
 
-**Groundwork needs Node.js 22 or later and git.** Check with `node --version`; if it's older, install a
-current version first. (The memory files are plain markdown that any tool can read; Node is only
-needed for the CLI and the hooks.)
-
-| System | Command |
-|---|---|
-| **Windows** | `winget install OpenJS.NodeJS.LTS` |
-| **macOS** | `brew install node` |
-| **Linux** | `nvm install --lts` with [nvm](https://github.com/nvm-sh/nvm) |
-
-## Add Groundwork to a project
-
-In your project's folder, run:
+You need **Node.js 22 or later** and **git**.
 
 ```bash
+cd your-project
 npx groundwork-ai init
 ```
 
-It asks which AI tool you use:
+It asks which AI tool you use: Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or none (plain
+markdown, for any other tool). New or existing project, both work. An existing `AGENTS.md` or
+`CLAUDE.md` is added to, never replaced.
 
-1. **Claude Code**
-2. **OpenCode**
-3. **Codex**
-4. **Cursor**
-5. **Gemini CLI**
-6. **None**: plain markdown, works with any tool
+## Options
 
-It works in a new folder or in a project that already has code. Existing `CLAUDE.md` and `AGENTS.md`
-files are never replaced: Groundwork appends its pointer lines and leaves everything else alone.
+| Command | What it does |
+|---|---|
+| `init --adapter codex` | Skip the question |
+| `init --adapter claude-code,codex` | Set up several tools |
+| `init --dry-run` | Show what would change, write nothing |
+| `init --flow` | Also add the optional [flow](/docs/flow) |
+| `adapter add cursor` | Add another tool later |
 
-You can skip the question with a flag, and preview first:
+## Then
 
-```bash
-npx groundwork-ai init --adapter opencode
-npx groundwork-ai init --adapter claude-code,codex   # several tools, separated by commas
-npx groundwork-ai init --dry-run        # show what would change, write nothing
-```
+Open your AI tool in the project and type `/gw` (`$gw` in Codex; trust its hooks once with
+`/hooks`). The first time, it asks what the project is and fills in the map. After that, every
+session starts from the brief.
 
-By default `init` installs **project memory only**. To add the optional development flow (spec, cards,
-roles, approval before each commit) at the same time, pass `--flow`, or run `npx groundwork-ai flow on`
-later. See [The flow](/docs/flow).
+With plain markdown, `AGENTS.md` tells the agent to run `npx groundwork-ai brief` first. If a
+session ever starts without its brief, run that command yourself.
 
-## Start working
+Next: [your first 10 minutes](/docs/getting-started/first-10-minutes).
 
-Open your AI tool in the project.
-
-- **Claude Code, OpenCode, Codex, Cursor and Gemini CLI** run a session-start hook that gives the agent
-  the brief, and have a `/gw` command (`$gw` in Codex): resume from memory, and save. Each adapter
-  page says what is automated and what is left to `AGENTS.md`: [Claude Code](/docs/adapters/claude-code),
-  [OpenCode](/docs/adapters/opencode), [Codex](/docs/adapters/codex), [Cursor](/docs/adapters/cursor),
-  [Gemini CLI](/docs/adapters/gemini). In Codex, trust the hooks once with `/hooks`.
-- **Plain markdown**: `AGENTS.md` tells the agent to run `npx groundwork-ai brief` first. Or ask it to
-  *"read `.groundwork/commands/gw.md` and follow it"*.
-
-The first time, `/gw` fills in what is empty: it asks what the project is called and does, finds its
-commands in the repo for `AGENTS.md`, and fills in `.groundwork/MAP.md`. Then it works from the
-handoff. Next: [your first 10 minutes](/docs/getting-started/first-10-minutes).
-
-<Callout type="info" title="Hooks are not yet verified in a live session">
-The 2.0 hooks have been run as processes with each tool's documented input, but not inside a live
-Claude Code, OpenCode, Codex, Cursor or Gemini CLI session. If a session doesn't show the brief, run `npx groundwork-ai brief`
-yourself and tell the agent to read it.
-</Callout>
-
-## What `init` writes
+## What it adds
 
 | Path | What it is |
 |---|---|
-| `AGENTS.md` | The short page your agent reads every session. Says to run `brief` first and to save with `checkpoint` |
-| `.groundwork/` | `HANDOFF.md`, `MAP.md`, `DECISIONS.md` and `decisions/`, `LESSONS.md`, `JOURNAL.md`, `config.json`, `memory.md`, the `/gw` command, and the scripts the hooks run |
-| `.claude/`, `.opencode/`, `.codex/` and `.agents/`, `.cursor/`, or `.gemini/` and `GEMINI.md` | Adapter files: the `/gw` command and the hooks, for the tools you chose. Plain markdown installs none |
+| `.groundwork/` | The memory files, the `/gw` command and the scripts the hooks run. Commit it |
+| `AGENTS.md` | Tells any agent to read the brief first and to save |
+| `.claude/`, `.opencode/`, `.codex/` and `.agents/`, `.cursor/`, or `.gemini/` and `GEMINI.md` | Your tool's hooks and `/gw` command |
 | `.gitattributes` | Marks images as binary |
 
-Everything under `.groundwork/` is meant to be committed, apart from local state it git-ignores. The
-full list is in [Project files](/docs/reference/project-files). To remove Groundwork later, run
-`npx groundwork-ai uninstall`: it takes out only what Groundwork added and keeps anything you changed.
+Every file is listed in [Project files](/docs/reference/project-files).
 
-## Updating
+## Update or remove
 
 ```bash
-npx groundwork-ai upgrade      # refresh Groundwork's own files
-npx groundwork-ai doctor       # check the install, the memory and the budgets
+npx groundwork-ai upgrade      # update Groundwork's files; yours are kept
+npx groundwork-ai doctor       # check that everything is healthy
+npx groundwork-ai uninstall    # remove only what Groundwork added
 ```
 
-`upgrade` refreshes Groundwork's own files after asking once; any you edited are kept, with the new
-version saved next to them as `.new`. Your handoff, map, decisions, lessons, journal and config values
-are never touched. `doctor` tells you when a project is behind the CLI. Coming from 1.x? See
-[Upgrading from 1.x](/docs/getting-started/upgrading).
+Coming from 1.x? See [Upgrading](/docs/getting-started/upgrading).
