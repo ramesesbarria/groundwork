@@ -14,7 +14,8 @@ until it upgrades.
 |---|---|
 | `.opencode/commands/gw*.md` | Commands for `/gw`, `/gw-approve` and `/gw-reject`; other helpers are read from `.groundwork/commands/` on demand |
 | `.opencode/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, with permissions |
-| `.opencode/plugins/groundwork-guards.js` | Runs Groundwork's checks and your guards before each tool call, and tells each session where things stand |
+| `.opencode/plugins/groundwork-guards.js` | With the flow: runs Groundwork's checks and your guards before each tool call, tells each session where things stand, and checkpoints it |
+| `.opencode/plugins/groundwork-memory.js` | Without the flow (the default install): tells each session where things stand, and checkpoints it |
 
 OpenCode reads `AGENTS.md` itself, so no extra rules file is generated.
 
@@ -54,10 +55,20 @@ files work in every adapter, because they're plain Node.
 
 ## Session start
 
-The plugin also hooks the session's `context`: it adds the same few lines Claude Code's
-session-start hook prints (from `.groundwork/hooks/session-start.mjs` reading `HANDOFF.md`) to the
-system prompt, so a new session already knows which card is in progress and what's next. It's read
-fresh each time, and skipped for Groundwork's own subagents, which get their card from the runner.
+The plugin also hooks the session's `context`: it adds the project brief that Claude Code's
+session-start hook prints (from `.groundwork/hooks/session-start.mjs`: the handoff, how fresh it
+is, decisions, rules and the map) to the system prompt, so a new session already knows where things
+stand and what's next. It's rebuilt at most every 15 seconds, and skipped for Groundwork's own
+subagents, which get their card from the runner.
+
+## Checkpoints
+
+The plugin registers the `compaction` session hook, where it runs an automatic
+[checkpoint](/docs/reference/cli#checkpoint) and tells the summary what to keep, and it listens for
+`session.idle` on the event stream to checkpoint a session that has finished a turn. OpenCode has
+no hook that can speak at idle, so a reminder to save a handoff that is behind is added to the next
+model call instead. These two registrations follow OpenCode's 2.x plugin documentation and have not
+yet been run against a live OpenCode; if either is unavailable the plugin warns and keeps the rest.
 
 ## Human-only commands
 

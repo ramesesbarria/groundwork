@@ -23,7 +23,7 @@ packed tarball instead (see CONTRIBUTING.md).
 
 ```bash
 mkdir gw-oc-check; cd gw-oc-check; git init
-npx groundwork-ai@latest init --adapter opencode
+npx groundwork-ai@latest init --flow --adapter opencode
 git add -A; git commit -m "[setup] Set up Groundwork"
 opencode
 ```
