@@ -23,6 +23,9 @@ export interface ApplyResult {
   warnings: string[]; // things the user must fix by hand, for the end of the output
 }
 
+// The adapter a hook config file belongs to.
+const toolOf = (path: string) => (path.startsWith(".codex/") ? "codex" : path.startsWith(".cursor/") ? "cursor" : path.startsWith(".gemini/") ? "gemini" : "claude-code");
+
 export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean): Promise<ApplyResult> {
   const lines: string[] = [];
   const kept: string[] = [];
@@ -65,7 +68,7 @@ export async function applyFiles(files: PlannedFile[], io: Io, dryRun: boolean):
         lines.push(`  skip       ${file.path} (not valid JSON)`);
         warnings.push(
           `${file.path} isn't valid JSON, so Groundwork's hooks weren't added and guards won't run. ` +
-            "Fix the file, then run `npx groundwork-ai adapter add claude-code`.",
+            `Fix the file, then run \`npx groundwork-ai adapter add ${toolOf(planned.path)}\`.`,
         );
         continue;
       }

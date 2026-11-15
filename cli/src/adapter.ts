@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { readCore } from "./core.js";
 import { applyFiles } from "./files.js";
 import { readProjectConfig } from "./config.js";
-import { ADAPTERS, flowOn, isAdapter, isManaged, nextSteps, planAdapter } from "./init.js";
+import { ADAPTERS, flowLimitLines, flowOn, isAdapter, isManaged, nextSteps, planAdapter } from "./init.js";
 import { recordFiles } from "./manifest.js";
 import { VERSION } from "./version.js";
 import type { Io, RunResult } from "./index.js";
@@ -33,5 +33,5 @@ export async function adapter(args: string[], io: Io): Promise<RunResult> {
   const header =
     lines.length === 0 ? `The ${tool} adapter is already up to date. Nothing to change.` : `Added the ${tool} adapter.`;
   const warned = warnings.length > 0 ? ["", ...warnings.map((w) => `Warning: ${w}`)] : [];
-  return { code: 0, output: [header, ...lines, ...warned, "", nextSteps(tool, flow)].join("\n") };
+  return { code: 0, output: [header, ...lines, ...warned, "", nextSteps(tool, flow), ...flowLimitLines(tool, flow)].join("\n") };
 }

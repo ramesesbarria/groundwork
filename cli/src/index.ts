@@ -39,7 +39,7 @@ async function askTerminal(question: string): Promise<string> {
 
 // Project memory: what every install has.
 const COMMANDS: Record<string, string> = {
-  init: "Install Groundwork into this project: project memory, plus the flow with --flow (--adapter claude-code|opencode|none, --flow, --dry-run)",
+  init: "Install Groundwork into this project: project memory, plus the flow with --flow (--adapter claude-code|opencode|codex|cursor|gemini|none, or several with commas; --flow, --dry-run)",
   brief: "Print what an agent needs to resume: the handoff, how fresh it is against the repo, decisions, rules and the map, within a token budget (--json, --budget <tokens>, --worker <id>)",
   checkpoint: 'Save the handoff: stamps it with the commit, branch, time and writer, and adds the commits since the last one to the journal (--now "…" --next "…" [--blockers "…"] [--failing "…"] [--notes "…"] [--note "…"] [--worker <id>] [--json])',
   status: "Show where things stand: the handoff, its freshness and workers in flight; with the flow, cards by status and what's ready or blocked",
@@ -50,7 +50,7 @@ const COMMANDS: Record<string, string> = {
   compact: "Move old journal entries, superseded decisions and logs that grew inside the handoff to .groundwork/archive/; nothing is deleted (--dry-run)",
   doctor: "Check the install, the memory files against their budgets, and the context token budget (exits 1 on problems)",
   upgrade: "Update this project's Groundwork files to this version; your handoff, decisions, lessons, spec, cards and edits stay (--dry-run, --yes)",
-  adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode)",
+  adapter: "Add or refresh an AI tool adapter (adapter add claude-code|opencode|codex|cursor|gemini)",
   flow: "Show, add or remove the optional development flow on top of project memory (flow [on|off] [--yes])",
   uninstall: "Remove what Groundwork added, keeping anything you changed; asks before deleting .groundwork/ (--dry-run, --keep-state)",
 };

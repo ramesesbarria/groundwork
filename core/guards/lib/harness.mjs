@@ -20,9 +20,11 @@ const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/, /^\
 const LEGACY_MANIFEST = /^\.groundwork\/\.legacy-cards\.json$/;
 // The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
 // can see what it does.
-const PLUGINS = /^\.opencode\/plugins(\/|$)/;
+const PLUGINS = /^(?:\.opencode\/plugins|\.cursor\/hooks|\.gemini\/hooks)(\/|$)/;
 const APPROVALS = /^\.groundwork\/\.approvals(\/|$)/;
-const SETTINGS = /^\.claude\/settings(\.local)?\.json$/;
+const SETTINGS = /^(?:\.claude\/settings(\.local)?\.json|\.codex\/hooks\.json|\.cursor\/hooks\.json|\.gemini\/settings\.json)$/;
+// A project's Codex config can switch every hook off ([features] hooks = false), so the agent doesn't write it.
+const HOOK_SWITCHES = /^\.codex\/config\.toml$/;
 const CONFIG = ".groundwork/config.json";
 
 const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
@@ -116,32 +118,36 @@ function checkSettings(action, abs, rel) {
   } catch {
     return { block: true, reason: `This would leave ${rel} as invalid JSON, which switches off Groundwork's hooks. Fix the edit.` };
   }
+  if (next.hooksConfig?.enabled === false) return { block: true, reason: `This would switch off every hook, Groundwork's guards included (hooksConfig.enabled in ${rel}). ${ASK}` };
   if (next.disableAllHooks === true) return { block: true, reason: `This would switch off every hook, Groundwork's guards included. ${ASK}` };
-  if (!rel.endsWith("settings.json")) return { block: false };
+  if (!/(?:settings|hooks)\.json$/.test(rel) || /settings\.local\.json$/.test(rel)) return { block: false };
   let before = {};
   try {
     before = existsSync(abs) ? parseJson(readFileSync(abs, "utf8")) : {};
   } catch {
     return { block: false };
   }
+  // Entries nest their hooks (Claude Code, Codex, Gemini CLI) or are the hook itself (Cursor).
+  const hooksOf = (entry) => entry?.hooks ?? (entry?.command === undefined ? [] : [entry]);
+  const isOurs = (c) => c.includes(".groundwork/") || /\.(?:cursor|gemini)\/hooks\/groundwork\.mjs/.test(c);
   const commands = (s) =>
     Object.values(s.hooks ?? {})
       .flat()
-      .flatMap((entry) => (entry?.hooks ?? []).map((h) => h?.command ?? ""))
-      .filter((c) => c.includes(".groundwork/"));
+      .flatMap((entry) => hooksOf(entry).map((h) => h?.command ?? ""))
+      .filter(isOurs);
   const kept = new Set(commands(next));
   if (!commands(before).every((c) => kept.has(c))) {
     return { block: true, reason: `This would take Groundwork's hooks out of ${rel}, so guards and session start stop running. ${ASK}` };
   }
-  // onFailure: "block" makes Claude Code block a call when the guard can't run at all.
+  // onFailure: "block" makes Claude Code block a call when the guard can't run at all; failClosed does for Cursor.
   const blocking = (s) =>
     Object.values(s.hooks ?? {})
       .flat()
-      .flatMap((entry) => (entry?.hooks ?? []).filter((h) => h?.onFailure === "block").map((h) => h?.command ?? ""))
-      .filter((c) => c.includes(".groundwork/"));
+      .flatMap((entry) => hooksOf(entry).filter((h) => h?.onFailure === "block" || h?.failClosed === true).map((h) => h?.command ?? ""))
+      .filter(isOurs);
   const stillBlocking = new Set(blocking(next));
   if (blocking(before).every((c) => stillBlocking.has(c))) return { block: false };
-  return { block: true, reason: `This would let tool calls through when Groundwork's guard can't run (onFailure in ${rel}). ${ASK}` };
+  return { block: true, reason: `This would let tool calls through when Groundwork's guard can't run (onFailure or failClosed in ${rel}). ${ASK}` };
 }
 
 function checkWrite(action, project) {
@@ -154,7 +160,10 @@ function checkWrite(action, project) {
       return { block: true, reason: "Approvals are recorded from the human's own messages, never written by the agent." };
     }
     if (PLUGINS.test(key)) {
-      return { block: true, reason: `${rel} is inside Groundwork's OpenCode plugin folder, which runs outside the guards. ${ASK}` };
+      return { block: true, reason: `${rel} is inside a folder of scripts that run in the tool's own hooks (an OpenCode plugin, or Cursor's or Gemini CLI's Groundwork hook script), outside the guards. ${ASK}` };
+    }
+    if (HOOK_SWITCHES.test(key)) {
+      return { block: true, reason: `${rel} can switch off Codex's hooks, Groundwork's guards included. ${ASK}` };
     }
     if (LOCKED.some((re) => re.test(key)) && existsSync(abs)) {
       return { block: true, reason: `${rel} is part of Groundwork's guards and hooks. ${ASK}` };
@@ -234,6 +243,12 @@ const HARNESS_PATHS = [
   ".claude/settings.json",
   ".claude/settings.local.json",
   ".opencode/plugins",
+  ".codex/hooks.json",
+  ".codex/config.toml",
+  ".cursor/hooks.json",
+  ".cursor/hooks",
+  ".gemini/settings.json",
+  ".gemini/hooks",
 ];
 const REMOVE_OR_MOVE = new Set(["rm", "rmdir", "rd", "mv", "del", "erase", "move", "ren", "rename", "remove-item", "move-item", "rename-item"]);
 
@@ -352,7 +367,7 @@ function checkCommand(action, project) {
   const setupDone = setupIsDone(project);
   for (const target of commandWriteTargets(command)) {
     const rel = projectPath(project, target).toLowerCase();
-    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel) || LEGACY_MANIFEST.test(rel);
+    const locked = APPROVALS.test(rel) || LOCKED.some((re) => re.test(rel)) || PLUGINS.test(rel) || SETTINGS.test(rel) || HOOK_SWITCHES.test(rel) || LEGACY_MANIFEST.test(rel);
     const configAfterSetup = rel === CONFIG && setupDone; // setup writing its own config isn't the agent changing the harness
     if (locked || configAfterSetup) {
       return { block: true, reason: `This shell command changes Groundwork's own files (guards, hooks, approvals, config or settings). ${ASK}` };

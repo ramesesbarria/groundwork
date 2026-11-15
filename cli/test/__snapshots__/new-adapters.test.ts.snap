@@ -1,0 +1,802 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`codex adapter > matches the snapshot, context only and with the flow > context 1`] = `
+{
+  ".agents/skills/gw-approve/SKILL.md": "---
+name: gw-approve
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
+---
+Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
+",
+  ".agents/skills/gw-approve/agents/openai.yaml": "policy:
+  allow_implicit_invocation: false
+",
+  ".agents/skills/gw-reject/SKILL.md": "---
+name: gw-reject
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
+---
+Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
+",
+  ".agents/skills/gw-reject/agents/openai.yaml": "policy:
+  allow_implicit_invocation: false
+",
+  ".agents/skills/gw/SKILL.md": "---
+name: gw
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
+---
+Read \`.groundwork/commands/gw.md\` now and follow it exactly.
+",
+  ".codex/hooks.json": "{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/session-start.mjs\\" \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/session-start.mjs . codex",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" stop \\"$(git rev-parse --show-toplevel)\\" codex --block-json",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs stop . codex --block-json",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" pre-compact \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs pre-compact . codex",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" session-end \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs session-end . codex",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}
+",
+}
+`;
+
+exports[`codex adapter > matches the snapshot, context only and with the flow > flow 1`] = `
+{
+  ".agents/skills/gw-approve/SKILL.md": "---
+name: gw-approve
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
+---
+Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
+",
+  ".agents/skills/gw-approve/agents/openai.yaml": "policy:
+  allow_implicit_invocation: false
+",
+  ".agents/skills/gw-reject/SKILL.md": "---
+name: gw-reject
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
+---
+Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
+",
+  ".agents/skills/gw-reject/agents/openai.yaml": "policy:
+  allow_implicit_invocation: false
+",
+  ".agents/skills/gw/SKILL.md": "---
+name: gw
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
+---
+Read \`.groundwork/commands/gw.md\` now and follow it exactly.
+",
+  ".codex/agents/gw-implementer.toml": "name = "gw-implementer"
+description = "Groundwork implementer. Make the card's failing tests pass with the smallest reasonable change."
+developer_instructions = """
+You are the Groundwork implementer. Read \`.groundwork/roles/implementer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+"""
+",
+  ".codex/agents/gw-reviewer.toml": "name = "gw-reviewer"
+description = "Groundwork reviewer. Check the work with fresh eyes, then pass or send it back."
+developer_instructions = """
+You are the Groundwork reviewer. Read \`.groundwork/roles/reviewer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+You judge and do not repair: never edit files.
+"""
+",
+  ".codex/agents/gw-tester.toml": "name = "gw-tester"
+description = "Groundwork tester. Turn the current card's acceptance criteria into tests that fail now and will pass when the card is done."
+developer_instructions = """
+You are the Groundwork tester. Read \`.groundwork/roles/tester.md\` now and follow it exactly.
+Load only the files it lists under Load.
+"""
+",
+  ".codex/hooks.json": "{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/session-start.mjs\\" \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/session-start.mjs . codex",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" stop \\"$(git rev-parse --show-toplevel)\\" codex --block-json",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs stop . codex --block-json",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" pre-compact \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs pre-compact . codex",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/hooks/checkpoint.mjs\\" session-end \\"$(git rev-parse --show-toplevel)\\" codex",
+            "commandWindows": "node .groundwork/hooks/checkpoint.mjs session-end . codex",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$(git rev-parse --show-toplevel)/.groundwork/guards/run.mjs\\" codex",
+            "commandWindows": "node .groundwork/guards/run.mjs codex",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+",
+}
+`;
+
+exports[`cursor adapter > matches the snapshot, context only and with the flow > context 1`] = `
+{
+  ".cursor/hooks.json": "{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs session-start",
+        "timeout": 15
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs stop",
+        "timeout": 15
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs pre-compact",
+        "timeout": 15
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs session-end",
+        "timeout": 10
+      }
+    ]
+  }
+}
+",
+  ".cursor/hooks/groundwork.mjs": "// Groundwork hook script for Cursor. Generated by Groundwork; edit .groundwork/hooks/ instead.
+// Usage: node .cursor/hooks/groundwork.mjs <session-start|stop|pre-compact|session-end>
+// It runs .groundwork/hooks/session-start.mjs and checkpoint.mjs and returns their text in the JSON
+// Cursor reads (sessionStart additional_context and stop followup_message: cursor.com/docs/hooks; beforeShellExecution permission, user_message, agent_message: cursor.com/docs/hooks).
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// This file lives in <project>/.cursor/hooks/, so the project is two folders up.
+const project = fileURLToPath(new URL("../../", import.meta.url));
+const TOOL = "cursor";
+
+const REPLY = {
+  "session-start": (text) => (text ? { additional_context: text } : {}),
+  "stop": (text) => (text ? { followup_message: text } : {}),
+  "pre-compact": (text) => ({}),
+  "session-end": (text) => ({}),
+};
+
+function hookInput() {
+  try {
+    return JSON.parse(readFileSync(0, "utf8").replace(/^\\uFEFF/, "") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+const out = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+
+// Runs one of Groundwork's hook scripts with the hook's input on stdin; "" if it says nothing or fails.
+function run(script, args, input) {
+  const file = join(project, ".groundwork", "hooks", script);
+  if (!existsSync(file)) return "";
+  try {
+    return execFileSync(process.execPath, [file, ...args], {
+      input: JSON.stringify(input),
+      encoding: "utf8",
+      timeout: 10000,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+async function main() {
+  const event = process.argv[2] ?? "";
+  const raw = hookInput();
+  const input = { ...raw, session_id: raw.session_id ?? raw.conversation_id, stop_hook_active: Number(raw.loop_count) > 0 };
+
+  const reply = REPLY[event];
+  if (!reply) return;
+  try {
+    const text = event === "session-start" ? run("session-start.mjs", [project, TOOL], input) : run("checkpoint.mjs", [event === "pre-compress" ? "pre-compact" : event, project, TOOL], input);
+    out(reply(event === "session-start" || event === "stop" ? text : ""));
+  } catch {
+    // a hook never stops the tool
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
+",
+  ".cursor/skills/gw-approve/SKILL.md": "---
+name: gw-approve
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
+disable-model-invocation: true
+---
+Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
+",
+  ".cursor/skills/gw-reject/SKILL.md": "---
+name: gw-reject
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
+disable-model-invocation: true
+---
+Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
+",
+  ".cursor/skills/gw/SKILL.md": "---
+name: gw
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
+---
+Read \`.groundwork/commands/gw.md\` now and follow it exactly.
+",
+}
+`;
+
+exports[`cursor adapter > matches the snapshot, context only and with the flow > flow 1`] = `
+{
+  ".cursor/agents/gw-implementer.md": "---
+name: gw-implementer
+description: Groundwork implementer. Make the card's failing tests pass with the smallest reasonable change.
+---
+You are the Groundwork implementer. Read \`.groundwork/roles/implementer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+",
+  ".cursor/agents/gw-reviewer.md": "---
+name: gw-reviewer
+description: Groundwork reviewer. Check the work with fresh eyes, then pass or send it back.
+readonly: true
+---
+You are the Groundwork reviewer. Read \`.groundwork/roles/reviewer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+",
+  ".cursor/agents/gw-tester.md": "---
+name: gw-tester
+description: Groundwork tester. Turn the current card's acceptance criteria into tests that fail now and will pass when the card is done.
+---
+You are the Groundwork tester. Read \`.groundwork/roles/tester.md\` now and follow it exactly.
+Load only the files it lists under Load.
+",
+  ".cursor/hooks.json": "{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs session-start",
+        "timeout": 15
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs stop",
+        "timeout": 15
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs pre-compact",
+        "timeout": 15
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs session-end",
+        "timeout": 10
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node .cursor/hooks/groundwork.mjs guard",
+        "timeout": 30,
+        "failClosed": true
+      }
+    ]
+  }
+}
+",
+  ".cursor/hooks/groundwork.mjs": "// Groundwork hook script for Cursor. Generated by Groundwork; edit .groundwork/hooks/ instead.
+// Usage: node .cursor/hooks/groundwork.mjs <session-start|stop|pre-compact|session-end|guard>
+// It runs .groundwork/hooks/session-start.mjs and checkpoint.mjs and returns their text in the JSON
+// Cursor reads (sessionStart additional_context and stop followup_message: cursor.com/docs/hooks; beforeShellExecution permission, user_message, agent_message: cursor.com/docs/hooks).
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+// This file lives in <project>/.cursor/hooks/, so the project is two folders up.
+const project = fileURLToPath(new URL("../../", import.meta.url));
+const TOOL = "cursor";
+
+const REPLY = {
+  "session-start": (text) => (text ? { additional_context: text } : {}),
+  "stop": (text) => (text ? { followup_message: text } : {}),
+  "pre-compact": (text) => ({}),
+  "session-end": (text) => ({}),
+};
+
+function hookInput() {
+  try {
+    return JSON.parse(readFileSync(0, "utf8").replace(/^\\uFEFF/, "") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+const out = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+
+// Runs one of Groundwork's hook scripts with the hook's input on stdin; "" if it says nothing or fails.
+function run(script, args, input) {
+  const file = join(project, ".groundwork", "hooks", script);
+  if (!existsSync(file)) return "";
+  try {
+    return execFileSync(process.execPath, [file, ...args], {
+      input: JSON.stringify(input),
+      encoding: "utf8",
+      timeout: 10000,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+async function main() {
+  const event = process.argv[2] ?? "";
+  const raw = hookInput();
+  const input = { ...raw, session_id: raw.session_id ?? raw.conversation_id, stop_hook_active: Number(raw.loop_count) > 0 };
+
+  if (event === "guard") {
+    // Fails closed: Cursor's hook has failClosed, an exit code of 2 blocks, and so does silence.
+    try {
+      const guards = join(project, ".groundwork", "guards");
+      const { evaluate } = await import(pathToFileURL(join(guards, "run.mjs")).href);
+      const result = await evaluate("cursor", input, guards);
+      for (const warning of result.warnings ?? []) process.stderr.write(warning + "\\n");
+      out(result.block ? { permission: "deny", user_message: result.reason, agent_message: result.reason } : { permission: "allow" });
+    } catch (error) {
+      process.stderr.write("Groundwork's guards couldn't run (" + error.message + "), so this call is blocked. Run groundwork doctor.\\n");
+      process.exitCode = 2;
+    }
+    return;
+  }
+  const reply = REPLY[event];
+  if (!reply) return;
+  try {
+    const text = event === "session-start" ? run("session-start.mjs", [project, TOOL], input) : run("checkpoint.mjs", [event === "pre-compress" ? "pre-compact" : event, project, TOOL], input);
+    out(reply(event === "session-start" || event === "stop" ? text : ""));
+  } catch {
+    // a hook never stops the tool
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
+",
+  ".cursor/skills/gw-approve/SKILL.md": "---
+name: gw-approve
+description: Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits.
+disable-model-invocation: true
+---
+Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.
+",
+  ".cursor/skills/gw-reject/SKILL.md": "---
+name: gw-reject
+description: Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer.
+disable-model-invocation: true
+---
+Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.
+",
+  ".cursor/skills/gw/SKILL.md": "---
+name: gw
+description: Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step.
+---
+Read \`.groundwork/commands/gw.md\` now and follow it exactly.
+",
+}
+`;
+
+exports[`gemini adapter > matches the snapshot, context only and with the flow > context 1`] = `
+{
+  ".gemini/commands/gw-approve.toml": "description = "Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits."
+prompt = "Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/commands/gw-reject.toml": "description = "Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer."
+prompt = "Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/commands/gw.toml": "description = "Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step."
+prompt = "Read \`.groundwork/commands/gw.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/hooks/groundwork.mjs": "// Groundwork hook script for Gemini CLI. Generated by Groundwork; edit .groundwork/hooks/ instead.
+// Usage: node .gemini/hooks/groundwork.mjs <session-start|stop|pre-compress|session-end>
+// It runs .groundwork/hooks/session-start.mjs and checkpoint.mjs and returns their text in the JSON
+// Gemini CLI reads (SessionStart hookSpecificOutput.additionalContext and AfterAgent decision/reason: geminicli.com/docs/hooks/reference).
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// This file lives in <project>/.gemini/hooks/, so the project is two folders up.
+const project = fileURLToPath(new URL("../../", import.meta.url));
+const TOOL = "gemini";
+
+const REPLY = {
+  "session-start": (text) => (text ? { hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: text } } : {}),
+  "stop": (text) => (text ? { decision: "deny", reason: text } : {}),
+  "pre-compress": (text) => ({}),
+  "session-end": (text) => ({}),
+};
+
+function hookInput() {
+  try {
+    return JSON.parse(readFileSync(0, "utf8").replace(/^\\uFEFF/, "") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+const out = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+
+// Runs one of Groundwork's hook scripts with the hook's input on stdin; "" if it says nothing or fails.
+function run(script, args, input) {
+  const file = join(project, ".groundwork", "hooks", script);
+  if (!existsSync(file)) return "";
+  try {
+    return execFileSync(process.execPath, [file, ...args], {
+      input: JSON.stringify(input),
+      encoding: "utf8",
+      timeout: 10000,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+async function main() {
+  const event = process.argv[2] ?? "";
+  const raw = hookInput();
+  const input = raw;
+
+  const reply = REPLY[event];
+  if (!reply) return;
+  try {
+    const text = event === "session-start" ? run("session-start.mjs", [project, TOOL], input) : run("checkpoint.mjs", [event === "pre-compress" ? "pre-compact" : event, project, TOOL], input);
+    out(reply(event === "session-start" || event === "stop" ? text : ""));
+  } catch {
+    // a hook never stops the tool
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
+",
+  ".gemini/settings.json": "{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-session-start",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs session-start",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-stop",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs stop",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-pre-compress",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs pre-compress",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-session-end",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs session-end",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}
+",
+  "GEMINI.md": "@AGENTS.md
+
+## Gemini CLI
+Each session starts with the project brief from .groundwork/ (a hook adds it). /gw resumes from it and saves.
+",
+}
+`;
+
+exports[`gemini adapter > matches the snapshot, context only and with the flow > flow 1`] = `
+{
+  ".gemini/agents/gw-implementer.md": "---
+name: gw-implementer
+description: Groundwork implementer. Make the card's failing tests pass with the smallest reasonable change.
+---
+You are the Groundwork implementer. Read \`.groundwork/roles/implementer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+",
+  ".gemini/agents/gw-reviewer.md": "---
+name: gw-reviewer
+description: Groundwork reviewer. Check the work with fresh eyes, then pass or send it back.
+tools:
+  - read_file
+  - grep_search
+  - run_shell_command
+---
+You are the Groundwork reviewer. Read \`.groundwork/roles/reviewer.md\` now and follow it exactly.
+Load only the files it lists under Load.
+You judge and do not repair: never edit files.
+",
+  ".gemini/agents/gw-tester.md": "---
+name: gw-tester
+description: Groundwork tester. Turn the current card's acceptance criteria into tests that fail now and will pass when the card is done.
+---
+You are the Groundwork tester. Read \`.groundwork/roles/tester.md\` now and follow it exactly.
+Load only the files it lists under Load.
+",
+  ".gemini/commands/gw-approve.toml": "description = "Use when the human says to approve the waiting card, or a phase in per-phase mode. Checks the evidence and commits."
+prompt = "Read \`.groundwork/commands/gw-approve.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/commands/gw-reject.toml": "description = "Use when the human says to reject the waiting card, with a reason. Sends it back to the implementer."
+prompt = "Read \`.groundwork/commands/gw-reject.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/commands/gw.toml": "description = "Use when a session starts, or the human asks where things stand or to carry on. Says the state and runs the next step."
+prompt = "Read \`.groundwork/commands/gw.md\` now and follow it exactly.\\n\\nArguments: {{args}}"
+",
+  ".gemini/hooks/groundwork.mjs": "// Groundwork hook script for Gemini CLI. Generated by Groundwork; edit .groundwork/hooks/ instead.
+// Usage: node .gemini/hooks/groundwork.mjs <session-start|stop|pre-compress|session-end>
+// It runs .groundwork/hooks/session-start.mjs and checkpoint.mjs and returns their text in the JSON
+// Gemini CLI reads (SessionStart hookSpecificOutput.additionalContext and AfterAgent decision/reason: geminicli.com/docs/hooks/reference).
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// This file lives in <project>/.gemini/hooks/, so the project is two folders up.
+const project = fileURLToPath(new URL("../../", import.meta.url));
+const TOOL = "gemini";
+
+const REPLY = {
+  "session-start": (text) => (text ? { hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: text } } : {}),
+  "stop": (text) => (text ? { decision: "deny", reason: text } : {}),
+  "pre-compress": (text) => ({}),
+  "session-end": (text) => ({}),
+};
+
+function hookInput() {
+  try {
+    return JSON.parse(readFileSync(0, "utf8").replace(/^\\uFEFF/, "") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+const out = (value) => process.stdout.write(JSON.stringify(value) + "\\n");
+
+// Runs one of Groundwork's hook scripts with the hook's input on stdin; "" if it says nothing or fails.
+function run(script, args, input) {
+  const file = join(project, ".groundwork", "hooks", script);
+  if (!existsSync(file)) return "";
+  try {
+    return execFileSync(process.execPath, [file, ...args], {
+      input: JSON.stringify(input),
+      encoding: "utf8",
+      timeout: 10000,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+async function main() {
+  const event = process.argv[2] ?? "";
+  const raw = hookInput();
+  const input = raw;
+
+  const reply = REPLY[event];
+  if (!reply) return;
+  try {
+    const text = event === "session-start" ? run("session-start.mjs", [project, TOOL], input) : run("checkpoint.mjs", [event === "pre-compress" ? "pre-compact" : event, project, TOOL], input);
+    out(reply(event === "session-start" || event === "stop" ? text : ""));
+  } catch {
+    // a hook never stops the tool
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
+",
+  ".gemini/settings.json": "{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-session-start",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs session-start",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-stop",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs stop",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-pre-compress",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs pre-compress",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "groundwork-session-end",
+            "type": "command",
+            "command": "node .gemini/hooks/groundwork.mjs session-end",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command|write_file|replace",
+        "hooks": [
+          {
+            "name": "groundwork-guards",
+            "type": "command",
+            "command": "node .groundwork/guards/run.mjs gemini",
+            "timeout": 30000
+          }
+        ]
+      }
+    ]
+  }
+}
+",
+  "GEMINI.md": "@AGENTS.md
+
+## Gemini CLI
+Each session starts with the project brief from .groundwork/ (a hook adds it). /gw resumes from it and saves.
+",
+}
+`;

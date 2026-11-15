@@ -1,0 +1,77 @@
+---
+title: "Codex"
+---
+
+Groundwork's Codex adapter wires project memory into OpenAI Codex CLI: the brief at session start,
+checkpoints, and `$gw` commands. **It follows Codex's documentation and has not been run inside
+Codex.** Treat the first session as the test, and run `npx groundwork-ai doctor` afterwards.
+
+```bash
+npx groundwork-ai init --adapter codex
+```
+
+Then open Codex in the project, run `/hooks`, and trust Groundwork's hooks. Codex skips a project
+hook until you have reviewed it, and a changed hook needs reviewing again.
+
+## What `init` adds
+
+| Path | What it is |
+|---|---|
+| `.codex/hooks.json` | The hooks below. An existing file is merged, not replaced |
+| `.agents/skills/gw*/SKILL.md` | The commands. Codex reads project skills from `.agents/skills`; you type `$gw` (or pick it with `/skills`) |
+| `.agents/skills/gw-approve/agents/openai.yaml`, `gw-reject/…` | With the flow: `allow_implicit_invocation: false` |
+| `.codex/agents/gw-*.toml` | With the flow: a custom agent for the tester, implementer and reviewer |
+
+Codex reads `AGENTS.md` itself, so no other instruction file is generated. Codex's custom prompts are
+deprecated and live in `~/.codex`, so they are not used.
+
+## What is automated
+
+| Moment | Codex event | What happens |
+|---|---|---|
+| Session starts, resumes, clears, compacts, forks | `SessionStart` (`startup\|resume\|clear\|compact\|fork`) | The brief is printed; Codex adds plain stdout from this event to the model's context |
+| A turn ends | `Stop` | An automatic checkpoint; if the handoff is behind, Codex continues with the reminder as a new prompt, once per commit |
+| Before a compaction | `PreCompact` | An automatic checkpoint. Codex ignores this event's stdout, so the compaction summary is **not** told what to keep |
+| Session closes | `SessionEnd` | A last automatic checkpoint (timeout 3 s, Codex's maximum) |
+
+No memory hook fails closed, and their timeouts are 15 seconds (3 for `SessionEnd`). The command uses
+`$(git rev-parse --show-toplevel)`, the form Codex's own documentation uses, so it finds the project
+from a subfolder. `commandWindows` is the plain relative form for `cmd.exe`, which needs Codex started
+in the project root.
+
+## What is instruction only
+
+- The tool-less rule: `AGENTS.md` tells the agent to run `npx groundwork-ai brief` first and to save with
+  `checkpoint`. It is the only path when hooks are untrusted or switched off.
+- After a compaction, nothing re-adds the brief by itself beyond `SessionStart` with source `compact`.
+
+## With the flow
+
+`init --adapter codex --flow` adds a guard on `PreToolUse` for `Bash` and `apply_patch`: the commit
+gate, the protection of Groundwork's own files and your configured guards. Exit code 2 blocks a call
+and its message goes to the model. **What Codex does not enforce:**
+
+- **The guard is not fail-closed.** Codex's documentation does not say a call is blocked when the hook
+  fails to run, so a hook that cannot start lets the call through. The runner itself blocks when it runs
+  and something is wrong. `doctor` checks the install.
+- **Other tools aren't guarded** (MCP tools, hosted tools such as web search).
+- **Approvals are not bound to your message.** Codex has a `UserPromptSubmit` hook, but its
+  documentation doesn't say what it receives when you invoke a skill, so the recorder is not wired. The
+  commit gate checks the card and its evidence; it cannot tell that a human approved. `gw-approve` and
+  `gw-reject` are set to explicit invocation only (`allow_implicit_invocation: false`), which stops the
+  model picking them itself but does not stop it reading the file.
+- **The reviewer's read-only rule is an instruction.** Codex custom agents have no per-agent
+  read-only setting; the sandbox belongs to the session.
+- **Project config can switch hooks off** (`[features] hooks = false`). Groundwork's guard refuses the
+  agent's edits to `.codex/config.toml` and `.codex/hooks.json`, but only for calls the guard sees.
+
+`init --flow` and `flow on` print this list.
+
+`models` in `.groundwork/config.json` with a `codex` key sets each custom agent's `model`.
+
+## Sources
+
+Read on 2026-11-15: Codex hooks (`learn.chatgpt.com/docs/hooks`), skills
+(`learn.chatgpt.com/docs/build-skills`), custom prompts (`…/custom-prompts`), AGENTS.md
+(`…/agent-configuration/agents-md`) and custom agents (`…/agent-configuration/subagents`). The
+`developers.openai.com/codex/…` addresses redirect there.
