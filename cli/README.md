@@ -11,7 +11,8 @@ Full documentation: [ramesesbarria.github.io/groundwork](https://ramesesbarria.g
 
 ```bash
 cd your-project
-npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
+npx groundwork-ai init        # asks: Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown
+npx groundwork-ai init --adapter claude-code,codex   # or name one or several
 ```
 
 ![Running npx groundwork-ai init: choosing a tool, then the files it creates and the next step.](https://ramesesbarria.github.io/groundwork/demo-install.gif)
@@ -26,7 +27,9 @@ stop you `/gw-approve` (the card is committed) or `/gw-reject` with a reason. Te
 branches with pull-request review as the approval.
 
 Needs Node.js 22+ and git. With Claude Code, use 2.1.295 or later (on Windows, with Git for
-Windows); OpenCode 2.x and any tool that reads `AGENTS.md` work too.
+Windows); OpenCode 2.x, Codex CLI, Cursor, Gemini CLI (with a paid API key) and any tool that reads
+`AGENTS.md` work too. The Codex, Cursor and Gemini CLI adapters follow each tool's documentation and have
+not been run inside the tools themselves.
 
 Next: [your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes).
 What it costs and what it was tested on: [results](https://ramesesbarria.github.io/groundwork/docs/results).
