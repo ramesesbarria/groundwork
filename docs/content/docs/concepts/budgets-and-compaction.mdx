@@ -1,6 +1,6 @@
 ---
 title: "Budgets and compaction"
-description: "Every memory file has a token budget that doctor checks, and compact archives what is over it. Nothing is deleted."
+description: "Every memory file has a token budget that doctor checks, and compact archives old material. Nothing is deleted."
 ---
 
 Memory only helps if it is small enough to load. Each memory file has a budget in
@@ -50,7 +50,9 @@ npx groundwork-ai compact
 
 - Journal entries beyond `budgets.journal`, oldest first, go to `.groundwork/archive/JOURNAL-<year>.md`.
   The newest entry always stays.
-- Superseded decisions go to `.groundwork/archive/decisions/`, and the index is regenerated.
+- Superseded decisions go to `.groundwork/archive/decisions/`, and the index is regenerated. This happens
+  every time `compact` runs, whether or not `decisions` is over its budget: a superseded record is not in
+  force, so it has no place in the brief.
 - Sections of a handoff that Groundwork doesn't define (logs that grew inside it) go to
   `.groundwork/archive/HANDOFF-<date>.md`, with the whole previous handoff.
 

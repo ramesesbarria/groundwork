@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-description: "One command installs project memory in a git repo, for Claude Code, OpenCode or any tool that reads AGENTS.md."
+description: "One command installs project memory in a git repo, for Claude Code, OpenCode, Codex, Cursor, Gemini CLI or any tool that reads AGENTS.md."
 ---
 
 **Groundwork needs Node.js 22 or later and git.** Check with `node --version`; if it's older, install a
@@ -25,7 +25,10 @@ It asks which AI tool you use:
 
 1. **Claude Code**
 2. **OpenCode**
-3. **None**: plain markdown, works with any tool
+3. **Codex**
+4. **Cursor**
+5. **Gemini CLI**
+6. **None**: plain markdown, works with any tool
 
 It works in a new folder or in a project that already has code. Existing `CLAUDE.md` and `AGENTS.md`
 files are never replaced: Groundwork appends its pointer lines and leaves everything else alone.
@@ -34,6 +37,7 @@ You can skip the question with a flag, and preview first:
 
 ```bash
 npx groundwork-ai init --adapter opencode
+npx groundwork-ai init --adapter claude-code,codex   # several tools, separated by commas
 npx groundwork-ai init --dry-run        # show what would change, write nothing
 ```
 
@@ -45,8 +49,11 @@ later. See [The flow](/docs/flow).
 
 Open your AI tool in the project.
 
-- **Claude Code and OpenCode** run a session-start hook that gives the agent the brief, and have a
-  `/gw` command: resume from memory, and save.
+- **Claude Code, OpenCode, Codex, Cursor and Gemini CLI** run a session-start hook that gives the agent
+  the brief, and have a `/gw` command (`$gw` in Codex): resume from memory, and save. Each adapter
+  page says what is automated and what is left to `AGENTS.md`: [Claude Code](/docs/adapters/claude-code),
+  [OpenCode](/docs/adapters/opencode), [Codex](/docs/adapters/codex), [Cursor](/docs/adapters/cursor),
+  [Gemini CLI](/docs/adapters/gemini). In Codex, trust the hooks once with `/hooks`.
 - **Plain markdown**: `AGENTS.md` tells the agent to run `npx groundwork-ai brief` first. Or ask it to
   *"read `.groundwork/commands/gw.md` and follow it"*.
 
@@ -56,7 +63,7 @@ handoff. Next: [your first 10 minutes](/docs/getting-started/first-10-minutes).
 
 <Callout type="info" title="Hooks are not yet verified in a live session">
 The 2.0 hooks have been run as processes with each tool's documented input, but not inside a live
-Claude Code or OpenCode session. If a session doesn't show the brief, run `npx groundwork-ai brief`
+Claude Code, OpenCode, Codex, Cursor or Gemini CLI session. If a session doesn't show the brief, run `npx groundwork-ai brief`
 yourself and tell the agent to read it.
 </Callout>
 
@@ -66,7 +73,7 @@ yourself and tell the agent to read it.
 |---|---|
 | `AGENTS.md` | The short page your agent reads every session. Says to run `brief` first and to save with `checkpoint` |
 | `.groundwork/` | `HANDOFF.md`, `MAP.md`, `DECISIONS.md` and `decisions/`, `LESSONS.md`, `JOURNAL.md`, `config.json`, `memory.md`, the `/gw` command, and the scripts the hooks run |
-| `.claude/` or `.opencode/` | Adapter files: the `/gw` command and the hooks. Plain markdown installs none |
+| `.claude/`, `.opencode/`, `.codex/` and `.agents/`, `.cursor/`, or `.gemini/` and `GEMINI.md` | Adapter files: the `/gw` command and the hooks, for the tools you chose. Plain markdown installs none |
 | `.gitattributes` | Marks images as binary |
 
 Everything under `.groundwork/` is meant to be committed, apart from local state it git-ignores. The

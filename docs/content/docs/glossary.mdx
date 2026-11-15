@@ -13,9 +13,9 @@ description: "The words Groundwork uses, each in one line."
 - **Lesson** — a mistake written down so it doesn't happen twice, kept in `LESSONS.md`; a note, or a rule promoted into `AGENTS.md`.
 - **Journal** — `JOURNAL.md`: one entry per checkpoint, from git.
 - **Budget** — a token ceiling for a memory file, in `config.json`, checked by `doctor`.
-- **Compact** — archive what is over budget to `.groundwork/archive/`. Nothing is deleted.
+- **Compact** — move old journal entries (beyond the budget), superseded decisions and handoff logs to `.groundwork/archive/`. Nothing is deleted.
 - **Worker** — a parallel agent with its own handoff under `.groundwork/work/`, recorded in a ledger.
-- **Adapter** — the files that wire Groundwork into one tool's hooks and commands.
+- **Adapter** — the files that wire Groundwork into one tool's hooks and commands. There are five: Claude Code, OpenCode, Codex, Cursor and Gemini CLI. Any other tool uses `AGENTS.md` alone.
 - **Flow** — the optional development workflow from 1.0: spec, cards, roles, approvals and guards.
 - **Card** — one small piece of work in the flow, with a checklist of what "done" means.
 - **Phase** — a group of cards that together leave something working, like a milestone.

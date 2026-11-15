@@ -14,6 +14,9 @@ export const metadata: Metadata = {
 const tools = [
   ['Claude Code', 'hooks and a /gw skill'],
   ['OpenCode', 'a plugin and /gw'],
+  ['Codex', 'hooks and $gw skills (trust them with /hooks)'],
+  ['Cursor', 'hooks and /gw skills'],
+  ['Gemini CLI', 'hooks, /gw commands and GEMINI.md'],
   ['Anything else', 'AGENTS.md says to run brief first'],
 ];
 
@@ -92,7 +95,7 @@ export default function QuickstartPage() {
               />
             </Terminal>
             <p className="mt-3 text-sm text-muted">
-              Not using Claude Code or OpenCode? Ask your agent to{' '}
+              Not using one of these tools? Ask your agent to{' '}
               <em className="text-foreground">“read .groundwork/commands/gw.md and follow it”</em>.
             </p>
           </Stage>
@@ -100,8 +103,8 @@ export default function QuickstartPage() {
           <Stage n="04" title="Work, and let it save">
             <p className="text-[15px] leading-relaxed text-muted">
               When a step finishes, and before the session stops, the agent saves. The command writes the time, commit and
-              branch; the agent writes only what is in progress and what is next. In Claude Code and OpenCode the hooks
-              also checkpoint when a turn ends, before a compaction and when a session closes.
+              branch; the agent writes only what is in progress and what is next. In the tools above the hooks
+              also checkpoint when a turn ends, before a compaction and when a session closes (OpenCode has no session-end hook).
             </p>
             <pre className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-[12px] leading-relaxed sm:text-[13px]">
               npx groundwork-ai checkpoint --now &quot;Login form renders; validation not wired&quot; --next &quot;Wire validation in src/login.ts&quot;

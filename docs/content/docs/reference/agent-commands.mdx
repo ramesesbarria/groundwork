@@ -8,8 +8,8 @@ save. Everything else memory does is a terminal command (`brief`, `checkpoint`, 
 
 ## `/gw` with project memory
 
-`/gw` is a command file, `.groundwork/commands/gw.md`, exposed as a native command in Claude Code and
-OpenCode. In any other tool, ask your agent to *"read `.groundwork/commands/gw.md` and follow it"*.
+`/gw` is a command file, `.groundwork/commands/gw.md`, exposed as a native command in Claude Code, OpenCode,
+Cursor and Gemini CLI (`/gw`) and Codex (`$gw`). In any other tool, ask your agent to *"read `.groundwork/commands/gw.md` and follow it"*.
 
 It runs `npx groundwork-ai brief` unless the session already shows it, says where things stand in a
 sentence or two (and what changed, if the handoff isn't `fresh`), then takes the first row that
@@ -50,8 +50,8 @@ step.
 | Save where things stand before you stop | `gw-handoff` |
 | Turn repeated mistakes into rules | `gw-retro` |
 
-By default Claude Code and OpenCode install only three native commands: `/gw`, `/gw-approve` and
-`/gw-reject`. The rest of the helpers in the table stay in `.groundwork/commands/`; `/gw` reads the
+By default the adapters install only three native commands: `/gw`, `/gw-approve` and
+`/gw-reject` (with the flow on; a context-only install has `/gw` alone). The rest of the helpers in the table stay in `.groundwork/commands/`; `/gw` reads the
 one the task needs, so the always-loaded list stays small. You can still ask for a helper by name.
 In any other tool, ask your agent to *"read `.groundwork/commands/<name>.md` and follow it"*. The
 commands are written so an agent can also pick the right one from a plain request - you don't have

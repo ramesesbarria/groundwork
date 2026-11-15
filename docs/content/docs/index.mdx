@@ -14,7 +14,7 @@ brief that says where things stand and how far the handoff can be trusted. The C
 
 ```bash
 cd your-project
-npx groundwork-ai init      # Claude Code, OpenCode, or plain markdown
+npx groundwork-ai init      # Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown
 ```
 
 Then open your AI tool in the project and type `/gw`.
@@ -45,6 +45,6 @@ Each has a [token budget](/docs/concepts/budgets-and-compaction); `compact` arch
 ## What is verified, and what isn't
 
 The 2.0 hooks have been run as processes with each tool's documented input, not inside live Claude
-Code or OpenCode sessions, and OpenCode's idle-event checkpoint hasn't been tried live. The one
+Code, OpenCode, Codex, Cursor or Gemini CLI sessions, and OpenCode's idle-event checkpoint hasn't been tried live. The Codex, Cursor and Gemini CLI adapters follow each tool's documentation. The one
 [comparison](/docs/results) we have was run on 1.0 with the flow on; memory alone hasn't been
 measured. [What it costs](/docs/concepts/cost) explains where the tokens go.

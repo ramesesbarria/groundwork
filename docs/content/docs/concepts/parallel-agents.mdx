@@ -39,7 +39,7 @@ npx groundwork-ai worker done auth-tests --outcome "accepted: 14 tests rerun, me
 ```
 
 This removes the line from Workers in flight, logs the outcome in the ledger, and sets the worker's
-`state: done`. `worker list` shows the workers that have a handoff. `worker start` and `worker done`
+`state: done`. `worker list` shows the workers that have a handoff, and in its text output also those started but not yet saved (`--json` is handoffs only); `status` lists both. `worker start` and `worker done`
 are refused in a linked worktree, since they write the root handoff.
 
 The ledger is a log of events (start, done) with the date and commit:

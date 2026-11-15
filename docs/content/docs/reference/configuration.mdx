@@ -130,13 +130,14 @@ keyed by adapter name, since each tool names models its own way:
     "implementer": "<a mid-tier model>",
     "reviewer": {
       "claude-code": "<the strongest model>",
-      "opencode": "<provider>/<model>"
+      "opencode": "<provider>/<model>",
+      "codex": "<model>"
     }
   }
 }
 ```
 
-The idea: cheaper models for the mechanical roles, the strongest for the reviewer's judgment. Leave a
+The idea: cheaper models for the mechanical roles, the strongest for the reviewer's judgment. `cursor` and `gemini` keys work the same way. Leave a
 role out to use the tool's default. `doctor` warns about role names that don't exist.
 
 ## Changing settings mid-project

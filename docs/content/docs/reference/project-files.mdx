@@ -88,6 +88,13 @@ Depending on the tool you chose, `init` also adds:
   [Claude Code](/docs/adapters/claude-code).
 - **OpenCode**: `.opencode/commands/` and a plugin in `.opencode/plugins/`; with the flow, agents too.
   See [OpenCode](/docs/adapters/opencode).
+- **Codex**: `.codex/hooks.json` and `.agents/skills/gw*/` (you type `$gw`); with the flow, custom
+  agents in `.codex/agents/`. See [Codex](/docs/adapters/codex).
+- **Cursor**: `.cursor/hooks.json`, a script in `.cursor/hooks/`, and `.cursor/skills/gw*/`; with the
+  flow, subagents in `.cursor/agents/`. See [Cursor](/docs/adapters/cursor).
+- **Gemini CLI**: `.gemini/settings.json` with the hooks, a script in `.gemini/hooks/`,
+  `.gemini/commands/gw*.toml` and a `GEMINI.md` that imports `AGENTS.md`; with the flow, subagents in
+  `.gemini/agents/`. See [Gemini CLI](/docs/adapters/gemini).
 - **Plain markdown**: nothing else. `AGENTS.md` plus the files above. See
   [Other tools](/docs/adapters/other-tools).
 

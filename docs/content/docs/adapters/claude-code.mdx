@@ -86,7 +86,7 @@ subagents, **PreToolUse** and **UserPromptSubmit** come with the flow (`init --f
   `/gw-approve` message records an approval; any other message clears it.
 
 What this enforces, and where it stops, is in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 **The guard fails closed.** If the tool call, `config.json` or a guard can't be read or run, the
 runner blocks the call and says how to repair it. If the runner can't start at all (its file is

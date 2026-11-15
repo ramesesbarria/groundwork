@@ -14,9 +14,11 @@ your tool's files. [Project files](/docs/reference/project-files) lists them all
 
 ## Which AI tools work?
 
-Any tool that reads files, plus adapters for **Claude Code** and **OpenCode** that run hooks and add
-`/gw`. Other tools read `AGENTS.md`, which tells the agent to run `npx groundwork-ai brief` first. See
-[Other tools](/docs/adapters/other-tools).
+Any tool that reads files, plus adapters for **Claude Code**, **OpenCode**, **Codex**, **Cursor** and
+**Gemini CLI** that wire hooks and add `/gw`. The Codex, Cursor and Gemini CLI adapters follow each
+tool's documentation and have not been run inside the tool. Other tools read `AGENTS.md`, which tells the agent to run `npx groundwork-ai brief` first. See
+[Other tools](/docs/adapters/other-tools), [Codex](/docs/adapters/codex), [Cursor](/docs/adapters/cursor)
+and [Gemini CLI](/docs/adapters/gemini).
 
 ## Do I have to use the CLI?
 
@@ -40,11 +42,12 @@ The memory hooks never block work: they always exit 0 and give up after 8 second
 the agent to save, once per commit; `"nudge": false` in `config.json` turns that off. With the optional
 flow on, guards and the commit gate can refuse a commit, by design.
 
-## Do the hooks work in Claude Code and OpenCode?
+## Do the hooks work in my tool?
 
 They have been run as processes with each tool's documented input, but not yet inside a live Claude
-Code or OpenCode session. OpenCode's idle-event checkpoint follows its plugin documentation and hasn't
-been tried live. If a session doesn't show the brief, run `npx groundwork-ai brief`.
+Code, OpenCode, Codex, Cursor or Gemini CLI session. OpenCode's idle-event checkpoint follows its
+plugin documentation and hasn't been tried live. The Codex, Cursor and Gemini CLI adapters were built
+from each tool's documentation and have never run inside the tool. If a session doesn't show the brief, run `npx groundwork-ai brief`.
 
 ## Does it work on an existing project?
 
@@ -114,10 +117,10 @@ touched. [Upgrading from 1.x](/docs/getting-started/upgrading).
 ## How do I uninstall it?
 
 Run `npx groundwork-ai uninstall` (add `--dry-run` to preview). It removes only what Groundwork added:
-its commands, skills and plugin, its hook entries in `.claude/settings.json`, its pointer lines in
+its commands, skills and plugin, its hook entries in `.claude/settings.json`, `.codex/hooks.json`, `.cursor/hooks.json` and `.gemini/settings.json`, its pointer lines in
 `AGENTS.md` and `CLAUDE.md`, and its lines in `.gitattributes`. Files you changed are kept and listed.
 It asks once before deleting `.groundwork/`, which holds your memory; `--keep-state` keeps it. Don't
-delete `.claude/` or `.opencode/` wholesale: they also hold your own settings.
+delete `.claude/`, `.opencode/`, `.codex/`, `.cursor/` or `.gemini/` wholesale: they also hold your own settings.
 
 ## Is it ready for real projects?
 

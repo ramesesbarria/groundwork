@@ -13,7 +13,7 @@ git status --short
 ```
 
 A `.groundwork/` folder, an `AGENTS.md`, and your tool's files (`.claude/` and `CLAUDE.md` for Claude
-Code, `.opencode/` for OpenCode). Open `.groundwork/HANDOFF.md`: it is empty on purpose. The agent
+Code, `.opencode/` for OpenCode, `.codex/` and `.agents/` for Codex, `.cursor/` for Cursor, `.gemini/` and `GEMINI.md` for Gemini CLI). Open `.groundwork/HANDOFF.md`: it is empty on purpose. The agent
 writes it; you don't have to.
 
 ## 2. Type `/gw` once
@@ -43,9 +43,10 @@ Journal: one entry added to .groundwork/JOURNAL.md.
 ```
 
 The agent wrote the two sentences. The command wrote the rest: the time, the commit, the branch, how
-many files were uncommitted, which tool wrote it, and a journal entry from git. In Claude Code and
-OpenCode the hooks also checkpoint when a turn ends, before a compaction and when the session closes,
-and ask the agent to save if the handoff is behind.
+many files were uncommitted, which tool wrote it, and a journal entry from git. In Claude Code,
+OpenCode, Codex, Cursor and Gemini CLI the hooks also checkpoint when a turn ends, before a
+compaction and when the session closes (OpenCode has no session-end hook), and ask the agent to save
+if the handoff is behind. What each tool does and doesn't automate is on its [adapter page](/docs/adapters/codex).
 
 ## 4. Come back later
 

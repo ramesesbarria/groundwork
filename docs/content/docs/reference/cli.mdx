@@ -43,7 +43,7 @@ cd your-project
 npx groundwork-ai init
 ```
 
-Asks which AI tool to set up (Claude Code, OpenCode, or plain markdown), then copies project memory
+Asks which AI tool to set up (Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown), then copies project memory
 into `.groundwork/` (handoff, map, decisions, lessons, journal, and the hooks that load and save
 them), writes `AGENTS.md`, and generates the adapter's files. That is the default install. `--flow`
 adds the development flow on top: spec, cards, roles, approval before each commit, and guards. Existing `CLAUDE.md` and
@@ -51,7 +51,7 @@ adds the development flow on top: spec, cards, roles, approval before each commi
 
 | Flag | Effect |
 |---|---|
-| `--adapter claude-code\|opencode\|none` | Skip the question |
+| `--adapter claude-code\|opencode\|codex\|cursor\|gemini\|none` | Skip the question. Name one, or several separated by commas (`--adapter claude-code,codex`); `none` stands alone |
 | `--flow` | Also install the development flow (later: [`flow on`](#flow)) |
 | `--dry-run` | Show what would change, write nothing |
 
@@ -154,7 +154,8 @@ npx groundwork-ai worker list
 Records parallel workers from the main checkout. `start` adds the worker to **Workers in flight** in
 the root handoff and to `.groundwork/work/LEDGER.md`; `done` takes it out and marks its handoff
 done. Each worker writes only its own `.groundwork/work/<id>/HANDOFF.md`: in a linked git worktree
-`checkpoint` and `brief` choose it automatically, elsewhere pass `--worker <id>`.
+`checkpoint` and `brief` choose it automatically, elsewhere pass `--worker <id>`. `list` shows worker handoffs, plus (in the text output) workers that
+were started and haven't saved one yet; `status` and the brief show workers in flight too.
 
 ## compact
 
@@ -207,7 +208,7 @@ Without a terminal to ask in, `upgrade` changes nothing unless you pass `--yes`.
 ## adapter add
 
 ```bash
-npx groundwork-ai adapter add opencode
+npx groundwork-ai adapter add opencode   # or claude-code, codex, cursor, gemini
 ```
 
 Adds or refreshes one tool's files (commands, subagents, hooks), built from your project's own

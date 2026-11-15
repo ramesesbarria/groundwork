@@ -26,12 +26,15 @@ const memory = [
   { file: 'DECISIONS.md', body: 'A generated index of one record per decision, with the options and the reason.', href: '/docs/concepts/decisions' },
   { file: 'LESSONS.md', body: 'What went wrong once and must not again: a note, or a rule promoted into AGENTS.md.', href: '/docs/concepts/lessons-ledger' },
   { file: 'JOURNAL.md', body: 'One entry per checkpoint, derived from git: the commits and files since the last one.', href: '/docs/concepts/journal' },
-  { file: 'budgets', body: 'Each file has a token budget that doctor checks. compact archives what is over it and never deletes.', href: '/docs/concepts/budgets-and-compaction' },
+  { file: 'budgets', body: 'Each file has a token budget that doctor checks. compact archives old material and never deletes.', href: '/docs/concepts/budgets-and-compaction' },
 ];
 
 const tools = [
   { name: 'Claude Code', body: 'Hooks at session start, stop, before compaction and session end, and a /gw skill.' },
   { name: 'OpenCode', body: 'A plugin: the brief at session start, a checkpoint when the session goes idle, instructions at compaction.' },
+  { name: 'Codex', body: 'Hooks at session start, stop, before compaction and session end, and $gw skills. Trust the hooks once with /hooks; the compaction summary is not told what to keep.' },
+  { name: 'Cursor', body: 'Hooks at conversation start, stop, before compaction and session end, and /gw skills. A resumed conversation relies on AGENTS.md for the brief.' },
+  { name: 'Gemini CLI', body: 'Hooks at session start, after each response, before compression and session end, and /gw commands. Google’s docs say it stays available with paid API keys.' },
   { name: 'Anything else', body: 'AGENTS.md tells the agent to run brief first and to save with checkpoint.' },
 ];
 
@@ -171,7 +174,7 @@ export default function HomePage() {
         </div>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
           Not yet verified: the 2.0 hooks have been run as processes with each tool’s documented input, not inside a live
-          Claude Code or OpenCode session, and OpenCode’s idle-event checkpoint hasn’t been tried live. Hooks never block
+          Claude Code, OpenCode, Codex, Cursor or Gemini CLI session, and OpenCode’s idle-event checkpoint hasn’t been tried live. The Codex, Cursor and Gemini CLI adapters follow each tool’s documentation and have never run inside the tool. Hooks never block
           work: they always exit 0 and give up after 8 seconds.
         </p>
       </Section>
