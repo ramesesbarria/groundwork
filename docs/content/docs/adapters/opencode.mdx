@@ -1,87 +1,61 @@
 ---
 title: "OpenCode"
+description: "Every OpenCode session knows where your project stands, through one small plugin."
 ---
 
-Groundwork's OpenCode adapter adds commands, subagents with permissions, and a plugin for guards
-and session-start orientation. **It needs OpenCode 2.x** (tested with 2.0.16, 2.0.18, 2.0.32 and 2.1.0).
-The plugin uses `Plugin.define`. In a 2.0.32 check with `opencode run --standalone`, a plugin in
-the older `export default { id, setup }` form also loaded, so an older project keeps its guards
-until it upgrades.
+In OpenCode, a plugin gives every session the brief and saves your work when a turn finishes and
+before a compaction. Type `/gw` to resume or save. Needs OpenCode 2.x.
 
-## What `init` adds
-
-| Path | What it is |
-|---|---|
-| `.opencode/commands/gw*.md` | Commands for `/gw`, `/gw-approve` and `/gw-reject`; other helpers are read from `.groundwork/commands/` on demand |
-| `.opencode/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, with permissions |
-| `.opencode/plugins/groundwork-guards.js` | With the flow: runs Groundwork's checks and your guards before each tool call, tells each session where things stand, and checkpoints it |
-| `.opencode/plugins/groundwork-memory.js` | Without the flow (the default install): tells each session where things stand, and checkpoints it |
-
-OpenCode reads `AGENTS.md` itself, so no extra rules file is generated.
-
-For non-interactive `opencode run`, use `--standalone`. The shared background service did not load
-the project's plugin in the 2.0.32 check, while a standalone run did; the interactive TUI loads the
-project's files normally.
-
-## Subagents with permissions
-
-Planning runs in your main session, so the planner has a role file but no subagent.
-
-| Subagent | Permission | Why |
-|---|---|---|
-| `gw-tester` | — | Writes and runs failing tests |
-| `gw-implementer` | — | Makes them pass |
-| `gw-reviewer` | `edit: deny` (covers edit, write and patch) | Judges and sends back; has a shell for checks only |
-
-If you set [`models`](/docs/reference/configuration#models-per-role) with an `opencode` key, the model
-is written into each subagent.
-
-## Guards
-
-The plugin hooks `execute.before` for every tool call, including `patch`/`apply_patch` edits. It
-runs the same checks as in Claude Code: the **commit-gate** (a commit naming a card needs that card
-`done` and passing [`groundwork check`](/docs/reference/cli#check)), **protect-harness** (the agent
-can't remove guards, turn the checks off or switch to `per-phase`), then the guards listed in
-`.groundwork/config.json`. A block throws, and OpenCode stops the call. If the config can't be read,
-commits are blocked and everything else goes through, with a warning. New installs start with
-`no-ai-trailers` on.
-
-```json
-{ "guards": ["no-ai-trailers"] }
+```bash
+npx groundwork-ai init --adapter opencode     # or: npx groundwork-ai adapter add opencode
 ```
 
-Add a guard's name to the list and put its `.mjs` file in `.groundwork/guards/` — the same guard
-files work in every adapter, because they're plain Node.
+## What happens when
+
+| When | How | What happens |
+|---|---|---|
+| A session starts | The `context` hook | The brief is added to the system prompt, refreshed at most every 15 seconds |
+| A turn ends | The `session.idle` event | A [checkpoint](/docs/reference/cli#checkpoint). If the handoff is behind, a reminder to save rides on the next model call |
+| Before a compaction | The `compaction` hook | A checkpoint, and the summary is told what to keep |
+| The session ends | Nothing | OpenCode has no session-end hook |
+| You type `/gw` | Command | Resume from memory, or save |
 
 ## Session start
 
-The plugin also hooks the session's `context`: it adds the project brief that Claude Code's
-session-start hook prints (from `.groundwork/hooks/session-start.mjs`: the handoff, how fresh it
-is, decisions, rules and the map) to the system prompt, so a new session already knows where things
-stand and what's next. It's rebuilt at most every 15 seconds, and skipped for Groundwork's own
-subagents, which get their card from the runner.
+The brief comes from `.groundwork/hooks/session-start.mjs`, the same script every adapter uses. It
+is what [`npx groundwork-ai brief`](/docs/reference/cli#brief) prints.
 
-## Checkpoints
+## Files it writes
 
-The plugin registers the `compaction` session hook, where it runs an automatic
-[checkpoint](/docs/reference/cli#checkpoint) and tells the summary what to keep, and it listens for
-`session.idle` on the event stream to checkpoint a session that has finished a turn. OpenCode has
-no hook that can speak at idle, so a reminder to save a handoff that is behind is added to the next
-model call instead. These two registrations follow OpenCode's 2.x plugin documentation and have not
-yet been run against a live OpenCode; if either is unavailable the plugin warns and keeps the rest.
+| Path | What it is |
+|---|---|
+| `.opencode/plugins/groundwork-memory.js` | The plugin: the brief and the checkpoints |
+| `.opencode/commands/gw.md` | The `/gw` command |
 
-## Human-only commands
+OpenCode reads `AGENTS.md` itself. For non-interactive runs, use `opencode run --standalone` so the
+project's plugin loads.
 
-`/gw-approve` and `/gw-reject` are ordinary commands whose text says only the human runs them, and
-the runner is instructed never to run them. The commit gate backs that up: it refuses to commit a
-card that isn't `done` or lacks evidence, and in `per-card` mode one without your own `/gw-approve`
-for the work as it is now. The plugin records your own prompt submissions in a top-level session in `.groundwork/.approvals/`;
-subagent tasks arrive as prompts in a child session and are ignored, so a spawned agent can't record
-its own approval. OpenCode hands the plugin a command picked from the menu as its expanded text, with
-no command name, so Groundwork's `/gw-approve` and `/gw-reject` files start with the command line
-itself, and only a message whose first line is that command counts. This tells a command from
-conversation; it doesn't prove who sent it. A later
-human message clears the approval by design, so `/gw-approve` and the commit it authorizes belong in
-the same turn. A change to the spec, a decision, declared context, the card, or the code after the
-approval is refused by the gate. On an older 2.x whose plugin API lacks the prompt hook, the gate
-falls back to checking the card alone, as before.
+## With the optional flow on
+
+`init --flow` or `flow on` adds:
+
+| Added | What it does |
+|---|---|
+| `/gw-approve`, `/gw-reject` | Commands for you. Only a message whose first line is the command counts as an approval |
+| `.opencode/agents/gw-*.md` | Tester, implementer and reviewer subagents. The reviewer has `edit: deny` |
+| `.opencode/plugins/groundwork-guards.js` | Replaces the memory plugin. Before every tool call it runs the commit gate, protects Groundwork's own files, and runs your guards |
+
+What it does not enforce:
+
+- **Who typed the approval.** The plugin records prompts from your top-level session and ignores
+  subagents. That tells a command from conversation. It doesn't prove who sent it.
+- **The model running an approval command.** The commands say they are for the human, and the runner
+  is told never to run them. Nothing stops it outright.
+- **Everything, when the config can't be read.** Commits are blocked. Other calls go through with a
+  warning.
+
+## Status
+
+Built from OpenCode's 2.x plugin documentation. The compaction hook and the idle-event checkpoint
+have not yet been run inside a live session. If either is unavailable, the plugin warns and keeps the
+rest working.

@@ -1,124 +1,63 @@
 ---
 title: "Claude Code"
+description: "Every Claude Code session starts with your project's brief and saves on its way out."
 ---
 
-Groundwork's Claude Code adapter turns the core into native skills, subagents and hooks. Everything
-it generates points back into `.groundwork/`, so the core stays the single source of truth.
+In Claude Code, every session starts with the brief, and your work is saved when a turn ends, before
+a compaction and when the session closes. Type `/gw` to resume or save.
 
-Needs **Claude Code 2.1.295 or later**, and Git for Windows on Windows (see Hooks below). Checked
-with Claude Code 2.1.304 in 2026-10: a person built, rejected, reworked, approved and resumed a
-project, including a stale approval, and scripted runs covered the commit gate and a guard that
-can't run.
+```bash
+npx groundwork-ai init --adapter claude-code     # or: npx groundwork-ai adapter add claude-code
+```
 
-## What `init` adds
+Needs Git for Windows on Windows: Claude Code runs hooks with Git Bash.
+
+## What happens when
+
+| When | Hook | What happens |
+|---|---|---|
+| A session starts, resumes, is cleared or compacted | `SessionStart` | `.groundwork/hooks/session-start.mjs` prints the [brief](/docs/reference/cli#brief) into the session |
+| A turn ends | `Stop` | A [checkpoint](/docs/reference/cli#checkpoint). If the handoff is behind, the agent is asked to save it, once per commit |
+| Before a compaction | `PreCompact` | A checkpoint, and the summary is told what to keep |
+| The session ends | `SessionEnd` | A last checkpoint |
+| You type `/gw` | Skill | Resume from memory, or save |
+
+The `SessionStart` matcher is `startup|resume|clear|compact`. These hooks never block your work. Set `"nudge": false` in `.groundwork/config.json` to drop the
+reminder and keep the checkpoint.
+
+## Files it writes
 
 | Path | What it is |
 |---|---|
-| `.claude/skills/gw*/SKILL.md` | Skills for the three default commands (`/gw`, `/gw-approve`, `/gw-reject`); other helpers are read from `.groundwork/commands/` on demand |
-| `.claude/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, each with limited tools |
-| `.claude/settings.json` | Project-memory hooks (session start, stop, pre-compact, session end); with the flow, also the guard runner and the approval recorder |
-| `CLAUDE.md` | A short pointer whose first line loads `AGENTS.md`, then lists the commands and subagents |
+| `.claude/settings.json` | The hooks. Merged into your file, never replaced |
+| `.claude/skills/gw/SKILL.md` | The `/gw` command |
+| `CLAUDE.md` | A short pointer that loads `AGENTS.md` |
 
-## Skills that trigger themselves
+`npx groundwork-ai doctor` checks the wiring and gives the fix for anything missing.
 
-Each command's description is written as a trigger — *"Use when the human describes a new app or
-feature idea and there's no confirmed spec yet…"* — so Claude Code can pick the right one from a
-plain request like *"I have an app idea"*. You don't have to learn command names.
+## With the optional flow on
 
-`/gw-approve` and `/gw-reject` are **human-only**: they carry `disable-model-invocation`, so the
-model can't run them as skills. That alone wouldn't stop a model reading the command file or
-running `git commit` itself, so the commit gate backs it up: in `per-card` mode a card commit needs
-your own `/gw-approve` for the work as it is now (see Hooks below).
+`init --flow` or `flow on` adds, and needs **Claude Code 2.1.295 or later**:
 
-## Subagents with different limits
+| Added | What it does |
+|---|---|
+| `/gw-approve`, `/gw-reject` | Human-only skills: `disable-model-invocation` stops the model running them |
+| `.claude/agents/gw-*.md` | Tester, implementer and reviewer subagents. The reviewer has no file-edit tool |
+| `PreToolUse` guard | Runs the commit gate, protects Groundwork's own files, and runs your guards before every shell command and file write. It fails closed (`"onFailure": "block"`) |
+| `UserPromptSubmit` recorder | Records your own `/gw-approve`, so a card commit needs your approval of the work as it is now |
 
-The tester, implementer and reviewer each become a subagent with only the tools they need. Planning
-runs in your main session, so the planner has a role file but no subagent.
+What it does not enforce:
 
-| Subagent | Tools | Why |
-|---|---|---|
-| `gw-tester` | Read, Grep, Glob, Write, Edit, Bash | Writes and runs failing tests |
-| `gw-implementer` | Read, Grep, Glob, Write, Edit, Bash | Makes them pass |
-| `gw-reviewer` | Read, Grep, Glob, Bash — **no file-edit tool** | Judges and sends back |
+- **Test files.** Nothing stops the implementer editing a test. The reviewer checks the diff for it.
+- **A determined agent.** A shell can be used in ways a hook can't foresee. For a hard gate, run
+  `npx groundwork-ai check` in CI.
+- **Older Claude Code.** Before 2.1.295, a guard that can't start lets the call through.
 
-The tester and implementer are *told* which files are theirs; nothing in the tools stops the
-implementer editing a test, so the reviewer checks the diff for it. The reviewer has a shell for
-running checks, and its role file allows it to write only into `.groundwork/evidence/`.
+If the guard itself breaks, every shell command and file write is blocked until you fix it from your
+own terminal: run `npx groundwork-ai doctor`, then restore the files from git or run
+`npx groundwork-ai upgrade`.
 
-If you set [`models`](/docs/reference/configuration#models-per-role) per role, they're written into each
-subagent — cheap models for mechanical roles, the strongest for review.
+## Status
 
-## Hooks
-
-`init` **merges** into an existing `.claude/settings.json` instead of overwriting it, so your own
-permissions and hooks survive.
-
-A default install (project memory only) adds the first four hooks below and the `/gw` skill; the
-subagents, **PreToolUse** and **UserPromptSubmit** come with the flow (`init --flow` or
-`npx groundwork-ai flow on`).
-
-- **SessionStart** (`startup|resume|clear|compact`) runs `.groundwork/hooks/session-start.mjs`, which
-  prints the project brief: the handoff, a verdict on how fresh it is against the repository, the
-  decisions in force, the rules and the map, inside `budgets.brief`. It is what
-  [`groundwork brief`](/docs/reference/cli#brief) prints. It injects project state, not methodology,
-  and prints nothing if `.groundwork/` isn't there.
-- **Stop** runs `.groundwork/hooks/checkpoint.mjs stop`: an automatic
-  [checkpoint](/docs/reference/cli#checkpoint) (the journal gets the commits since its last entry),
-  and when the handoff is behind the repository the agent is asked, once per commit, to save it.
-  Set `"nudge": false` in `.groundwork/config.json` to keep the checkpoint and drop the question.
-- **PreCompact** runs the same script with `pre-compact`: an automatic checkpoint, and its output
-  tells the compaction summary what to keep (what is in progress, the next step, blockers).
-- **SessionEnd** runs it with `session-end`: a last automatic checkpoint.
-
-  These three never block: the script always exits 0 and none sets `onFailure`.
-- **PreToolUse** (`Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit`) runs
-  `.groundwork/guards/run.mjs` before every shell command (Bash, or PowerShell on Windows) and file
-  write. Exit code 2 blocks the action and shows the reason. It runs
-  two built-in checks, then the guards listed in your config:
-  - **commit-gate**: a commit whose message names a card needs that card `done` and passing
-    [`groundwork check`](/docs/reference/cli#check), and in `per-card` mode your `/gw-approve` for
-    the work as it is now. A commit that names no card needs a tag such as `[quick]`.
-  - **protect-harness**: the agent can't remove guards, turn these checks off, relax the approval
-    mode, switch to PR integration, run `migrate`, take Groundwork's hooks out of settings, or
-    remove or move the folders that hold them. You can, in your editor or terminal.
-- **UserPromptSubmit** runs `.groundwork/hooks/user-prompt.mjs` on each message *you* send (never on
-  the agent's own actions) and records it in `.groundwork/.approvals/` (git-ignored). Only a
-  `/gw-approve` message records an approval; any other message clears it.
-
-What this enforces, and where it stops, is in
-[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
-
-**The guard fails closed.** If the tool call, `config.json` or a guard can't be read or run, the
-runner blocks the call and says how to repair it. If the runner can't start at all (its file is
-gone, or Node fails), the hook's `"onFailure": "block"` makes Claude Code block the call. That field
-needs **Claude Code 2.1.295 or later**
-([hooks reference](https://code.claude.com/docs/en/hooks)); earlier versions let the call through
-when the guard can't run, and `doctor` reports the version it finds. On Windows, Claude Code runs
-the hooks with Git Bash, so Groundwork needs Git for Windows. New installs start with
-`no-ai-trailers` on.
-
-When the guard is broken, every Bash, PowerShell, Write and Edit call is blocked until you repair it
-from your own terminal:
-
-1. `npx groundwork-ai doctor` says what's wrong.
-2. If Groundwork's files are committed, restore them from Git, e.g.
-   `git restore --source=HEAD -- .groundwork/guards .groundwork/hooks .groundwork/config.json .claude/settings.json`.
-3. If they aren't, delete a damaged guard or hook file and run `npx groundwork-ai upgrade`, which
-   writes it again. A missing `config.json` comes back with `npx groundwork-ai init`, which creates
-   only missing files; set your choices in it again.
-4. To take Groundwork out instead, `npx groundwork-ai uninstall --keep-state` removes the hooks and
-   keeps your project files.
-
-These checks stop the lazy or overconfident shortcut and make a deliberate one visible. An agent
-set on getting around them can still use the shell in ways a hook can't foresee; for a hard gate,
-run `npx groundwork-ai check` in CI.
-
-## Checking the wiring
-
-```bash
-npx groundwork-ai doctor
-```
-
-Flags a missing hook, a guard hook without `"onFailure": "block"`, a Claude Code older than
-2.1.295 (or says the version is unknown), a `CLAUDE.md` that doesn't load `AGENTS.md`, and generated
-files that have drifted from what Groundwork would generate, with the command to fix each.
+Built from Claude Code's hook documentation. The memory hooks have not yet been run inside a live
+session. If a session doesn't show the brief, run `npx groundwork-ai brief` yourself.
