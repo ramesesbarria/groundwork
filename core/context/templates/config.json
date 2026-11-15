@@ -1,0 +1,15 @@
+{
+  "$schema": "./config.schema.json",
+  "flow": false,
+  "tokenBudget": 2000,
+  "budgets": {
+    "brief": 1500,
+    "handoff": 600,
+    "map": 800,
+    "decisions": 600,
+    "lessons": 1200,
+    "journal": 2500
+  },
+  "staleAfterDays": 14,
+  "nudge": true
+}

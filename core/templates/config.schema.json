@@ -11,8 +11,15 @@
   "$defs": {
     "modelHint": {
       "oneOf": [
-        { "type": "string" },
-        { "type": "object", "additionalProperties": { "type": "string" } }
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
       ]
     }
   },
@@ -23,6 +30,11 @@
     "version": {
       "description": "The Groundwork version that installed or last upgraded this project's .groundwork/ files. Written by `groundwork init` and `groundwork upgrade`; `groundwork doctor` compares it with the CLI.",
       "type": "string"
+    },
+    "flow": {
+      "description": "Whether the development flow (cards, roles, approval, commit checks) is installed on top of project memory. Only the human changes it, with `groundwork flow on` or `groundwork flow off`. Installs from before 2.0 have no key and count as on.",
+      "type": "boolean",
+      "default": false
     },
     "setup": {
       "description": "Whether gw-setup has run for this project. init writes pending; gw-setup sets done. /gw runs setup until it's done.",
@@ -46,7 +58,10 @@
     },
     "integration": {
       "description": "local: card commits are gated by the local approval rules. pr: local task-branch commits are checkpoints; pull-request review and required checks govern integration. In pr mode the local commit gate does not demand a human approval line, and check does not require one for done cards.",
-      "enum": ["local", "pr"],
+      "enum": [
+        "local",
+        "pr"
+      ],
       "default": "local"
     },
     "experience": {
@@ -62,6 +77,54 @@
       "type": "integer",
       "minimum": 500
     },
+    "budgets": {
+      "description": "Maximum estimated tokens (about 4 characters each) per memory file, checked by `groundwork doctor`; `groundwork compact` brings the journal, decisions and handoff back under them. brief is the size of what `groundwork brief` prints and a session start loads.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "brief": {
+          "type": "integer",
+          "minimum": 300,
+          "default": 1500
+        },
+        "handoff": {
+          "type": "integer",
+          "minimum": 150,
+          "default": 600
+        },
+        "map": {
+          "type": "integer",
+          "minimum": 150,
+          "default": 800
+        },
+        "decisions": {
+          "type": "integer",
+          "minimum": 150,
+          "default": 600
+        },
+        "lessons": {
+          "type": "integer",
+          "minimum": 150,
+          "default": 1200
+        },
+        "journal": {
+          "type": "integer",
+          "minimum": 300,
+          "default": 2500
+        }
+      }
+    },
+    "staleAfterDays": {
+      "description": "A handoff older than this many days is reported as stale, whatever git says.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 14
+    },
+    "nudge": {
+      "description": "Whether the stop hook asks the agent, once per commit, to save a handoff that is behind the repository. false: hooks still record the journal, and never speak.",
+      "type": "boolean",
+      "default": true
+    },
     "guards": {
       "description": "Guards to run before shell commands and file writes, by file name in .groundwork/guards/ (without .mjs). Empty means none run.",
       "type": "array",
@@ -75,8 +138,14 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "commitGate": { "type": "boolean", "default": true },
-        "protectHarness": { "type": "boolean", "default": true }
+        "commitGate": {
+          "type": "boolean",
+          "default": true
+        },
+        "protectHarness": {
+          "type": "boolean",
+          "default": true
+        }
       }
     },
     "models": {
@@ -84,10 +153,18 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "planner": { "$ref": "#/$defs/modelHint" },
-        "tester": { "$ref": "#/$defs/modelHint" },
-        "implementer": { "$ref": "#/$defs/modelHint" },
-        "reviewer": { "$ref": "#/$defs/modelHint" }
+        "planner": {
+          "$ref": "#/$defs/modelHint"
+        },
+        "tester": {
+          "$ref": "#/$defs/modelHint"
+        },
+        "implementer": {
+          "$ref": "#/$defs/modelHint"
+        },
+        "reviewer": {
+          "$ref": "#/$defs/modelHint"
+        }
       }
     },
     "commitFormat": {

@@ -11,7 +11,7 @@ date: {{date}}
 <!-- 2–4 options. For each one: what it is, pros, cons, and what it would cost to switch away later. -->
 
 ## Decision
-<!-- The option the human chose, in their words if possible. If they took the planner's recommendation,
+<!-- The option the human chose, in their words if possible. If they took a recommendation,
      say "accepted the recommendation" and quote their reply. Groundwork never picks for the user. -->
 
 ## Consequences
