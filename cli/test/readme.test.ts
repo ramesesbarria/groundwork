@@ -41,15 +41,16 @@ function pageFile(path: string): string {
 }
 
 describe("README", () => {
-  it("opens with the pitch and the install", () => {
+  it("opens with the pitch, the verification and the install", () => {
     const firstScreen = readme.slice(0, readme.indexOf("## "));
     expect(firstScreen).toMatch(/project memory for coding agents/i);
-    expect(firstScreen).toMatch(/picks up exactly where the last one stopped/i);
+    expect(firstScreen).toMatch(/picks up where you stopped/i);
+    expect(firstScreen).toMatch(/checks the notes against your repo/i);
     expect(firstScreen).toContain("npx groundwork-ai init");
   });
 
   it("goes problem, answer, quickstart, a real brief, benefits, tools, then the optional flow", () => {
-    const headings = ["Every new session starts from zero", "Now your project remembers", "Quickstart", "What the next session sees", "What you get", "Works with", "Want more structure?", "Learn more"];
+    const headings = ["Every new session starts from zero", "The notes get checked, not trusted", "Quickstart", "What the next session sees", "What you get", "Works with", "Want more structure?", "Learn more"];
     const at = headings.map((heading) => readme.indexOf(`## ${heading}`));
     for (const [i, heading] of headings.entries()) expect(at[i], `missing "## ${heading}"`).toBeGreaterThan(-1);
     expect(at).toEqual([...at].sort((x, y) => x - y));

@@ -3,7 +3,8 @@
 **Your AI forgets. Your project doesn't.**
 
 Groundwork is project memory for coding agents. Close the chat, switch tools, change models: the
-next session picks up exactly where the last one stopped.
+next session picks up where you stopped, and checks the notes against your repo before it trusts
+them.
 
 ```bash
 cd your-project
@@ -27,6 +28,7 @@ tasks, and your `/gw-approve` or `/gw-reject` before each commit.
 Needs Node.js 22+ and git. Run `npx groundwork-ai` for every command.
 
 Next: [your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes) ·
-[docs](https://ramesesbarria.github.io/groundwork/)
+[docs](https://ramesesbarria.github.io/groundwork/) ·
+[freshness](https://ramesesbarria.github.io/groundwork/docs/concepts/freshness)
 
 MIT licensed.
