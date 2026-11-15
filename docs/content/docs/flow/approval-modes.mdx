@@ -1,107 +1,70 @@
 ---
 title: "Approval modes"
+description: "Choose when you approve: after every card, or once per phase."
 ---
 
 <Callout type="info" title="The flow (optional)">
-This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+Project memory works without this. Turn the flow on with `npx groundwork-ai flow on`.
 </Callout>
 
-In the default `per-card` mode, **a card is committed only with its evidence and your explicit
-approval of the reviewed state**. Setup and other permitted cardless commits go through separate
-tagged paths, described in [evidence and approval](/docs/flow/evidence-and-approval). The other
-modes ask for your approval at a different point, as the table shows; in each of them the commit
-gate checks that a card is done, with its evidence.
+You choose how often the agent stops for you.
 
 | Mode | What happens |
 |---|---|
-| **`per-card`** (default) | The runner stops after every card. You approve or reject each one before its commit. |
-| **`per-phase`** | Cards that pass review commit on their own. When the phase's last card is done, the runner stops and you review the phase as a whole. |
-| **`at-end`** | **Parked for v1.** Existing projects that already use it keep working; new projects should use `per-card` or `per-phase`. |
+| **`per-card`** (default) | The agent stops after every card. You approve or reject before its commit |
+| **`per-phase`** | Cards that pass review are committed. You review the whole phase at its end |
+| **`at-end`** | Parked. Projects already using it keep working; it isn't offered to new ones |
 
-During setup the agent asks in plain words - *"every piece of work, or each milestone?"* If you're
-unsure, `new` users default to per-card, `experienced` to per-phase. `at-end` is not offered for new
-projects.
-
-To change it later, run the command yourself:
+Setup asks which you want. To change it later, run it yourself:
 
 ```bash
-npx groundwork-ai mode per-card    # or per-phase; with no mode it shows the current one
+npx groundwork-ai mode per-phase   # or per-card; with no mode it shows the current one
 ```
 
-The agent isn't allowed to relax this on its own. If you ask it to skip the process, it gives you
-the command to run (in Claude Code, type it with `!` in front). It can always switch back to
-`per-card` for you.
-
-## Building straight through (`at-end`, parked)
-
-`at-end` is parked for v1: it is not offered during setup and not recommended for new projects.
-Existing projects that already use it keep the behavior below, including the `/gw-approve all` batch
-record. In `at-end` mode:
-
-- **The agent builds each card itself**, in order, without stopping: tests first, then the code,
-  until the tests, lint and build pass. The test output is saved as the card's evidence.
-- **Each card is committed as a checkpoint** once it's built, marked *(not reviewed yet)*, so
-  the work is never only on your disk. `npx groundwork-ai status` lists these cards as
-  *built but not reviewed*.
-- **One review at the end.** When every card is built, a reviewer with fresh context goes over
-  all of them, reruns the checks, and sends back anything that doesn't hold up.
-- **You approve once**, for the whole build: `/gw-approve all` records the batch. The commit gate
-  still refuses a card without its evidence and checks that batch record on the final approval
-  commit.
-
-It's less careful than reviewing card by card, and it says so: nothing is marked done until the
-review and you have seen it.
-
-## Commits
-
-The agent commits each card when the mode allows. If you'd rather commit yourself, set
-`"autoCommit": false` in `.groundwork/config.json`: the agent then tells you what to commit instead.
+The agent can't loosen the mode for you. It can always switch back to `per-card`.
 
 ## What every stop shows
 
-Whichever mode you use, the agent stops with the same three things, in plain words:
+1. **What changed**, in terms of what the work does.
+2. **How to check it yourself**: a URL, a command, or a thing to click.
+3. **The caveats**: anything unverified, partial, or beyond the card.
 
-1. **What changed** — what the work does, not file names.
-2. **How to check it yourself** — a URL to open, a command to run, or a thing to click. For UI
-   work, the reviewer writes this on the card before you ever see it.
-3. **The caveats** — anything unverified, partial, or added beyond the card.
-
-In `per-phase` mode the phase review also lists **every judgment call** the agent made along the
-way — each is a line on a card's History in the form
+In `per-phase` mode the review also lists every judgment call the agent made, from the cards' History:
 `YYYY-MM-DD call: <what> — <why> — <cost if wrong>`.
 
-## No evidence, no approval
+## Approving
 
-Approval refuses to run while the card's evidence is missing or empty — a test output file, a
-screenshot, the reviewer's verdict, all linked from the card. When a UI criterion truly can't be
-verified live, the reviewer must flag it *not verified live* and list it as the first caveat, so
-you know exactly what you're taking on trust.
+```text
+/gw-approve          when exactly one card is waiting
+/gw-approve 1.2      that card (or several ids)
+```
 
-## What counts as approval
+Only your own `/gw-approve`, at the start of your message, counts. "Looks good" doesn't, and neither
+does a line the agent writes. If anything changes after you approve, you are shown the change and
+asked again. [What is enforced →](/docs/flow/evidence-and-approval)
 
-Only your own `/gw-approve` records approval: `/gw-approve 1.2` for that card (or several IDs),
-or a bare `/gw-approve` when exactly one card is waiting. It has to open your message; a normal
-"looks good", a `/gw-reject`, or an "approved by human" line the agent writes doesn't count, and
-the agent asks you for the command instead. The approval covers the work as you saw it: if the code,
-the card, its evidence, the spec or a decision changes afterwards, the agent shows you what changed,
-and you approve the new state only if you accept it. The details, and the limits of what's enforced, are in
-[Evidence and approval](/docs/flow/evidence-and-approval). In a team project, pull-request review
-is the approval instead: see [Teams and pull requests](/docs/flow/pull-requests).
+After approval the card is marked `done`, the handoff is updated, and the card's files are committed
+as `[<card-id>] <card title>`. When a phase closes, a short recap goes into the journal. The agent
+pushes only when you ask.
 
 ## Rejecting
 
-`/gw-reject` needs a reason, in your own words. It's recorded on the card and sends the work back
-to the implementer. Rejections feed `groundwork retro`, so a mistake you had to catch twice has a
-path to becoming a rule — or a guard. Only you can approve or reject; in Claude Code the
-`/gw-approve` and `/gw-reject` skills are blocked from being invoked by the model at all.
+```text
+/gw-reject results leak before the vote closes
+```
 
-## What happens after approval
+The reason is recorded on the card and the work goes back to the implementer. Rejections feed
+`groundwork retro`, so a repeated mistake can become a [lesson](/docs/concepts/lessons-ledger).
 
-1. The card is marked `done` with a History line.
-2. `HANDOFF.md` is updated with where things stand and the next step.
-3. The card's changes are committed as `[<card-id>] <card title>` (or your project's
-   `commitFormat`), staging only that card's files.
-4. When a phase closes, a short recap is appended to `.groundwork/JOURNAL.md`: what shipped, how
-   to try it, decisions, calls, lessons.
+## Committing yourself
 
-Pushing is never automatic — the agent pushes only when you ask.
+Set `"autoCommit": false` in `.groundwork/config.json`. The agent then tells you what to commit.
+
+## `at-end` (parked)
+
+For projects that already use it: the agent builds every card in order without stopping and commits
+each as a checkpoint marked *(not reviewed yet)*. One review covers them all at the end, and you
+approve once with `/gw-approve all`.
+
+In a team project, pull-request review is the approval:
+[Teams and pull requests](/docs/flow/pull-requests).
