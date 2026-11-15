@@ -178,10 +178,15 @@ export async function worker(args: string[], io: Cwd): Promise<RunResult> {
     if (action === "list" || action === undefined) {
       const workers = lib.listWorkers(io.cwd);
       if (flags.has("json")) return { code: 0, output: JSON.stringify(workers, null, 2) };
-      if (workers.length === 0) return { code: 0, output: "No worker handoffs in .groundwork/work/." };
+      // `list` shows worker handoffs; a worker recorded by `start` that hasn't saved one yet is added to the text.
+      const unsaved = lib.unsavedWorkers(io.cwd);
+      if (workers.length === 0 && unsaved.length === 0) return { code: 0, output: "No worker handoffs in .groundwork/work/." };
       return {
         code: 0,
-        output: workers.map((w) => `${w.id.padEnd(16)} ${w.state.padEnd(6)} ${(w.updated ?? "never saved").padEnd(20)} ${w.branch ?? "-"}  ${w.next || w.now || ""}`.trimEnd()).join("\n"),
+        output: [
+          ...workers.map((w) => `${w.id.padEnd(16)} ${w.state.padEnd(6)} ${(w.updated ?? "never saved").padEnd(20)} ${w.branch ?? "-"}  ${w.next || w.now || ""}`.trimEnd()),
+          ...unsaved.map((w) => `${w.id.padEnd(16)} ${"active".padEnd(6)} ${"never saved".padEnd(20)} -  ${w.goal}`.trimEnd()),
+        ].join("\n"),
       };
     }
     if (action === "start") {

@@ -305,6 +305,20 @@ export function workerDone(project, id, { outcome = "" } = {}) {
 }
 
 // Every worker handoff in this checkout, newest first.
+// Workers `worker start` recorded in the root handoff that haven't saved a handoff of their own yet.
+// listWorkers only sees workers with a handoff; this is the other half, so nothing in flight is hidden.
+export function unsavedWorkers(project) {
+  const root = join(project, ".groundwork", "HANDOFF.md");
+  if (!existsSync(root)) return [];
+  const section = handoffView(parseHandoff(readText(root))).workers ?? "";
+  const found = [];
+  for (const line of section.split("\n")) {
+    const match = /^- `?([A-Za-z0-9._-]+)`?(?::\s*(.*))?$/.exec(line.trim());
+    if (match && !existsSync(workerHandoff(project, match[1]))) found.push({ id: match[1], goal: (match[2] ?? "").replace(/; state in `[^`]*`$/, "") });
+  }
+  return found;
+}
+
 export function listWorkers(project) {
   const dir = workDir(project);
   if (!existsSync(dir)) return [];

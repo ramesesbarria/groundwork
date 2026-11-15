@@ -140,6 +140,7 @@ export interface CheckpointLib {
   workerStart(project: string, id: string, options?: { goal?: string; branch?: string }): void;
   workerDone(project: string, id: string, options?: { outcome?: string }): void;
   listWorkers(project: string): WorkerState[];
+  unsavedWorkers(project: string): { id: string; goal: string }[];
 }
 
 export interface BriefLib {

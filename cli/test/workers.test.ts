@@ -133,6 +133,20 @@ describe("groundwork worker", () => {
     expect(list[0]).toMatchObject({ id: "auth-tests", state: "active", next: "Cover the refresh token" });
   });
 
+  it("status and worker list show a worker that has started but not saved yet", async () => {
+    const dir = await project();
+    await cli(dir, "worker", "start", "auth-tests", "--goal", "Write the auth test suite");
+    expect((await cli(dir, "status")).output).toMatch(/Workers:\n {2}auth-tests: Write the auth test suite \(has not saved a handoff yet\)/);
+    expect((await cli(dir, "worker", "list")).output).toMatch(/^auth-tests +active +never saved +- +Write the auth test suite$/);
+    // JSON stays the worker handoffs only.
+    expect(JSON.parse((await cli(dir, "worker", "list", "--json")).output)).toEqual([]);
+    await cli(dir, "checkpoint", "--worker", "auth-tests", "--now", "12 tests written", "--next", "Cover the refresh token");
+    expect((await cli(dir, "status")).output).toMatch(/Workers:\n {2}auth-tests \(main\): Cover the refresh token/);
+    expect((await cli(dir, "status")).output).not.toContain("has not saved");
+    await cli(dir, "worker", "done", "auth-tests");
+    expect((await cli(dir, "status")).output).not.toContain("Workers:");
+  });
+
   it("done takes the worker out of flight, logs the outcome and marks its handoff done", async () => {
     const dir = await project();
     await cli(dir, "worker", "start", "auth-tests", "--goal", "Write the auth test suite");

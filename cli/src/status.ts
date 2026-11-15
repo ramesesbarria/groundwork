@@ -38,9 +38,12 @@ export async function status(io: Pick<Io, "cwd">): Promise<RunResult> {
     `Handoff:       ${checkpoints.isPristine(handoff) ? "empty" : `${fresh.verdict}: ${fresh.summary}`} (${relative(io.cwd, target.path).split("\\").join("/")})`,
   );
   const workers = target.worker ? [] : checkpoints.listWorkers(io.cwd).filter((w) => w.state === "active");
-  if (workers.length > 0) {
+  // Recorded by `worker start` but not saved yet: still in flight, so still listed.
+  const unsaved = target.worker ? [] : checkpoints.unsavedWorkers(io.cwd);
+  if (workers.length > 0 || unsaved.length > 0) {
     lines.push("Workers:");
     for (const w of workers) lines.push(`  ${w.id}${w.branch ? ` (${w.branch})` : ""}: ${w.next || w.now || "no next step recorded"}`);
+    for (const w of unsaved) lines.push(`  ${w.id}: ${w.goal || "no goal given"} (has not saved a handoff yet)`);
   }
   if (!flow) return { code: 0, output: lines.join("\n") };
   lines.push("");
