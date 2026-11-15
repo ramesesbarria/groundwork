@@ -1,111 +1,92 @@
 ---
 title: "Your first 10 minutes"
-description: "Here's what a first session looks like, from an idea to a committed first card. The example: a page where a book club votes on next month's book."
+description: "From install to a session that resumes where the last one stopped. The example is a small web app with a login form."
 ---
 
-This picks up after [installation](/docs/getting-started/installation): you've run
-`npx groundwork-ai init`, typed `/gw` once, answered the setup questions and committed the setup.
+This picks up after [installation](/docs/getting-started/installation): you have a git repo and have
+run `npx groundwork-ai init`.
 
-## 1. Describe the idea
+## 1. See what was installed
 
-```text
-You:   /gw I want a page where my book club votes on next month's book
-Agent: A few specific questions first:
-       1. Who can vote: anyone with the link, or signed-in members only?
-       2. One vote each, or rank several books?
-       3. Show results before voting closes?
+```bash
+git status --short
 ```
 
-The agent asks **specific questions in small batches** — never "do you agree with section 2?" It
-offers a sensible default where one exists. If you say "you decide", it marks each default it
-chose *(default)* in the spec; nothing is presented as your decision when it wasn't.
+A `.groundwork/` folder, an `AGENTS.md`, and your tool's files (`.claude/` and `CLAUDE.md` for Claude
+Code, `.opencode/` for OpenCode). Open `.groundwork/HANDOFF.md`: it is empty on purpose. The agent
+writes it; you don't have to.
 
-## 2. Confirm the spec
-
-```text
-You:   Anyone with the link. One vote. Hide results until it closes.
-Agent: Spec saved, starting with the smallest useful version. Does it look right?
-You:   Yes.
-```
-
-The spec goes in `.groundwork/SPEC.md`, in your words. Everything that didn't make the smallest
-useful version goes under "Later phases" — scope growth is declined by default, not discovered
-later.
-
-## 3. Agree the plan
+## 2. Type `/gw` once
 
 ```text
 You:   /gw
-Agent: Plan: 2 phases, 5 cards.
-       1.1 Book list page · 1.2 Voting · 1.3 Close the vote · ...
-       OK to write the cards?
-You:   Go.
+Agent: Nothing is recorded yet. What is this project called, and what does it do?
+You:   A book club site. Members vote on next month's book.
+Agent: Filled in AGENTS.md (found: npm test, npm run dev) and MAP.md (src/, entry point
+       src/login.ts, no tests yet). What do you want to work on first?
 ```
 
-`/gw` knows the spec is confirmed and there are no cards, so it runs `gw-plan`. If the build needs
-a stack choice (database, framework, hosting), you get 2–4 options with trade-offs first, and a
-decision record is written once you choose. Nothing is picked for you.
+On a new project `/gw` fills in what is empty: `AGENTS.md`'s project summary and commands, and
+`.groundwork/MAP.md`, marking each item *found* or *guessed*. Then it asks what you want to work on.
 
-## 4. Build the first card
+## 3. Work, and save
+
+Work as you normally do. When a step finishes, and before the session stops, the agent saves:
+
+```bash
+npx groundwork-ai checkpoint --now "Login form renders; validation not wired" --next "Wire validation in src/login.ts, then add the first test"
+```
 
 ```text
-You:   /gw
-Agent: Card 1.1 Book list page: tests written, code passing, review passed.
-       What changed: the home page lists this month's books.
-       How to check: run npm run dev and open http://localhost:3000
-       Caveats: no styling yet.
-       Approve or reject?
+Checkpoint saved: .groundwork/HANDOFF.md at 5c4bcc2 on main.
+Journal: one entry added to .groundwork/JOURNAL.md.
 ```
 
-Behind that summary, a card went through three roles:
+The agent wrote the two sentences. The command wrote the rest: the time, the commit, the branch, how
+many files were uncommitted, which tool wrote it, and a journal entry from git. In Claude Code and
+OpenCode the hooks also checkpoint when a turn ends, before a compaction and when the session closes,
+and ask the agent to save if the handoff is behind.
 
-1. **Tester** wrote failing tests and saved the output.
-2. **Implementer** made them pass, plus the full suite, lint and build.
-3. **Reviewer** re-ran everything with fresh context and checked every acceptance criterion.
+## 4. Come back later
 
-At the stop you get **what changed**, **how to check it yourself**, and **the caveats**, in plain
-words — plus any judgment calls the agent logged along the way.
-
-## 5. Approve
+Close the chat, come back tomorrow, or open a different tool or model. The session starts with the
+brief. Suppose two commits landed in between:
 
 ```text
-You:   /gw-approve
-Agent: Committed [1.1] Book list page. Next up: card 1.2 Voting.
+Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits landed after it was written, changing 3 files.
+  - 6a1a0f1 feat: logout endpoint
+  - 2fce619 feat: session endpoint
+  Changed files: src/api/logout.ts, src/api/session.ts, src/login.ts
+  Files its Now/Next sections name have changed since: src/login.ts.
+  Trust the code over the handoff where they disagree, then save an updated handoff.
 ```
 
-Approval refuses while the evidence is missing, and so does the commit gate. Once approved, the card is marked done, the
-handoff is updated, and the changes are committed with the card's ID in the message.
+The handoff doesn't pass itself off as current. The agent checks its Next step against the listed
+commits, corrects it, saves, and carries on. That is [freshness](/docs/concepts/freshness).
 
-Not right? `/gw-reject` with a reason in your own words sends it back to the implementer; the reason
-stays on the card.
+## 5. Record what must outlast the session
 
-Then `/gw` again for the next card. That's the whole loop.
+```bash
+npx groundwork-ai decide "Use cookie sessions, not JWTs" --status accepted
+npx groundwork-ai lesson "Run migrations before the test suite" --origin "tests failed on a stale schema"
+```
 
-## 6. Come back later
-
-Close the chat, come back tomorrow, or open a different tool or model. A new session starts with a
-couple of lines from `.groundwork/HANDOFF.md`; type `/gw` and it reads the handoff and the current
-card, says where things stand, and carries on from the last finished step. Nothing has to be
-re-explained, because the plan, the decisions and the proof are files in your repo.
-
-Working with others, or on several branches at once? See
-[Teams and pull requests](/docs/guides/teams).
+A [decision](/docs/concepts/decisions) keeps the options and the reason, so a later session doesn't
+reopen it. A [lesson](/docs/concepts/lessons-ledger) keeps a mistake from repeating. Fill in each
+record, and commit `.groundwork/` with your work.
 
 ## Where everything lives
 
 | You want to know… | Look at |
 |---|---|
-| What's next | `/gw`, or `npx groundwork-ai status` |
-| What we're building | `.groundwork/SPEC.md` |
-| What each piece of work is | `.groundwork/cards/` |
-| The proof it was done | `.groundwork/evidence/<card-id>/` |
-| Where we stopped | `.groundwork/HANDOFF.md` |
-| Stack choices and why | `.groundwork/decisions/` |
+| Where we stopped, and what's next | `/gw`, `npx groundwork-ai brief`, or `.groundwork/HANDOFF.md` |
+| How much to trust it | The verdict at the top of `brief`, or `npx groundwork-ai status` |
+| Where things are | `.groundwork/MAP.md` |
+| What was decided, and why | `.groundwork/DECISIONS.md` and `.groundwork/decisions/` |
 | Mistakes we learned from | `.groundwork/LESSONS.md` |
+| What happened, commit by commit | `.groundwork/JOURNAL.md` |
+| Whether memory is healthy | `npx groundwork-ai doctor` |
 
-## Small changes skip the loop
-
-For a typo, a copy tweak, a config value, or a bug, just ask: the quick path (`gw-quick`) makes the change in one pass — no
-card, no roles. Bugs still need a failing test and a stated cause before the fix. If a "quick" job
-grows past about three files or changes behavior people notice, the agent stops and suggests a
-card instead. [Right-sizing →](/docs/concepts/right-sizing)
+Working with several agents at once? See [Parallel agents](/docs/concepts/parallel-agents). Want a
+spec, small cards with proof, and your approval before each commit? That is the optional
+[flow](/docs/flow).

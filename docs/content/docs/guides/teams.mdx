@@ -1,0 +1,46 @@
+---
+title: "Teams"
+description: "Several people and several agents on one project: commit the memory, keep one writer per handoff, and give each worker its own."
+---
+
+Project memory is plain files in your repo, so a team shares it the way it shares code.
+
+## Commit `.groundwork/`
+
+Everything under `.groundwork/` is meant to be committed, apart from the local state it git-ignores
+(`.state.json`, `.lock`, `private/`). A teammate who clones the repo, or opens it in a different tool,
+gets the same handoff, map, decisions and lessons, and the brief tells them how far to trust the
+handoff against the commits they pulled.
+
+Commits that touch only `.groundwork/` don't make the handoff `behind`, so committing a checkpoint is
+safe.
+
+## One writer per handoff
+
+The root handoff belongs to the main checkout. Anyone else, whether a teammate in a linked worktree, a
+task branch or a named agent, writes their own file under `.groundwork/work/<id>/`:
+
+```bash
+npx groundwork-ai worker start auth-tests --goal "Write the auth test suite"
+```
+
+The main session records each worker in **Workers in flight** and in `.groundwork/work/LEDGER.md`, a
+log of who started what and what happened. Before merging a worker's branch, read its handoff and rerun
+its checks: a worker's own report isn't verification. Details, and the limits, are in
+[Parallel agents](/docs/concepts/parallel-agents).
+
+If two sessions share one handoff, `checkpoint` warns and says to give one of them a worker id. It does
+not refuse.
+
+## Decisions and lessons are team knowledge
+
+Record a decision with `decide` so the next person (or agent) sees the options and the reason, and
+write a lesson when a mistake could repeat. Because both are files, changing one in a branch shows up in
+the pull request like any other change. The handoff's stamp records fingerprints of the map, decisions
+and lessons, so a session is told when one changed after it was written.
+
+## Pull-request review as the approval
+
+If you use the optional [flow](/docs/flow), there is a team path built on the same files: each task
+branch carries its own handoff and the decisions it depends on, and pull-request review is the
+approval. It is a working prototype: [Teams and pull requests](/docs/flow/pull-requests).

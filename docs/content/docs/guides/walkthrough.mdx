@@ -1,6 +1,91 @@
 ---
-title: "Moved: the calculator walkthrough"
-description: "The pre-1.0 calculator build now lives on one page with its measurements and sessions."
+title: "Walkthrough: one project, three sessions"
+description: "A worked example of project memory with real command output: a handoff goes behind, a second agent resumes, and a worker runs in parallel."
 ---
 
-<Moved to="/earlier-build" />
+A small project called `bookclub`, and three sessions that never share a chat. Every output below is
+real: it was produced by running the CLI in a throwaway git repository.
+
+## Session 1: set up and save
+
+```bash
+git init && git add -A && git commit -m "feat: login form"
+npx groundwork-ai init --adapter claude-code
+```
+
+The agent fills in `.groundwork/MAP.md`, then, with you, records a decision:
+
+```bash
+npx groundwork-ai decide "Use cookie sessions, not JWTs" --status accepted
+# Created .groundwork/decisions/0001-use-cookie-sessions-not-jwts.md (accepted) and updated .groundwork/DECISIONS.md.
+```
+
+Before the session ends, it saves:
+
+```bash
+npx groundwork-ai checkpoint --now "Login form renders; validation is not wired to the API" --next "Wire validation in src/login.ts, then add the first test"
+# Checkpoint saved: .groundwork/HANDOFF.md at 5c4bcc2 on main.
+# Journal: one entry added to .groundwork/JOURNAL.md.
+```
+
+## Between sessions: the code moves
+
+You (or another tool) commit two more things: a session endpoint and a logout endpoint. Nobody updates
+the handoff.
+
+## Session 2: a different tool resumes
+
+The session-start hook (or `npx groundwork-ai brief`, in a tool without hooks) prints:
+
+```text
+# Project memory: bookclub
+Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits landed after it was written, changing 3 files.
+  - 6a1a0f1 feat: logout endpoint
+  - 2fce619 feat: session endpoint
+  Changed files: src/api/logout.ts, src/api/session.ts, src/login.ts
+  Files its Now/Next sections name have changed since: src/login.ts.
+  Trust the code over the handoff where they disagree, then save an updated handoff.
+
+## Handoff (.groundwork/HANDOFF.md)
+Now: Login form renders; validation is not wired to the API
+Next: Wire validation in src/login.ts, then add the first test
+
+## Decisions in force (records in .groundwork/decisions/; don't reopen without the human)
+- 0001 Use cookie sessions, not JWTs
+…
+```
+
+The second agent knows three things it would otherwise have to guess: where things stood, that the code
+has moved since, and that cookie sessions are settled. It reads the two commits, finds that
+`src/login.ts` already changed, corrects the handoff's Next step, and saves. `doctor` agrees:
+
+```text
+Handoff:        behind: 2 commits landed after it was written, changing 3 files
+Brief:          ≈288 tokens (budget 1500), loaded at each session start
+Memory files:   handoff 166/600 · decisions 87/600 · map 48/800 · lessons 206/1200 · journal 169/2500 tokens
+```
+
+## Session 3: a parallel worker
+
+The main session hands the auth tests to a second agent in its own git worktree:
+
+```bash
+npx groundwork-ai worker start auth-tests --goal "Write the auth test suite" --branch feat/auth-tests
+# Worker auth-tests recorded: added to Workers in flight in .groundwork/HANDOFF.md and to .groundwork/work/LEDGER.md.
+```
+
+The worker saves to `.groundwork/work/<branch>/HANDOFF.md`, never the root handoff, so the two never
+conflict in git. When its work is merged, the main session runs
+`npx groundwork-ai worker done auth-tests --outcome "…"`. See [Parallel agents](/docs/concepts/parallel-agents).
+
+## Afterwards
+
+```bash
+npx groundwork-ai compact --dry-run
+# Nothing to compact: the journal, decisions and handoff are within their budgets.
+```
+
+Memory stays small by archiving, never by deleting: [budgets and compaction](/docs/concepts/budgets-and-compaction).
+
+The pre-1.0 calculator build, recorded call by call with the flow on, is on
+[its own page](/earlier-build).
