@@ -25,7 +25,7 @@ git remote add origin "$ROOT/origin.git"
 
 "${GW[@]}" --version
 if [ -n "${GW_ROOT:-}" ]; then git -C "$GW_ROOT" rev-parse --short HEAD; fi
-"${GW[@]}" init --adapter none >/dev/null 2>&1
+"${GW[@]}" init --flow --adapter none >/dev/null 2>&1
 node -e "const fs=require('fs'); const p='.groundwork/config.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.integration='pr'; fs.writeFileSync(p, JSON.stringify(c,null,2)+'\n');"
 
 mkdir -p .groundwork/decisions .groundwork/cards .groundwork/evidence
