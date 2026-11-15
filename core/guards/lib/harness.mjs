@@ -15,7 +15,8 @@ import { relative, resolve, sep } from "node:path";
 const parseJson = (text) => JSON.parse(text.replace(/^﻿/, ""));
 
 // Files an agent may not change once they exist.
-const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/];
+// lib/ is what the hooks import: changing it changes what they do.
+const LOCKED = [/^\.groundwork\/guards(\/|$)/, /^\.groundwork\/hooks(\/|$)/, /^\.groundwork\/lib(\/|$)/];
 const LEGACY_MANIFEST = /^\.groundwork\/\.legacy-cards\.json$/;
 // The agent never writes plugin files: a plugin runs inside the tool's own process, where no guard
 // can see what it does.
@@ -29,6 +30,8 @@ const UNINSTALL = /\bgroundwork(-ai)?(@[\w.-]+)?\s+uninstall\b/;
 const MIGRATE = /\b(?:npm|npx|pnpm|yarn|node|bun|groundwork(?:-ai)?)\b[^\n;&|]*\bmigrate\b/i;
 // `groundwork mode <mode>` switches approval; only the human runs it (back to per-card is fine).
 const MODE_SWITCH = /\bgroundwork(-ai)?(@[\w.-]+)?\s+mode\s+(per-phase|at-end)\b/;
+// Turning the flow off takes the guards and the approval rule away: the human's call, like uninstalling.
+const FLOW_OFF = /\bgroundwork(-ai)?(@[\w.-]+)?\s+flow\s+off\b/;
 // Running the prompt hook directly would let an agent write its own approval record.
 const APPROVAL_HOOK = /\b(?:node|bun)\b[^\n;&|]*\buser-prompt\.mjs\b/i;
 const COMMIT = /\bgit\b[\s\S]*\bcommit\b/;
@@ -76,6 +79,7 @@ export function weakenedConfig(before, next) {
   }
   if (before.autoCommit === false && next.autoCommit !== false) lost.push("turn automatic commits back on, which you turned off");
   if (before.setup === "done" && next.setup !== "done") lost.push("mark setup as not done");
+  if (before.flow !== false && next.flow === false) lost.push("turn the flow off, which takes the guards and the approval rule away");
   return lost;
 }
 
@@ -223,6 +227,7 @@ export function commandWriteTargets(command) {
 const HARNESS_PATHS = [
   ".groundwork/guards",
   ".groundwork/hooks",
+  ".groundwork/lib",
   ".groundwork/.approvals",
   ".groundwork/config.json",
   ".groundwork/.legacy-cards.json",
@@ -297,6 +302,7 @@ function setupIsDone(project) {
 function checkCommand(action, project) {
   const command = action.command;
   if (UNINSTALL.test(command)) return { block: true, reason: `Uninstalling Groundwork is the human's call. ${ASK}` };
+  if (FLOW_OFF.test(command)) return { block: true, reason: `Turning the flow off is the human's call. ${ASK}` };
   if (MIGRATE.test(command)) {
     return { block: true, reason: `Recording legacy-card exemptions is the human's one-time decision. Run \`groundwork migrate legacy\` yourself. ${ASK}` };
   }
