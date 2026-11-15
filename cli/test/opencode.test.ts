@@ -99,6 +99,7 @@ describe("OpenCode guard plugin", () => {
     const project = tempDir();
     cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
     cpSync(join(coreDir, "hooks"), join(project, ".groundwork/hooks"), { recursive: true });
+    cpSync(join(coreDir, "lib"), join(project, ".groundwork/lib"), { recursive: true });
     writeFileSync(join(project, ".groundwork/config.json"), JSON.stringify({ guards }));
     if (handoff !== undefined) writeFileSync(join(project, ".groundwork/HANDOFF.md"), handoff);
     mkdirSync(join(project, ".opencode/plugins"), { recursive: true });
@@ -127,6 +128,7 @@ describe("OpenCode guard plugin", () => {
     const project = tempDir();
     cpSync(join(coreDir, "guards"), join(project, ".groundwork/guards"), { recursive: true });
     cpSync(join(coreDir, "hooks"), join(project, ".groundwork/hooks"), { recursive: true });
+    cpSync(join(coreDir, "lib"), join(project, ".groundwork/lib"), { recursive: true });
     writeFileSync(join(project, ".groundwork/config.json"), JSON.stringify({ guards: [] }));
     return project;
   }
@@ -276,7 +278,7 @@ describe("OpenCode guard plugin", () => {
     const input = { agent: "build", system: [{ type: "text", text: "tool prompt" }] };
     await hooks["session.context"](input);
     expect(input.system).toHaveLength(2);
-    expect(input.system[1]).toEqual({ type: "text", text: expect.stringMatching(/^Groundwork: card 1\.2 Login is being built\./) });
+    expect(input.system[1]).toEqual({ type: "text", text: expect.stringMatching(/Groundwork: card 1\.2 Login is being built\./) });
   });
 
   it("leaves Groundwork's own subagents alone, since the runner hands them their card", async () => {
@@ -304,7 +306,7 @@ describe("OpenCode guard plugin", () => {
 describe("init --adapter opencode", () => {
   it("installs the OpenCode files and no Claude Code files", async () => {
     const project = tempDir();
-    const { code, output } = await run(["init", "--adapter", "opencode"], { cwd: project, ask: async () => "" });
+    const { code, output } = await run(["init", "--flow", "--adapter", "opencode"], { cwd: project, ask: async () => "" });
     expect(code).toBe(0);
     expect(existsSync(join(project, ".opencode/commands/gw.md"))).toBe(true);
     expect(existsSync(join(project, ".opencode/plugins/groundwork-guards.js"))).toBe(true);
@@ -316,7 +318,7 @@ describe("init --adapter opencode", () => {
 
   it("offers OpenCode when asking which tool to set up", async () => {
     const asked: string[] = [];
-    await run(["init"], {
+    await run(["init", "--flow"], {
       cwd: tempDir(),
       ask: async (q) => {
         asked.push(q);

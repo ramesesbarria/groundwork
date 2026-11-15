@@ -91,7 +91,7 @@ describe("gw-setup for existing projects", () => {
   });
 
   it("keeps a copy of the AGENTS.md template, so a kept AGENTS.md can be rebuilt", () => {
-    const paths = planInit(readCore(fileURLToPath(new URL("../../core/", import.meta.url))), "none").map((f) => f.path);
+    const paths = planInit(readCore(fileURLToPath(new URL("../../core/", import.meta.url))), "none", undefined, true).map((f) => f.path);
     expect(paths).toContain(".groundwork/templates/AGENTS.md");
     expect(existing()).toContain(".groundwork/templates/AGENTS.md");
   });

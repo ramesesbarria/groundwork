@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     // Many tests start real processes (hooks, git, the built CLI), which is slow on Windows CI runners.
-    testTimeout: 20_000,
+    testTimeout: 60_000,
     // doctor would otherwise run `claude --version`, which differs between machines.
     env: { GROUNDWORK_CLAUDE_CODE_VERSION: "2.1.304" },
     coverage: {

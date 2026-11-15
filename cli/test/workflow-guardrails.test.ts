@@ -79,7 +79,7 @@ describe("AGENTS.md template", () => {
 describe("commit-ready install", () => {
   it("init writes a .gitattributes that keeps Groundwork's files LF", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8");
     expect(attributes).toContain(".groundwork/** text eol=lf");
     expect(attributes).toContain("AGENTS.md text eol=lf");
@@ -89,7 +89,7 @@ describe("commit-ready install", () => {
 
   it("marks evidence images as binary after the text rules, so later rules win", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8");
     expect(attributes.indexOf("*.png binary")).toBeGreaterThan(attributes.indexOf(".groundwork/** text eol=lf"));
   });
@@ -98,7 +98,7 @@ describe("commit-ready install", () => {
     const dir = tempProject();
     writeFileSync(join(dir, ".gitattributes"), "*.png binary\n");
     const asked: string[] = [];
-    await run(["init", "--adapter", "none"], {
+    await run(["init", "--flow", "--adapter", "none"], {
       cwd: dir,
       ask: async (q) => {
         asked.push(q);
@@ -113,8 +113,8 @@ describe("commit-ready install", () => {
 
   it("running init again doesn't duplicate the .gitattributes lines", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
     const attributes = readFileSync(join(dir, ".gitattributes"), "utf8");
     expect(attributes.split(".groundwork/** text eol=lf").length).toBe(2);
   });

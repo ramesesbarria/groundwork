@@ -25,7 +25,7 @@ async function project(extra: Record<string, unknown> = {}): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-at-end-"));
   temps.push(dir);
   git(dir, "init", "-q");
-  await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
   writeFileSync(join(dir, ".groundwork/config.json"), JSON.stringify({ ...config(dir), setup: "done", ...extra }, null, 2));
   git(dir, "add", "-A");
   git(dir, "commit", "-q", "-m", "Set up Groundwork");
@@ -246,7 +246,7 @@ describe("secrets", () => {
   it("init keeps .groundwork/private/ out of git, and AGENTS.md says to use it", async () => {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-at-end-"));
     temps.push(dir);
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
     expect(readFileSync(join(dir, ".groundwork/.gitignore"), "utf8")).toMatch(/^private\/$/m);
     expect(readFileSync(join(dir, "AGENTS.md"), "utf8")).toMatch(/Secrets[^\n]*\.groundwork\/private\//);
     expect(core["commands/gw-setup.md"]).toMatch(/\.groundwork\/private\//);

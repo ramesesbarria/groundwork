@@ -19,7 +19,7 @@ const noQuestions = async () => "";
 
 async function installed(adapter = "claude-code"): Promise<string> {
   const dir = tempDir();
-  await run(["init", "--adapter", adapter], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", adapter], { cwd: dir, ask: noQuestions });
   return dir;
 }
 
@@ -235,7 +235,7 @@ describe("groundwork doctor", () => {
     const dir = tempDir();
     mkdirSync(join(dir, ".groundwork/roles"), { recursive: true });
     writeFileSync(join(dir, ".groundwork/roles/tester.md"), "# Role: Tester\n\n## Job\nOur own tester. Tests first.\n");
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
     expect(readFileSync(join(dir, ".groundwork/roles/tester.md"), "utf8")).toContain("Our own tester");
     const { code, output } = await doctor(dir);
     expect(output).not.toMatch(/gw-tester\.md differs/);
@@ -262,7 +262,9 @@ describe("groundwork doctor", () => {
 
   it("doesn't count OpenCode's command descriptions as always loaded: they don't reach the model", async () => {
     const { output } = await doctor(await installed("opencode"));
-    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\): AGENTS\.md \d+, subagent list \d+, session start \d+$/m);
+    // 2.0: the session-start brief has its own budget and line, apart from what is always loaded.
+    expect(output).toMatch(/Always loaded: +≈\d+ tokens \(budget 2000\): AGENTS\.md \d+, subagent list \d+$/m);
+    expect(output).toMatch(/Brief: +≈\d+ tokens \(budget 1500\), loaded at each session start$/m);
     expect(output).not.toMatch(/command list/);
   });
 

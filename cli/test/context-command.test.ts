@@ -39,7 +39,7 @@ async function repo(): Promise<string> {
   git(dir, "init", "-q", "--initial-branch=main");
   git(dir, "config", "user.email", "demo@example.com");
   git(dir, "config", "user.name", "Demo");
-  await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
   mkdirSync(join(dir, ".groundwork/decisions"), { recursive: true });
   decision(dir, "Use signed cookies.");
   card(dir);

@@ -20,7 +20,7 @@ async function project(approvalMode = "per-card"): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-check-"));
   temps.push(dir);
   mkdirSync(join(dir, ".git"));
-  await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
   writeFileSync(join(dir, ".groundwork/config.json"), JSON.stringify({ approvalMode, guards: [] }));
   return dir;
 }

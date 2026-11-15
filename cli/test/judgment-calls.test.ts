@@ -59,7 +59,7 @@ describe("retro and calls", () => {
   async function projectWith(cards: Record<string, string[]>): Promise<string> {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-calls-"));
     temps.push(dir);
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: async () => "" });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: async () => "" });
     for (const [id, history] of Object.entries(cards)) {
       writeFileSync(
         join(dir, `.groundwork/cards/${id}-x.md`),

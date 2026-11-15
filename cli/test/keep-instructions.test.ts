@@ -33,7 +33,7 @@ describe("existing instruction files", () => {
     const dir = tempProject();
     writeFileSync(join(dir, "CLAUDE.md"), THEIR_CLAUDE);
     writeFileSync(join(dir, "AGENTS.md"), THEIR_AGENTS);
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
 
     const claude = read(dir, "CLAUDE.md");
     const agents = read(dir, "AGENTS.md");
@@ -48,28 +48,28 @@ describe("existing instruction files", () => {
     writeFileSync(join(dir, "CLAUDE.md"), THEIR_CLAUDE);
     writeFileSync(join(dir, "AGENTS.md"), THEIR_AGENTS);
     const io = recorder();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
     expect(io.asked.filter((q) => /CLAUDE\.md|AGENTS\.md/.test(q))).toEqual([]);
   });
 
   it("adds the pointer only once when init runs again", async () => {
     const dir = tempProject();
     writeFileSync(join(dir, "AGENTS.md"), THEIR_AGENTS);
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
     expect(read(dir, "AGENTS.md").split(AGENTS_POINTER).length - 1).toBe(1);
   });
 
   it("a fresh folder still gets the full templates", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
     expect(read(dir, "AGENTS.md")).toBe(core["templates/AGENTS.md"]);
     expect(read(dir, "CLAUDE.md")).toMatch(/^@AGENTS\.md\n\n## Claude Code/);
   });
 
   it("adding an adapter later keeps an existing CLAUDE.md too", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: recorder().ask });
     writeFileSync(join(dir, "CLAUDE.md"), THEIR_CLAUDE);
     const io = recorder();
     await run(["adapter", "add", "claude-code"], { cwd: dir, ask: io.ask });
@@ -81,7 +81,7 @@ describe("existing instruction files", () => {
   it("doctor's CLAUDE.md check passes after init on an existing CLAUDE.md", async () => {
     const dir = tempProject();
     writeFileSync(join(dir, "CLAUDE.md"), THEIR_CLAUDE);
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: recorder().ask });
     const { output } = await run(["doctor"], { cwd: dir, ask: recorder().ask });
     expect(output).not.toMatch(/CLAUDE\.md doesn't load AGENTS\.md/);
   });

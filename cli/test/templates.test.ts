@@ -24,14 +24,16 @@ const statusesIn = (value: string) => value.split("|").map((s) => s.trim());
 describe("core templates", () => {
   it("has exactly the templates init will copy", () => {
     expect(readdirSync(new URL("core/templates/", root)).sort()).toEqual(
-      ["AGENTS.md", "HANDOFF.md", "JOURNAL.md", "LESSONS.md", "SPEC.md", "card.md", "config.json", "config.schema.json", "decision.md", "groundwork.gitignore", "rules"],
+      ["AGENTS.md", "DECISIONS.md", "HANDOFF.md", "JOURNAL.md", "LESSONS.md", "MAP.md", "SPEC.md", "card.md", "config.json", "config.schema.json", "decision.md", "groundwork.gitignore", "rules"],
     );
   });
 
   it.each([
     ["AGENTS.md", ["## Project", "## Commands", "## How we work", "## Rules"]],
     ["SPEC.md", ["## Problem", "## Users", "## Goals", "## Non-goals", "## Features", "## Changes", "## Open questions"]],
-    ["HANDOFF.md", ["**Phase:**", "**Current card:**", "**Status:**", "**Last step:**", "**Next step:**", "**Failing checks:**"]],
+    // 2.0: sections the CLI stamps and reads; the flow keeps its card bullets under "## Flow".
+    ["HANDOFF.md", ["schema: 2", "## Now", "## Next", "## Blockers", "## Failing checks", "## Workers in flight", "## Notes", "## Flow", "**Phase:**", "**Current card:**", "**Status:**"]],
+    ["MAP.md", ["## Layout", "## Entry points", "## Tests", "## Traps"]],
     ["LESSONS.md", ["NOTE", "RULE", "GUARD", "Origin:"]],
     ["card.md", ["## Goal", "## Acceptance criteria", "## Evidence", "## History"]],
     ["decision.md", ["## Context", "## Options", "## Decision", "## Consequences"]],

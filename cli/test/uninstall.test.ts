@@ -40,7 +40,7 @@ async function projectWithOwnFiles() {
     ".gitattributes": "*.png binary\n*.sh text eol=lf\n",
   };
   for (const [path, text] of Object.entries(own)) writeFileSync(join(dir, path), text);
-  await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
+  await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
   return { dir, own };
 }
 
@@ -62,14 +62,14 @@ describe("groundwork uninstall", () => {
 
   it("removes a fresh install completely when told yes", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "opencode"], { cwd: dir, ask: say("") });
+    await run(["init", "--flow", "--adapter", "opencode"], { cwd: dir, ask: say("") });
     await run(["uninstall"], { cwd: dir, ask: say("y") });
     expect(readdirSync(dir).sort()).toEqual(["AGENTS.md"]); // filled in by setup, so it's the project's to delete
   });
 
   it("removes a fresh Claude Code install completely, including the CLAUDE.md it generated", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
     const result = await run(["uninstall"], { cwd: dir, ask: say("y") });
     expect(result.output).toMatch(/remove\s+CLAUDE\.md/);
     expect(readdirSync(dir).sort()).toEqual(["AGENTS.md"]);
@@ -77,7 +77,7 @@ describe("groundwork uninstall", () => {
 
   it("keeps a generated CLAUDE.md the user added a line to", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
     writeFileSync(join(dir, "CLAUDE.md"), `${read(dir, "CLAUDE.md")}Always run the linter.\n`);
     const result = await run(["uninstall", "--keep-state"], { cwd: dir, ask: say("") });
     expect(result.output).toMatch(/CLAUDE\.md \(yours/);
@@ -86,7 +86,7 @@ describe("groundwork uninstall", () => {
 
   it("keeps .groundwork/ unless the human says yes, and with --keep-state", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: say("") });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: say("") });
     const noAnswer = await run(["uninstall"], { cwd: dir, ask: say("") });
     expect(existsSync(join(dir, ".groundwork/SPEC.md"))).toBe(true);
     expect(noAnswer.output).toMatch(/\.groundwork\/ \(you chose to keep it\)/);
@@ -98,7 +98,7 @@ describe("groundwork uninstall", () => {
 
   it("keeps an adapter file the user changed, and says so", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: say("") });
     const skill = join(dir, ".claude/skills/gw/SKILL.md");
     writeFileSync(skill, `${readFileSync(skill, "utf8")}\nMy extra line.\n`);
     const { output } = await run(["uninstall", "--keep-state"], { cwd: dir, ask: say("") });

@@ -26,7 +26,7 @@ async function project(config: Record<string, unknown> = {}): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-enforce-"));
   temps.push(dir);
   git(dir, "init", "-q");
-  await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: noQuestions });
   const path = join(dir, ".groundwork/config.json");
   writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, "utf8")), setup: "done", ...config }, null, 2));
   git(dir, "add", "-A");
@@ -749,7 +749,7 @@ describe("commit-gate", SLOW, () => {
     git(parent, "init", "-q");
     const child = join(parent, "app");
     mkdirSync(child);
-    await run(["init", "--adapter", "claude-code"], { cwd: child, ask: noQuestions });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: child, ask: noQuestions });
     const configPath = join(child, ".groundwork/config.json");
     writeFileSync(configPath, JSON.stringify({ ...JSON.parse(readFileSync(configPath, "utf8")), setup: "done" }, null, 2));
     git(parent, "add", "-A");

@@ -36,7 +36,7 @@ describe("the journal", () => {
   it("init installs it as .groundwork/JOURNAL.md", async () => {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-journal-"));
     temps.push(dir);
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: async () => "" });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: async () => "" });
     expect(existsSync(join(dir, ".groundwork/JOURNAL.md"))).toBe(true);
   });
 });

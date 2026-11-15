@@ -65,7 +65,7 @@ describe("in a project", () => {
   async function installedWith(models: unknown): Promise<string> {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-models-"));
     temps.push(dir);
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: async () => "" });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: async () => "" });
     const path = join(dir, ".groundwork/config.json");
     writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, "utf8")), models }, null, 2));
     return dir;

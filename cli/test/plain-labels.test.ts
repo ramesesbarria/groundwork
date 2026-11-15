@@ -18,7 +18,7 @@ afterEach(() => {
 async function installed(): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-labels-"));
   temps.push(dir);
-  await run(["init", "--adapter", "none"], { cwd: dir, ask: async () => "" });
+  await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: async () => "" });
   return dir;
 }
 const card = (id: string, title: string, status: string) =>
@@ -63,7 +63,7 @@ describe("plain status labels", () => {
   it("the session-start hook uses the same labels", async () => {
     const dir = await installed();
     writeFileSync(join(dir, ".groundwork/HANDOFF.md"), "- **Current card:** 1.1 A\n- **Status:** awaiting-approval\n");
-    expect(orientation(dir)).toContain(`is ${STATUS_LABELS["awaiting-approval"]}`);
+    expect(await orientation(dir)).toContain(`is ${STATUS_LABELS["awaiting-approval"]}`);
   });
 });
 

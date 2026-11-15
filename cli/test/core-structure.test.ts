@@ -42,10 +42,13 @@ describe("paths the prompts name", () => {
     /^\.groundwork\/evidence\/baseline\/?$/,
     /^\.groundwork\/cards\/[^/]+\.md$/,
     /^\.groundwork\/decisions\/[^/]+\.md$/,
+    // Project memory: made by `checkpoint --worker`, `worker` and `compact`.
+    /^\.groundwork\/work\/(LEDGER\.md)?$/,
+    /^\.groundwork\/archive\/(decisions\/)?$/,
   ];
 
   it("exist after init, or are made later by the workflow", () => {
-    const installed = planInit(core, "claude-code").map((f) => f.path);
+    const installed = planInit(core, "claude-code", undefined, true).map((f) => f.path);
     const exists = (path: string) => {
       const clean = path.replace(/\/$/, "");
       return installed.includes(clean) || installed.some((p) => p.startsWith(`${clean}/`));

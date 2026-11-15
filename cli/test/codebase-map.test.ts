@@ -17,26 +17,28 @@ describe("the codebase map", () => {
       .split(/\n(?=\d+\. )/)
       .find((s) => /Codebase map/.test(s)) ?? "";
 
-  it("existing-project setup writes it into SPEC.md", () => {
-    expect(step()).toContain(".groundwork/SPEC.md");
+  // 2.0: the map is its own file in every project, not a section of the spec.
+  it("existing-project setup writes it into MAP.md", () => {
+    expect(step()).toContain(".groundwork/MAP.md");
   });
 
   it("covers main folders, entry points, where tests live and anything unusual", () => {
     for (const thing of [/main folders/i, /entry points/i, /tests live/i, /unusual/i]) expect(step()).toMatch(thing);
   });
 
-  it("marks each item found or guessed, and stays under about 20 lines", () => {
+  it("marks each item found or guessed, and stays under about 40 lines", () => {
     expect(step()).toContain("*found*");
     expect(step()).toContain("*guessed*");
-    expect(step()).toMatch(/20 lines/);
+    expect(step()).toMatch(/40 lines/);
   });
 
-  it("the spec template has a place for it", () => {
-    expect(core("templates/SPEC.md")).toContain("## Codebase map");
+  it("it has a template of its own, and the spec no longer holds it", () => {
+    for (const heading of ["## Layout", "## Entry points", "## Tests", "## Traps"]) expect(core("templates/MAP.md")).toContain(heading);
+    expect(core("templates/SPEC.md")).not.toContain("## Codebase map");
   });
 
   it("gw-plan keeps it current when a card adds a new area", () => {
-    expect(section(core("commands/gw-plan.md"), "Steps")).toMatch(/Codebase map/);
+    expect(section(core("commands/gw-plan.md"), "Steps")).toContain("Codebase map (MAP.md)");
   });
 });
 
@@ -44,6 +46,7 @@ describe("roles load the map first", () => {
   it.each(["tester", "implementer", "reviewer"])("%s names it in its Load list", (role) => {
     const load = section(core(`roles/${role}.md`), "Load");
     expect(load).toMatch(/Codebase map/);
+    expect(load).toContain(".groundwork/MAP.md");
     expect(load).toMatch(/only the files it points to/i);
   });
 });
