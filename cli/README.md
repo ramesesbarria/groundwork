@@ -1,39 +1,32 @@
 # groundwork-ai
 
-**Project memory for coding agents: any session, tool or model resumes where the last one stopped.**
+**Your AI forgets. Your project doesn't.**
 
-Groundwork keeps what your project knows in your repo, as plain files: a handoff stamped against
-git, a map of the codebase, decisions with an index, lessons, and a journal. Each session starts
-with a brief that says where things stand and how far the handoff can be trusted; hooks checkpoint
-it when a session stops, is compacted or ends. An optional flow adds a spec, small cards with
-proof, and your approval before each commit.
-Full documentation: [ramesesbarria.github.io/groundwork](https://ramesesbarria.github.io/groundwork/).
+Groundwork is project memory for coding agents. Close the chat, switch tools, change models: the
+next session picks up exactly where the last one stopped.
 
 ```bash
 cd your-project
-npx groundwork-ai init        # asks: Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown
-npx groundwork-ai init --adapter claude-code,codex   # or name one or several
+npx groundwork-ai init
 ```
 
-Then open your AI tool in the project. It starts from the brief; `/gw` resumes and saves. Any tool
-can run `npx groundwork-ai brief` to resume and `npx groundwork-ai checkpoint --now "…" --next "…"`
-to save.
+Pick your tool (Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown for anything
+that reads `AGENTS.md`), open it, and type `/gw`. From then on each session starts with a brief:
+where you stopped, what is next, and what changed since the last save.
 
-Want the build flow too? `npx groundwork-ai init --flow` (or `npx groundwork-ai flow on` later):
-`/gw` then turns your idea into a spec and small cards and builds them one at a time, and at each
-stop you `/gw-approve` (the card is committed) or `/gw-reject` with a reason. Teams can use task
-branches with pull-request review as the approval.
+Two commands work in any tool:
 
-Needs Node.js 22+ and git. With Claude Code, use 2.1.295 or later (on Windows, with Git for
-Windows); OpenCode 2.x, Codex CLI, Cursor, Gemini CLI (with a paid API key) and any tool that reads
-`AGENTS.md` work too. The Codex, Cursor and Gemini CLI adapters follow each tool's documentation and have
-not been run inside the tools themselves.
+```bash
+npx groundwork-ai brief                               # resume
+npx groundwork-ai checkpoint --now "…" --next "…"     # save
+```
 
-Next: [your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes).
-What it costs and what it was tested on: [results](https://ramesesbarria.github.io/groundwork/docs/results).
+Want more structure? `npx groundwork-ai flow on` adds an optional guided workflow: a spec, small
+tasks, and your `/gw-approve` or `/gw-reject` before each commit.
 
-Terminal commands: `init`, `brief`, `checkpoint`, `status`, `decide`, `lesson`, `index`, `worker`,
-`compact`, `doctor`, `upgrade`, `adapter add <tool>`, `flow`, `uninstall`; with the flow on, also
-`check`, `reassess`, `migrate legacy`, `mode` and `retro`. Run `npx groundwork-ai` for help.
+Needs Node.js 22+ and git. Run `npx groundwork-ai` for every command.
+
+Next: [your first 10 minutes](https://ramesesbarria.github.io/groundwork/docs/getting-started/first-10-minutes) ·
+[docs](https://ramesesbarria.github.io/groundwork/)
 
 MIT licensed.
