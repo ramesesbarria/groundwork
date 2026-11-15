@@ -9,12 +9,10 @@ const problems = [
   { title: 'Switching tools resets you', body: 'A different tool or model knows nothing about what the last one did.' },
 ];
 
-const verdicts = [
-  { name: 'fresh', meaning: 'Written at the current commit' },
-  { name: 'behind', meaning: 'Commits landed since. Up to 8 are listed, with the files they changed' },
-  { name: 'diverged', meaning: 'Its commit isn’t in this branch’s history: a rebase, a reset, another branch' },
-  { name: 'stale', meaning: 'Older than 14 days by default' },
-  { name: 'unstamped', meaning: 'Never saved, so there is nothing to compare' },
+const checks = [
+  { title: 'It notices what changed', body: 'Every session checks your notes against the code. If work landed since the last save, it says what.' },
+  { title: 'It flags the risky parts', body: 'If your next step names a file that has changed since, the agent hears about it first.' },
+  { title: 'The code wins', body: 'When the notes and the code disagree, the agent trusts the code, then updates the notes.' },
 ];
 
 const benefits = [
@@ -80,48 +78,20 @@ export default function HomePage() {
       </Section>
 
       {/* Why you can trust it */}
-      <Section label="Why you can trust it" title="Stale notes can’t pass as current.">
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
-          <div>
-            <p className="text-[15px] leading-relaxed text-muted">
-              Every time a session starts, Groundwork compares the handoff with the repository and gives one verdict,
-              with the commits and files that changed.
-            </p>
-            <div className="mt-6 border-l-2 border-accent pl-4">
-              <p className="text-base leading-relaxed text-foreground">
-                “Trust the code over the handoff where they disagree, then save an updated handoff.”
-              </p>
-              <p className="mt-1 text-xs text-muted">What the agent is told when the two disagree.</p>
+      <Section label="Why you can trust it" title="Old notes can’t fool your agent.">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+          {checks.map((c) => (
+            <div key={c.title} className="bg-background p-6">
+              <h3 className="font-mono text-sm font-semibold">{c.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{c.body}</p>
             </div>
-            <p className="mt-6 text-sm">
-              <Link href="/docs/concepts/freshness" className="text-foreground underline underline-offset-4">
-                How freshness works →
-              </Link>
-            </p>
-          </div>
-          <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-            {verdicts.map((v) => (
-              <div key={v.name} className="flex gap-4 bg-background px-5 py-3">
-                <dt className="w-24 shrink-0 font-mono text-sm font-semibold">{v.name}</dt>
-                <dd className="text-sm leading-relaxed text-muted">{v.meaning}</dd>
-              </div>
-            ))}
-          </dl>
+          ))}
         </div>
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
-          What it checks is staleness, not truth: a handoff written at the current commit is{' '}
-          <span className="font-mono text-foreground">fresh</span> even if what it says is wrong.
+        <p className="mt-6 text-sm">
+          <Link href="/docs/concepts/freshness" className="text-foreground underline underline-offset-4">
+            How it works →
+          </Link>
         </p>
-        <div className="mt-4 flex flex-col gap-4 rounded-xl border border-border bg-surface/60 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl text-sm leading-relaxed text-muted">
-            The numbers are published in full, including the bad ones: 13 of 15 multi-session runs with Groundwork, 7
-            of 15 without, at about 4× the API cost per solo task. Measured on 1.0 with the flow on, so it doesn’t
-            isolate memory.
-          </p>
-          <ButtonLink href="/docs/results" variant="secondary">
-            Results →
-          </ButtonLink>
-        </div>
       </Section>
 
       {/* What you get */}

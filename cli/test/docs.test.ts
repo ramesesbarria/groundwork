@@ -75,20 +75,10 @@ describe("docs site", () => {
     }
   });
 
-  it("the landing page quotes the results page and the freshness verdicts", () => {
+  it("the landing page leaves evaluation numbers to the Results page", () => {
     const home = read("app/(home)/page.tsx");
-    const results = read("content/docs/results.mdx");
-    const freshness = read("content/docs/concepts/freshness.mdx");
-    // The only numbers on the marketing page, and the scoping that keeps them honest.
-    for (const claim of [/13 of 15/, /7\s+of 15/, /4× the API cost per solo task/, /1\.0 with the flow on/, /isolate memory/]) {
-      expect(home, `the landing page no longer says ${claim}`).toMatch(claim);
-    }
-    expect(results).toContain("| 7/15 | **13/15** |");
-    expect(results).toContain("about 4× the API cost");
-    // Verdict names come from the freshness page, which is the source of truth for them.
-    const names = [...home.matchAll(/name: '(\w+)', meaning/g)].map((match) => match[1]);
-    expect(names).toHaveLength(5);
-    for (const name of names) expect(freshness, `freshness is missing ${name}`).toContain(`| \`${name}\` |`);
+    expect(home).not.toMatch(/\d+\s+of\s+\d+|\d+\/\d+ (runs|vs)|\d+× the|benchmark/i);
+    expect(read("content/docs/results.mdx")).toMatch(/1\.0/);
   });
 
   it("forwards every old URL to a page that exists", () => {
