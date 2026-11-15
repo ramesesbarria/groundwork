@@ -14,8 +14,6 @@ cd your-project
 npx groundwork-ai init        # asks: Claude Code, OpenCode, or plain markdown
 ```
 
-![Running npx groundwork-ai init: choosing a tool, then the files it creates and the next step.](https://ramesesbarria.github.io/groundwork/demo-install.gif)
-
 Then open your AI tool in the project. It starts from the brief; `/gw` resumes and saves. Any tool
 can run `npx groundwork-ai brief` to resume and `npx groundwork-ai checkpoint --now "…" --next "…"`
 to save.
