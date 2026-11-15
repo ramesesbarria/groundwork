@@ -9,14 +9,19 @@ Save where things stand, so work survives a closed session, a usage limit, or a 
 
 ## Steps
 1. Read the current card's status and History, and run the project's test command if a card is in progress.
-2. Choose the handoff file. On branch `gw/<id>`, write `.groundwork/work/<id>/HANDOFF.md` (create the folder). Otherwise write `.groundwork/HANDOFF.md`. **Overwrite** the chosen file (don't append; it's the current state, not a log) with these fields:
+2. Save with `npx groundwork-ai checkpoint --now "…" --next "…" --failing "…" --notes "…"`. It picks the file (`.groundwork/work/<id>/HANDOFF.md` on branch `gw/<id>`, otherwise `.groundwork/HANDOFF.md`), stamps the commit, branch and time, and **overwrites** each section you pass (it's the current state, not a log):
+   - **Now** (`--now`): the last thing that was *finished*, specifically: "tests for criteria 1–3 written and failing", not "worked on tests"
+   - **Next** (`--next`): the very next action, specific enough to start without reading anything else
+   - **Blockers** (`--blockers`): what is waiting on the human or on something outside this session, or "none"
+   - **Failing checks** (`--failing`): each failing test, lint or build command, or "none"
+   - **Notes** (`--notes`): anything the next session would otherwise have to rediscover, like a decision in progress or a trap to avoid
+
+   Then edit the bullets under `## Flow` in that file:
    - **Phase:** the phase number and name, and the approval mode if it isn't the default
    - **Current card:** ID and title, or "none"
    - **Status:** the card's status, which also says which role is working on it
-   - **Last step:** the last thing that was *finished*, specifically: "tests for criteria 1–3 written and failing", not "worked on tests"
-   - **Next step:** the very next action, specific enough to start without reading anything else
-   - **Failing checks:** each failing test, lint or build command, or "none"
-   - **Notes:** anything the next session would otherwise have to rediscover, like a decision in progress or a trap to avoid
+
+   **Workers in flight** is kept by `npx groundwork-ai worker` (`.groundwork/memory.md`).
 3. Keep it short, under 300 words. Link to files instead of copying them.
 
 ## Writes

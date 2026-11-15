@@ -15,7 +15,8 @@ Read only these:
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
 - The diff for this card (`git diff` since the last commit)
-- `.groundwork/SPEC.md`: the sections the card touches, and the Codebase map (then only the files it points to)
+- `.groundwork/SPEC.md`: the sections the card touches
+- Codebase map `.groundwork/MAP.md`, then only the files it points to
 - `.groundwork/LESSONS.md`
 
 What isn't in these files wasn't agreed. Don't search chat logs or other folders; name the gap in your verdict.
