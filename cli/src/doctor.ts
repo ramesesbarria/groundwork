@@ -1,11 +1,13 @@
-// `groundwork doctor`: harness health and the context budget.
+// `groundwork doctor`: the install, project memory and the context budget.
 // Problems make it exit 1 (so it can run in CI); suggestions don't.
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readCore } from "./core.js";
-import { planAdapter } from "./init.js";
+import { flowOn, planAdapter } from "./init.js";
+import { checkpointLib, freshnessLib, memoryLib } from "./memory.js";
+import { OPENCODE_FLOW_PLUGIN, OPENCODE_MEMORY_PLUGIN } from "./adapters/opencode.js";
 import { estimateTokens } from "./tokens.js";
 import { sectionBody, withoutComments } from "./frontmatter.js";
 import { nextReady, parseCard } from "./cards.js";
@@ -25,6 +27,9 @@ const HOOK_EFFECT: Record<string, string> = {
   PreToolUse: "guard hook, so guards won't run",
   SessionStart: "session-start hook, so new sessions aren't told where things stand",
   UserPromptSubmit: "user-prompt hook, so the commit gate can't see your approvals and blocks per-card card commits",
+  Stop: "stop hook, so nothing checkpoints a session or asks the agent to save a handoff that is behind",
+  PreCompact: "pre-compact hook, so a compaction isn't checkpointed and its summary isn't told what to keep",
+  SessionEnd: "session-end hook, so a session that just closes leaves no journal entry",
 };
 
 interface Findings {
@@ -51,23 +56,20 @@ async function sessionStartTokens(groundwork: string): Promise<number> {
   const hook = join(groundwork, "hooks", "session-start.mjs");
   if (!existsSync(hook)) return 0;
   try {
-    const { orientation } = (await import(pathToFileURL(hook).href)) as { orientation?: (dir: string) => string };
-    return orientation ? estimateTokens(orientation(dirname(groundwork)) ?? "") : 0;
+    const { orientation } = (await import(pathToFileURL(hook).href)) as { orientation?: (dir: string) => string | Promise<string> };
+    return orientation ? estimateTokens((await orientation(dirname(groundwork))) ?? "") : 0;
   } catch {
     return 0;
   }
 }
 
-async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ lines: string[]; tokens: number }> {
+function checkBudget(cwd: string, budget: number, f: Findings): { lines: string[]; tokens: number } {
   const parts: [string, number][] = [];
   for (const name of ["AGENTS.md", "CLAUDE.md"]) if (existsSync(join(cwd, name))) parts.push([name, estimateTokens(read(join(cwd, name)))]);
   parts.push(["skill list", listingTokens(join(cwd, ".claude/skills"), /^gw/)]);
   parts.push(["subagent list", listingTokens(join(cwd, ".claude/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".opencode/agents"), /^gw-.*\.md$/)]);
   // OpenCode's custom command descriptions aren't counted: a 2,000-token description left the model's
   // prompt unchanged on OpenCode 2.0.32 (checked 2026-10-19), so they're a menu for the human.
-  // Session-start lines reach a session only through an adapter's hook or plugin.
-  const wired = read(join(cwd, ".claude/settings.json")).includes("session-start") || existsSync(join(cwd, ".opencode/plugins/groundwork-guards.js"));
-  if (wired) parts.push(["session start", await sessionStartTokens(join(cwd, ".groundwork"))]);
   const shown = parts.filter(([, n]) => n > 0);
   const tokens = shown.reduce((sum, [, n]) => sum + n, 0);
   if (tokens > budget) {
@@ -77,7 +79,7 @@ async function checkBudget(cwd: string, budget: number, f: Findings): Promise<{ 
     );
   }
   return {
-    lines: [`Always loaded:  ≈${tokens} tokens (budget ${budget}): ${shown.map(([name, n]) => `${name} ${n}`).join(", ")}`],
+    lines: [`Always loaded:  ≈${tokens} tokens (budget ${budget})${shown.length > 0 ? `: ${shown.map(([name, n]) => `${name} ${n}`).join(", ")}` : ""}`],
     tokens,
   };
 }
@@ -207,12 +209,17 @@ function checkModels(groundwork: string, f: Findings) {
   }
 }
 
-function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Findings) {
+function checkAdapters(cwd: string, groundwork: string, behind: boolean, flow: boolean, f: Findings) {
   const core = readCore(groundwork);
+  // A plugin generated for the other layer set would run next to this one.
+  const spare = flow ? OPENCODE_MEMORY_PLUGIN : OPENCODE_FLOW_PLUGIN;
+  if (existsSync(join(cwd, spare)) && existsSync(join(cwd, flow ? OPENCODE_FLOW_PLUGIN : OPENCODE_MEMORY_PLUGIN))) {
+    f.problems.push(`${spare} is left over from when the flow was ${flow ? "off" : "on"}, so two Groundwork plugins run. Delete it.`);
+  }
   const models = readProjectConfig(groundwork).models;
   const manifest = readManifest(cwd);
   for (const tool of ["claude-code", "opencode"] as const) {
-    const planned = planAdapter(core, tool, models).filter((file) => file.mode !== "append-lines");
+    const planned = planAdapter(core, tool, models, flow).filter((file) => file.mode !== "append-lines");
     const installed = planned.some((file) => (file.mode ?? "replace") === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
     if (!installed) continue;
 
@@ -256,7 +263,7 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, f: Find
 // Guard and hook scripts that won't load. The guards then block every call, so say which file and how
 // to get it back.
 async function checkScriptsLoad(cwd: string, groundwork: string, f: Findings) {
-  const scripts = ["guards", "guards/lib", "hooks"].flatMap((dir) =>
+  const scripts = ["guards", "guards/lib", "hooks", "lib"].flatMap((dir) =>
     existsSync(join(groundwork, dir)) ? readdirSync(join(groundwork, dir)).filter((n) => n.endsWith(".mjs")).map((n) => join(groundwork, dir, n)) : [],
   );
   for (const script of scripts) {
@@ -264,8 +271,9 @@ async function checkScriptsLoad(cwd: string, groundwork: string, f: Findings) {
       await import(pathToFileURL(script).href);
     } catch (error) {
       const path = relative(cwd, script).split("\\").join("/");
+      const effect = path.includes("/guards/") ? "so the guards block every call" : "so sessions start without the brief and nothing is checkpointed";
       f.problems.push(
-        `${path} can't load (${(error as Error).message.split("\n")[0]}), so the guards block every call. ` +
+        `${path} can't load (${(error as Error).message.split("\n")[0]}), ${effect}. ` +
           "Restore it from Git if it's committed, or delete it and run `npx groundwork-ai upgrade`.",
       );
     }
@@ -361,12 +369,21 @@ function checkUnreviewed(cards: CardFile[], f: Findings) {
   );
 }
 
-function checkLessons(cwd: string, groundwork: string, cardText: string, f: Findings) {
-  const lessons = [...withoutComments(read(join(groundwork, "LESSONS.md"))).matchAll(/^### (L-\d+)/gm)].map((m) => m[1]);
+function checkLessons(cwd: string, groundwork: string, cardText: string, flow: boolean, f: Findings) {
+  const text = withoutComments(read(join(groundwork, "LESSONS.md")));
+  const lessons = [...text.matchAll(/^### (L-\d+)/gm)].map((m) => m[1]);
   const agents = read(join(cwd, "AGENTS.md"));
   for (const id of lessons) {
-    if (!cardText.includes(id) && !agents.includes(id)) {
-      f.suggestions.push(`${id} is never cited in any card or AGENTS.md. If it no longer matters, archive it.`);
+    if (flow) {
+      if (!cardText.includes(id) && !agents.includes(id)) {
+        f.suggestions.push(`${id} is never cited in any card or AGENTS.md. If it no longer matters, archive it.`);
+      }
+      continue;
+    }
+    // Without the flow a NOTE lives in LESSONS.md alone; a RULE has to be in AGENTS.md to be in context.
+    const entry = text.slice(text.indexOf(`### ${id}`)).split(/^### /m)[1] ?? "";
+    if (/^- Level:\s*RULE\b/im.test(entry) && !agents.includes(id)) {
+      f.suggestions.push(`${id} is a RULE, but AGENTS.md doesn't cite it, so it isn't in context. Copy it under Rules in AGENTS.md with its ID.`);
     }
   }
   const rules = withoutComments(sectionBody(agents, "Rules"))
@@ -385,14 +402,101 @@ function checkVersion(projectVersion: string | undefined, f: Findings): boolean 
   return true;
 }
 
+// Project memory: the handoff's shape and freshness, the decisions index, the map, and each file's
+// budget. Returns the lines for the report's head.
+async function checkMemory(cwd: string, groundwork: string, wired: boolean, f: Findings): Promise<string[]> {
+  const [memory, checkpoints, freshness] = await Promise.all([memoryLib(), checkpointLib(), freshnessLib()]);
+  const config = memory.readConfig(groundwork);
+  const budgets = memory.budgetsOf(config);
+  const sizes: string[] = [];
+  const lines: string[] = [];
+  const measure = (name: keyof typeof budgets, text: string, fix: string, label: string) => {
+    const tokens = memory.estimateTokens(text);
+    sizes.push(`${name} ${tokens}/${budgets[name]}`);
+    if (tokens > budgets[name]) f.problems.push(`${label} is ≈${tokens} tokens, over its ${budgets[name]}-token budget. ${fix}`);
+  };
+
+  // Handoff
+  let target: { path: string; worker?: string };
+  try {
+    target = checkpoints.resolveHandoff(cwd);
+  } catch (error) {
+    f.problems.push((error as Error).message);
+    target = { path: join(groundwork, "HANDOFF.md") };
+  }
+  const rel = relative(cwd, target.path).split("\\").join("/");
+  const save = 'npx groundwork-ai checkpoint --now "…" --next "…"';
+  if (!existsSync(target.path)) {
+    f.problems.push(`${rel} is missing, so nothing says where things stand. Write it: \`${save}\`.`);
+    lines.push("Handoff:        missing");
+  } else {
+    const text = read(target.path);
+    const handoff = memory.parseHandoff(text);
+    if (checkpoints.isPristine(handoff)) {
+      lines.push("Handoff:        empty (nothing recorded yet)");
+      f.suggestions.push(`The handoff is still empty. When there is something to resume, save it: \`${save}\`.`);
+    } else {
+      const fresh = freshness.assess(cwd, handoff, { staleAfterDays: memory.staleDaysOf(config), groundwork });
+      lines.push(`Handoff:        ${fresh.verdict}: ${fresh.summary}`);
+      if (handoff.format !== "sections") {
+        f.suggestions.push(`${rel} is in the layout from before 2.0, with no stamp. Run \`npx groundwork-ai checkpoint\` to rewrite it in the 2.0 layout and stamp it; nothing in it is dropped.`);
+      } else {
+        const broken = memory.validateHandoff(handoff).filter((problem) => !/`updated`/.test(problem));
+        if (broken.length > 0) f.problems.push(`${rel} isn't a valid handoff: ${broken.join("; ")}. Run \`npx groundwork-ai checkpoint\`, which rewrites the stamp and the missing sections.`);
+        if (fresh.verdict === "unstamped" && broken.length === 0) f.suggestions.push(`${rel} has never been checkpointed, so nothing can tell how old it is. Run \`npx groundwork-ai checkpoint\`.`);
+      }
+      if (fresh.verdict === "behind" || fresh.verdict === "diverged" || fresh.verdict === "stale") {
+        f.suggestions.push(`The handoff is ${fresh.verdict}: ${fresh.summary}. Check it against the code and save it again: \`${save}\`.`);
+      }
+      const extras = memory.extraSections(handoff);
+      if (extras.length > 0) {
+        f.suggestions.push(`${rel} has sections a handoff doesn't define (${extras.map((s) => s.name).join(", ")}). If they are a log, \`npx groundwork-ai compact\` moves them to .groundwork/archive/.`);
+      }
+    }
+    measure("handoff", text, "Run `npx groundwork-ai compact` (it archives logs that grew in it), then shorten what is left: it is the current state, not a history.", rel);
+  }
+
+  // Decisions index
+  const indexPath = join(groundwork, memory.DECISIONS_INDEX);
+  if (!existsSync(indexPath)) f.problems.push(".groundwork/DECISIONS.md, the decisions index, is missing. Run `npx groundwork-ai index`.");
+  else if (!memory.decisionsIndexInSync(groundwork)) f.problems.push(".groundwork/DECISIONS.md is out of step with the records in .groundwork/decisions/. Run `npx groundwork-ai index`.");
+  measure("decisions", read(indexPath), "Run `npx groundwork-ai compact` (it archives superseded decisions), or raise budgets.decisions in .groundwork/config.json.", ".groundwork/DECISIONS.md");
+
+  // Map
+  const mapPath = join(groundwork, "MAP.md");
+  const map = read(mapPath);
+  if (!existsSync(mapPath)) f.problems.push(".groundwork/MAP.md, the codebase map, is missing. Run `npx groundwork-ai upgrade`, which creates it, then fill it in.");
+  else if (!memory.mapFilled(map)) f.suggestions.push(".groundwork/MAP.md isn't filled in yet, so every session rediscovers where things are. Ask your agent to fill it in (/gw does).");
+  else {
+    const gone = memory.missingMapPaths(cwd, map);
+    if (gone.length > 0) f.suggestions.push(`.groundwork/MAP.md names ${gone.length} path${gone.length === 1 ? "" : "s"} that no longer exist${gone.length === 1 ? "s" : ""} (${gone.slice(0, 5).join(", ")}). Update the map.`);
+  }
+  measure("map", map, "Shorten it: a map points to files, it doesn't explain them.", ".groundwork/MAP.md");
+  measure("lessons", read(join(groundwork, "LESSONS.md")), "Merge or drop lessons that no longer matter, or raise budgets.lessons in .groundwork/config.json.", ".groundwork/LESSONS.md");
+  measure("journal", read(join(groundwork, "JOURNAL.md")), "Run `npx groundwork-ai compact`: it moves old entries to .groundwork/archive/.", ".groundwork/JOURNAL.md");
+
+  // The brief is what a session start loads; it cuts itself to its budget.
+  const tokens = await sessionStartTokens(groundwork);
+  lines.push(`Brief:          ≈${tokens} tokens (budget ${budgets.brief}), ${wired ? "loaded at each session start" : "printed by `npx groundwork-ai brief`"}`);
+  if (tokens > budgets.brief * 1.25) f.problems.push(`The brief is ≈${tokens} tokens, over its ${budgets.brief}-token budget. Run \`npx groundwork-ai compact\`.`);
+  lines.push(`Memory files:   ${sizes.join(" · ")} tokens`);
+  return lines;
+}
+
 export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   const groundwork = join(io.cwd, ".groundwork");
   if (!existsSync(groundwork)) return { code: 1, output: NOT_INSTALLED };
 
   const configText = read(join(groundwork, "config.json"));
   const f: Findings = { problems: [], suggestions: [] };
+  const flow = flowOn(groundwork);
   let config: { tokenBudget?: number; guards?: string[]; version?: string } = {};
-  if (configText === "") {
+  if (configText === "" && !flow) {
+    f.problems.push(
+      ".groundwork/config.json is missing, so this install is broken. Restore it from Git if it's committed, or run " +
+        "`npx groundwork-ai init`, which recreates only missing files; the other checks below use default settings.",
+    );
+  } else if (configText === "") {
     f.problems.push(
       ".groundwork/config.json is missing, so this install is broken and the guards block every call. " +
         "Restore it from Git if it's committed, or run `npx groundwork-ai init`, which recreates only missing files (then set " +
@@ -403,30 +507,36 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
     config = parseJson(configText || "{}") as typeof config;
   } catch (error) {
     f.problems.push(
-      `.groundwork/config.json isn't valid JSON (${(error as Error).message}). Until it's fixed, the guards block every call. ` +
+      `.groundwork/config.json isn't valid JSON (${(error as Error).message}). ${flow ? "Until it's fixed, the guards block every call. " : ""}` +
         "Fix the file; the other checks below use default settings.",
     );
   }
 
   const behind = configText !== "" && checkVersion(config.version, f);
-  const budget = await checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
-  const cards = readCardFiles(groundwork);
+  const budget = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
+  // The brief reaches a session by itself only through an adapter's hook or plugin.
+  const wired =
+    read(join(io.cwd, ".claude/settings.json")).includes("session-start") || existsSync(join(io.cwd, OPENCODE_FLOW_PLUGIN)) || existsSync(join(io.cwd, OPENCODE_MEMORY_PLUGIN));
+  const cards = flow ? readCardFiles(groundwork) : [];
   checkGitAttributes(io.cwd, f);
-  checkGuards(groundwork, config.guards ?? [], f);
+  if (flow) checkGuards(groundwork, config.guards ?? [], f);
   await checkScriptsLoad(io.cwd, groundwork, f);
-  checkAdapters(io.cwd, groundwork, behind, f);
+  checkAdapters(io.cwd, groundwork, behind, flow, f);
   checkPendingUpdates(io.cwd, f);
-  checkModels(groundwork, f);
+  if (flow) checkModels(groundwork, f);
+  const memoryLines = await checkMemory(io.cwd, groundwork, wired, f);
   const cardText = checkCards(cards, f);
   checkUnreviewed(cards, f);
-  for (const card of await checkProject(io.cwd)) {
-    for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
+  if (flow) {
+    for (const card of await checkProject(io.cwd)) {
+      for (const problem of card.problems) f.problems.push(`Card ${card.id}: ${problem}. Run \`npx groundwork-ai check ${card.id}\`.`);
+    }
   }
   checkLongLines(cards, f); // the size limit itself comes from the shared card rules above
-  checkEvidenceEncoding(groundwork, f);
-  checkLessons(io.cwd, groundwork, cardText, f);
+  if (flow) checkEvidenceEncoding(groundwork, f);
+  checkLessons(io.cwd, groundwork, cardText, flow, f);
 
-  const lines = ["Groundwork doctor", "", ...budget.lines, ...startupCost(groundwork, budget.tokens, cards)];
+  const lines = ["Groundwork doctor", "", ...budget.lines, ...memoryLines, ...(flow ? startupCost(groundwork, budget.tokens, cards) : [])];
   if (read(join(io.cwd, ".claude/settings.json")).includes(".groundwork/guards/run.mjs")) {
     const compatibility = claudeCodeCompatibility(claudeCodeVersion());
     lines.push(compatibility.line);
