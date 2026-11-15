@@ -6,13 +6,13 @@ import { existsSync, readdirSync, readFileSync, rmSync, rmdirSync, writeFileSync
 import { dirname, join } from "node:path";
 import { readCore } from "./core.js";
 import { parseJson, readProjectConfig } from "./config.js";
-import { GITATTRIBUTES, locateCore, planAdapter } from "./init.js";
+import { AGENTS_POINTER_CONTEXT, AGENTS_POINTER_FLOW, flowOn, GITATTRIBUTES, locateCore, planAdapter } from "./init.js";
 import { isGeneratedClaudeMd } from "./upgrade.js";
 import { keptHelperNote, retiredHelperFiles } from "./retired.js";
 import type { Settings } from "./settings.js";
 import type { Io, RunResult } from "./index.js";
 
-const AGENTS_POINTER = "Read .groundwork/HANDOFF.md first and follow .groundwork/workflow.md.";
+const AGENTS_POINTERS = [AGENTS_POINTER_FLOW, AGENTS_POINTER_CONTEXT];
 
 // Pure: the user's settings without Groundwork's hook entries (any entry whose commands all run
 // something in .groundwork/). Empty events and an empty hooks key go too.
@@ -83,6 +83,7 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
   // Build what the adapters would generate from the project's own core, as `adapter add` does.
   const core = readCore(existsSync(join(groundwork, "commands")) ? groundwork : locateCore());
   const models = readProjectConfig(groundwork).models;
+  const flow = flowOn(groundwork);
 
   const lines: string[] = [];
   const kept: string[] = [];
@@ -92,7 +93,10 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
   };
 
   for (const tool of ["claude-code", "opencode"] as const) {
-    for (const file of planAdapter(core, tool, models)) {
+    // Both layer sets: a project that switched the flow on or off may still hold a file from the other.
+    const seen = new Set<string>();
+    const planned = [flow, !flow].flatMap((f) => planAdapter(core, tool, models, f)).filter((file) => (seen.has(file.path) ? false : (seen.add(file.path), true)));
+    for (const file of planned) {
       const current = read(file.path);
       if (current === undefined || file.path === ".gitattributes") continue;
 
@@ -152,10 +156,10 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
   // wrote from its template is the project's instructions by now, so it stays for the human to decide.
   const agents = read("AGENTS.md");
   if (agents !== undefined) {
-    if (agents.split(/\r?\n/).includes(AGENTS_POINTER)) {
+    if (agents.split(/\r?\n/).some((line) => AGENTS_POINTERS.includes(line))) {
       lines.push("  edit       AGENTS.md (Groundwork's pointer line taken out)");
-      act(() => writeFileSync(join(io.cwd, "AGENTS.md"), withoutLines(agents, new Set([AGENTS_POINTER]))));
-    } else if (agents.includes("This project uses [Groundwork]")) {
+      act(() => writeFileSync(join(io.cwd, "AGENTS.md"), withoutLines(agents, new Set(AGENTS_POINTERS))));
+    } else if (agents.includes("This project uses [Groundwork]") || agents.includes("with [Groundwork]")) {
       kept.push("AGENTS.md (written by Groundwork's setup and filled in for this project; delete it if you don't want it)");
     }
   }
@@ -180,10 +184,14 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
     if (keepState) {
       kept.push(".groundwork/ (--keep-state)");
     } else if (dryRun) {
-      lines.push("  ask        before deleting .groundwork/ (your spec, cards, decisions and evidence)");
+      lines.push(flow ? "  ask        before deleting .groundwork/ (your spec, cards, decisions and evidence)" : "  ask        before deleting .groundwork/ (your handoff, map, decisions, lessons and journal)");
     } else {
       const answer = (
-        await io.ask("Delete .groundwork/ too? It holds this project's spec, cards, decisions, lessons and evidence. [y/N]: ")
+        await io.ask(
+          flow
+            ? "Delete .groundwork/ too? It holds this project's spec, cards, decisions, lessons and evidence. [y/N]: "
+            : "Delete .groundwork/ too? It holds this project's handoff, map, decisions, lessons and journal. [y/N]: ",
+        )
       )
         .trim()
         .toLowerCase();
