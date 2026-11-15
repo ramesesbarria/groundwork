@@ -3,16 +3,27 @@ title: "Glossary"
 description: "The words Groundwork uses, each in one line."
 ---
 
-- **Card** — one small piece of work, with a checklist of what "done" means.
+- **Handoff** — the note in `HANDOFF.md` that says where things stand, stamped from git so any session can pick up the work and tell how far to trust it.
+- **Stamp** — the time, commit, branch, uncommitted-file count and writer that `checkpoint` records in the handoff's frontmatter.
+- **Checkpoint** — saving the handoff: you write the prose, the CLI writes the stamp and appends a journal entry.
+- **Brief** — what `groundwork brief` prints at session start: the handoff, its freshness, the decisions in force, rules and the map, within a token budget.
+- **Freshness** — the verdict comparing the handoff's stamp with the repository: `fresh`, `behind`, `diverged`, `stale` or `unstamped`.
+- **Map** — `MAP.md`: where things are in the codebase, written by the agent.
+- **Decision** — a choice recorded with the options and the reason, in `.groundwork/decisions/`, with a generated index in `DECISIONS.md`.
+- **Lesson** — a mistake written down so it doesn't happen twice, kept in `LESSONS.md`; a note, or a rule promoted into `AGENTS.md`.
+- **Journal** — `JOURNAL.md`: one entry per checkpoint, from git.
+- **Budget** — a token ceiling for a memory file, in `config.json`, checked by `doctor`.
+- **Compact** — archive what is over budget to `.groundwork/archive/`. Nothing is deleted.
+- **Worker** — a parallel agent with its own handoff under `.groundwork/work/`, recorded in a ledger.
+- **Adapter** — the files that wire Groundwork into one tool's hooks and commands.
+- **Flow** — the optional development workflow from 1.0: spec, cards, roles, approvals and guards.
+- **Card** — one small piece of work in the flow, with a checklist of what "done" means.
 - **Phase** — a group of cards that together leave something working, like a milestone.
 - **Evidence** — the proof a card is done, such as test output or screenshots, saved next to the card.
-- **Handoff** — the note in `HANDOFF.md` that says where things stand, so any session can pick up the work.
-- **Lesson** — a mistake written down so it doesn't happen twice, kept in `LESSONS.md`.
-- **Decision** — a stack or design choice, recorded with the options you chose from, in `.groundwork/decisions/`.
-- **Guard** — a small script that blocks an action outright, once a rule keeps being broken.
-- **Runner** — the main session that hands a card to each role; you start it with `/gw`.
-- **Quick path** — one-pass mode for small, low-risk changes; no card, but the checks still run.
-- **Baseline** — the recorded state of the checks on an existing project, so only *new* failures block work.
+- **Guard** — a small script that blocks an action outright, once a rule keeps being broken (flow).
+- **Runner** — the main session that hands a card to each role; you start it with `/gw` (flow).
+- **Quick path** — one-pass mode for small, low-risk changes: no card, but the checks still run (flow).
+- **Baseline** — the recorded state of the checks on an existing project, so only *new* failures block work (flow).
 
 If a word in the docs uses a config value, like `per-card` or `per-phase`, it's explained where it
-appears. [Approval modes →](/docs/getting-started/approval-modes)
+appears. [Approval modes →](/docs/flow/approval-modes)

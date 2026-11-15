@@ -310,9 +310,9 @@ and declared context changes separately. The context check covers the current `g
 context isn't checked. `check` is read-only.
 
 With `integration: "pr"` in `config.json`, a done card doesn't need the "approved by human" line:
-pull-request review is the approval. See [Teams and pull requests](/docs/guides/teams). What `check`
+pull-request review is the approval. See [Teams and pull requests](/docs/flow/pull-requests). What `check`
 can and can't prove about evidence is in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 `doctor` runs the same card checks and lists what it finds as problems.
 
@@ -364,7 +364,7 @@ npx groundwork-ai mode per-phase   # per-card or per-phase (at-end is parked for
 
 Changes `approvalMode` in `.groundwork/config.json`. It's the command you run yourself: the agent
 isn't allowed to relax approval on its own, so when you ask it to, it gives you this line to run.
-See [Approval modes](/docs/getting-started/approval-modes).
+See [Approval modes](/docs/flow/approval-modes).
 
 ## retro
 
