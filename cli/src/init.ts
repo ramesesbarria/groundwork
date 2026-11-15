@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 import { readCore, type CoreFiles } from "./core.js";
 import { generateClaudeCode } from "./adapters/claude-code.js";
 import { generateOpenCode } from "./adapters/opencode.js";
+import { generateCodex, CODEX_FLOW_LIMITS } from "./adapters/codex.js";
+import { generateCursor, CURSOR_FLOW_LIMITS } from "./adapters/cursor.js";
+import { generateGemini, GEMINI_FLOW_LIMITS } from "./adapters/gemini.js";
 import type { ModelHints } from "./adapters/shared.js";
 import { applyFiles, type PlannedFile } from "./files.js";
 import type { Io, RunResult } from "./index.js";
@@ -14,7 +17,7 @@ import { recordFiles } from "./manifest.js";
 
 export type { PlannedFile } from "./files.js";
 
-export const ADAPTERS = ["claude-code", "opencode", "none"] as const;
+export const ADAPTERS = ["claude-code", "opencode", "codex", "cursor", "gemini", "none"] as const;
 export type Adapter = (typeof ADAPTERS)[number];
 export const isAdapter = (value: string): value is Adapter => (ADAPTERS as readonly string[]).includes(value);
 
@@ -27,6 +30,11 @@ export const GITATTRIBUTES = [
   "CLAUDE.md text eol=lf",
   ".claude/** text eol=lf",
   ".opencode/** text eol=lf",
+  ".codex/** text eol=lf",
+  ".cursor/** text eol=lf",
+  ".gemini/** text eol=lf",
+  ".agents/** text eol=lf",
+  "GEMINI.md text eol=lf",
   "",
   "# Evidence images are binary: git must never rewrite their bytes",
   "*.png binary",
@@ -117,7 +125,7 @@ export const AGENTS_POINTER_FLOW = "Read .groundwork/HANDOFF.md first and follow
 export const AGENTS_POINTER_CONTEXT =
   "Run `npx groundwork-ai brief` first: it prints this project's memory (.groundwork/HANDOFF.md and more). Then follow .groundwork/memory.md.";
 function pointerFor(path: string, flow: boolean): { marker: string; lines: string } | undefined {
-  if (path === "CLAUDE.md") return { marker: "@AGENTS.md", lines: "@AGENTS.md\n" };
+  if (path === "CLAUDE.md" || path === "GEMINI.md") return { marker: "@AGENTS.md", lines: "@AGENTS.md\n" };
   if (path === "AGENTS.md") return { marker: ".groundwork/HANDOFF.md", lines: `${flow ? AGENTS_POINTER_FLOW : AGENTS_POINTER_CONTEXT}\n` };
   return undefined;
 }
@@ -142,8 +150,26 @@ export function planAdapter(core: CoreFiles, adapter: Adapter, models: ModelHint
   if (adapter === "opencode") {
     for (const [path, content] of Object.entries(generateOpenCode(core, models, flow))) files.push({ path, content });
   }
+  const generators = { codex: generateCodex, cursor: generateCursor, gemini: generateGemini } as const;
+  if (adapter === "codex" || adapter === "cursor" || adapter === "gemini") {
+    for (const [path, content] of Object.entries(generators[adapter](core, models, flow))) {
+      const merged = path === ".codex/hooks.json" || path === ".cursor/hooks.json" || path === ".gemini/settings.json";
+      files.push(withPointer({ path, content, mode: merged ? "merge-settings" : "replace" }, flow));
+    }
+  }
   return files;
 }
+
+// What a tool does not enforce with the flow on. Shown by init, adapter add and flow on.
+export const FLOW_LIMITS: Partial<Record<Adapter, { tool: string; limits: string[] }>> = {
+  codex: { tool: "Codex", limits: CODEX_FLOW_LIMITS },
+  cursor: { tool: "Cursor", limits: CURSOR_FLOW_LIMITS },
+  gemini: { tool: "Gemini CLI", limits: GEMINI_FLOW_LIMITS },
+};
+export const flowLimitLines = (adapter: Adapter, flow: boolean): string[] => {
+  const entry = FLOW_LIMITS[adapter];
+  return !flow || !entry ? [] : ["", `Not enforced by ${entry.tool} (the flow's guarantees that need more than its hooks give):`, ...entry.limits.map((l) => `  - ${l}`)];
+};
 
 // The project's config with the Groundwork version that wrote its files, so doctor can tell when it's behind.
 export function stampVersion(configJson: string, version: string): string {
@@ -185,6 +211,9 @@ export const isGroundworkSource = (dir: string) =>
 export const NEXT_STEPS: Record<Adapter, string> = {
   "claude-code": "Next: open Claude Code in this folder and type /gw. It works out what to do next.",
   opencode: "Next: open OpenCode in this folder and type /gw. It works out what to do next.",
+  codex: "Next: open Codex in this folder, run /hooks and trust Groundwork's hooks, then type $gw. It works out what to do next.",
+  cursor: "Next: open Cursor on this folder and type /gw in Agent. It works out what to do next.",
+  gemini: "Next: start Gemini CLI in this folder and type /gw. It works out what to do next.",
   none: "Next: ask your AI tool to read .groundwork/commands/gw.md and follow it.",
 };
 
@@ -192,6 +221,9 @@ export const NEXT_STEPS: Record<Adapter, string> = {
 export const CONTEXT_NEXT_STEPS: Record<Adapter, string> = {
   "claude-code": "Next: open Claude Code in this folder. Each session starts with the project brief; type /gw to resume or save.",
   opencode: "Next: open OpenCode in this folder. Each session starts with the project brief; type /gw to resume or save.",
+  codex: "Next: open Codex in this folder, run /hooks and trust Groundwork's hooks. Each session starts with the project brief; type $gw to resume or save.",
+  cursor: "Next: open Cursor on this folder. A new conversation starts with the project brief; type /gw to resume or save.",
+  gemini: "Next: start Gemini CLI in this folder. Each session starts with the project brief; type /gw to resume or save.",
   none: "Next: ask your AI tool to run `npx groundwork-ai brief`, then to read .groundwork/commands/gw.md and follow it.",
 };
 const FLOW_HINT = "Optional: a guided build workflow on top of project memory: `npx groundwork-ai flow on`.";
@@ -202,8 +234,11 @@ const ADAPTER_QUESTION = [
   "Which AI tool should Groundwork set up?",
   "  1) Claude Code",
   "  2) OpenCode",
-  "  3) None: plain markdown, works with any tool",
-  "Choose 1, 2 or 3 [1]: ",
+  "  3) Codex",
+  "  4) Cursor",
+  "  5) Gemini CLI",
+  "  6) None: plain markdown, works with any tool",
+  "Choose a number, or several separated by commas (1,3) [1]: ",
 ].join("\n");
 
 function parseArgs(args: string[]): { dryRun: boolean; flow: boolean; adapter?: string } {
@@ -219,10 +254,9 @@ async function chooseAdapter(io: Io, given: string | undefined, dryRun: boolean)
   if (given !== undefined) return given;
   if (dryRun) return "claude-code"; // a dry run never asks anything
   const answer = (await io.ask(ADAPTER_QUESTION)).trim();
-  if (answer === "" || answer === "1") return "claude-code";
-  if (answer === "2") return "opencode";
-  if (answer === "3") return "none";
-  return answer;
+  const byNumber: Record<string, string> = { "1": "claude-code", "2": "opencode", "3": "codex", "4": "cursor", "5": "gemini", "6": "none" };
+  if (answer === "") return "claude-code";
+  return answer.split(",").map((part) => byNumber[part.trim()] ?? part.trim()).join(",");
 }
 
 // Whether the repo already had uncommitted changes. False when git can't tell (no git, no repo).
@@ -243,10 +277,15 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
     };
   }
   const { dryRun, flow: wantsFlow, adapter: given } = parseArgs(args);
-  const adapter = await chooseAdapter(io, given, dryRun);
-  if (!isAdapter(adapter)) {
-    return { code: 1, output: `Unknown adapter: ${adapter}. Choose one of: ${ADAPTERS.join(", ")}.` };
+  // One adapter, or several separated by commas (--adapter claude-code,codex).
+  const chosen = (await chooseAdapter(io, given, dryRun)).split(",").map((a) => a.trim());
+  const unknown = chosen.find((a) => !isAdapter(a));
+  if (unknown !== undefined) {
+    return { code: 1, output: `Unknown adapter: ${unknown}. Choose one of: ${ADAPTERS.join(", ")} (several separated by commas).` };
   }
+  if (chosen.includes("none") && chosen.length > 1) return { code: 1, output: "Choose `none` on its own, or one or more tools." };
+  const adapters = [...new Set(chosen)] as Adapter[];
+  const adapter = adapters.join(", ");
 
   // A project that is already installed keeps the layers it has: init only fills in what's missing.
   const groundwork = join(io.cwd, ".groundwork");
@@ -262,16 +301,17 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
   let lines: string[];
   let warnings: string[];
   if (dryRun) {
-    ({ lines, warnings } = await applyFiles(planInit(core, adapter, VERSION, flow), io, true));
+    const extra = adapters.slice(1).flatMap((a) => planAdapter(layerOf(core, flow), a, {}, flow).filter((f) => f.path !== ".gitattributes"));
+    ({ lines, warnings } = await applyFiles([...planInit(core, adapters[0], VERSION, flow), ...extra], io, true));
   } else {
     const base = planInit(core, "none", VERSION, flow);
     const first = await applyFiles(base, io, false);
     // Adapter files come from the project's own .groundwork/, as `adapter add` and `doctor` build them,
     // so a role or command file the user chose to keep is what the adapter points at.
-    const adapterFiles =
-      adapter === "none"
-        ? []
-        : planAdapter(readCore(groundwork), adapter, readProjectConfig(groundwork).models, flow).filter((f) => f.path !== ".gitattributes");
+    const adapterFiles = adapters
+      .filter((a) => a !== "none")
+      .flatMap((a) => planAdapter(readCore(groundwork), a, readProjectConfig(groundwork).models, flow))
+      .filter((f, i, all) => f.path !== ".gitattributes" && all.findIndex((g) => g.path === f.path) === i);
     const second = await applyFiles(adapterFiles, io, false);
     lines = [...first.lines, ...second.lines];
     warnings = [...first.warnings, ...second.warnings];
@@ -300,7 +340,7 @@ export async function init(args: string[], io: Io): Promise<RunResult> {
         : `Groundwork installed (adapter: ${adapter}).`,
     ...lines,
     ...(warnings.length > 0 ? ["", ...warnings.map((w) => `Warning: ${w}`)] : []),
-    ...(dryRun ? [] : ["", nextSteps(adapter, flow), ...(flow ? [] : [FLOW_HINT])]),
+    ...(dryRun ? [] : ["", ...adapters.map((a) => nextSteps(a, flow)), ...adapters.flatMap((a) => flowLimitLines(a, flow)), ...(flow ? [] : [FLOW_HINT])]),
   ];
   return { code: 0, output: output.join("\n") };
 }

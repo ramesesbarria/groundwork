@@ -10,7 +10,7 @@ import { existsSync, readFileSync, readdirSync, rmSync, rmdirSync, writeFileSync
 import { dirname, join } from "node:path";
 import { readCore } from "./core.js";
 import { applyFiles } from "./files.js";
-import { flowOn, isManaged, layerOf, locateCore, planAdapter, planInit, stampVersion } from "./init.js";
+import { flowLimitLines, flowOn, isManaged, layerOf, locateCore, planAdapter, planInit, stampVersion } from "./init.js";
 import { editState, readManifest, recordFiles, recordOffered } from "./manifest.js";
 import { mergeSettings, type Settings } from "./settings.js";
 import { unmergeSettings } from "./uninstall.js";
@@ -94,7 +94,9 @@ export async function flow(args: string[], io: Io): Promise<RunResult> {
     ...projectFiles.map((f) => `  create     ${f.path}`),
     ...removable.map((f) => `  remove     ${f.path}`),
     ...keptEdited.map((f) => `  keep       ${f.path} (you changed it; it is no longer used)`),
-    ...(adapters.includes("claude-code") ? ["  merge      .claude/settings.json"] : []),
+    ...adapters
+      .flatMap((tool) => ({ "claude-code": [".claude/settings.json"], codex: [".codex/hooks.json"], cursor: [".cursor/hooks.json"], gemini: [".gemini/settings.json"] } as Record<string, string[]>)[tool] ?? [])
+      .map((path) => `  merge      ${path}`),
     `  set        flow: ${turnOn} in .groundwork/config.json`,
   ];
 
@@ -160,5 +162,5 @@ export async function flow(args: string[], io: Io): Promise<RunResult> {
           "AGENTS.md is yours and wasn't changed: take the flow's \"How we work\" steps out of it, or replace them from .groundwork/templates/AGENTS.md.",
         ]),
   ];
-  return { code: 0, output: [`The flow is now ${wanted}.`, ...list, "", ...notes].join("\n") };
+  return { code: 0, output: [`The flow is now ${wanted}.`, ...list, "", ...notes, ...adapters.flatMap((tool) => flowLimitLines(tool, turnOn))].join("\n") };
 }

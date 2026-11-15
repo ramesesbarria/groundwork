@@ -99,6 +99,42 @@ export function toAction(tool, input) {
         return null;
     }
   }
+  if (tool === "codex") {
+    // Codex PreToolUse input: tool_name "Bash" or "apply_patch"; both carry their text in tool_input.command
+    // (learn.chatgpt.com/docs/hooks, read 2026-11-15).
+    const command = String((input.tool_input ?? {}).command ?? "");
+    if (input.tool_name === "Bash") return { kind: "command", command };
+    if (input.tool_name === "apply_patch") return patchAction(command);
+    return null;
+  }
+  if (tool === "cursor") {
+    // Cursor's beforeShellExecution input has the command (cursor.com/docs/hooks, 2026-11-15). The docs give
+    // no input for a file-write tool, so only shell commands are checked.
+    if (input.hook_event_name === "beforeShellExecution" || (input.command !== undefined && input.tool_name === undefined)) {
+      return { kind: "command", command: String(input.command ?? "") };
+    }
+    return null;
+  }
+  if (tool === "gemini") {
+    // Gemini CLI BeforeTool input: tool_name and tool_input. Tool names and parameters from
+    // geminicli.com/docs/tools/shell and /file-system (2026-11-15).
+    const args = input.tool_input ?? {};
+    switch (input.tool_name) {
+      case "run_shell_command":
+        return { kind: "command", command: String(args.command ?? "") };
+      case "write_file":
+        return { kind: "write", path: String(args.file_path ?? ""), content: String(args.content ?? ""), whole: true };
+      case "replace":
+        return {
+          kind: "write",
+          path: String(args.file_path ?? ""),
+          content: String(args.new_string ?? ""),
+          edits: [edit(args.old_string, args.new_string, args.allow_multiple)],
+        };
+      default:
+        return null;
+    }
+  }
   return null;
 }
 

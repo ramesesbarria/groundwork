@@ -30,6 +30,15 @@ const HOOK_EFFECT: Record<string, string> = {
   Stop: "stop hook, so nothing checkpoints a session or asks the agent to save a handoff that is behind",
   PreCompact: "pre-compact hook, so a compaction isn't checkpointed and its summary isn't told what to keep",
   SessionEnd: "session-end hook, so a session that just closes leaves no journal entry",
+  // Cursor and Gemini CLI name the same moments their own way.
+  BeforeTool: "guard hook, so guards won't run",
+  beforeShellExecution: "guard hook, so guards won't run",
+  sessionStart: "session-start hook, so new sessions aren't told where things stand",
+  stop: "stop hook, so nothing checkpoints a session or asks the agent to save a handoff that is behind",
+  AfterAgent: "stop hook, so nothing checkpoints a session or asks the agent to save a handoff that is behind",
+  preCompact: "pre-compact hook, so a compaction isn't checkpointed",
+  PreCompress: "pre-compact hook, so a compaction isn't checkpointed",
+  sessionEnd: "session-end hook, so a session that just closes leaves no journal entry",
 };
 
 interface Findings {
@@ -65,9 +74,9 @@ async function sessionStartTokens(groundwork: string): Promise<number> {
 
 function checkBudget(cwd: string, budget: number, f: Findings): { lines: string[]; tokens: number } {
   const parts: [string, number][] = [];
-  for (const name of ["AGENTS.md", "CLAUDE.md"]) if (existsSync(join(cwd, name))) parts.push([name, estimateTokens(read(join(cwd, name)))]);
-  parts.push(["skill list", listingTokens(join(cwd, ".claude/skills"), /^gw/)]);
-  parts.push(["subagent list", listingTokens(join(cwd, ".claude/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".opencode/agents"), /^gw-.*\.md$/)]);
+  for (const name of ["AGENTS.md", "CLAUDE.md", "GEMINI.md"]) if (existsSync(join(cwd, name))) parts.push([name, estimateTokens(read(join(cwd, name)))]);
+  parts.push(["skill list", [".claude/skills", ".agents/skills", ".cursor/skills"].reduce((sum, dir) => sum + listingTokens(join(cwd, dir), /^gw/), 0)]);
+  parts.push(["subagent list", listingTokens(join(cwd, ".claude/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".opencode/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".cursor/agents"), /^gw-.*\.md$/) + listingTokens(join(cwd, ".gemini/agents"), /^gw-.*\.md$/)]);
   // OpenCode's custom command descriptions aren't counted: a 2,000-token description left the model's
   // prompt unchanged on OpenCode 2.0.32 (checked 2026-10-19), so they're a menu for the human.
   const shown = parts.filter(([, n]) => n > 0);
@@ -218,9 +227,9 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, flow: b
   }
   const models = readProjectConfig(groundwork).models;
   const manifest = readManifest(cwd);
-  for (const tool of ["claude-code", "opencode"] as const) {
+  for (const tool of ["claude-code", "opencode", "codex", "cursor", "gemini"] as const) {
     const planned = planAdapter(core, tool, models, flow).filter((file) => file.mode !== "append-lines");
-    const installed = planned.some((file) => (file.mode ?? "replace") === "replace" && file.path !== "CLAUDE.md" && existsSync(join(cwd, file.path)));
+    const installed = planned.some((file) => (file.mode ?? "replace") === "replace" && file.path !== "CLAUDE.md" && file.path !== "GEMINI.md" && existsSync(join(cwd, file.path)));
     if (!installed) continue;
 
     // An older project's adapter files are out of date because the whole install is: upgrade fixes both.
@@ -229,28 +238,33 @@ function checkAdapters(cwd: string, groundwork: string, behind: boolean, flow: b
       : `Run \`npx groundwork-ai adapter add ${tool}\` to refresh it (it asks before overwriting).`;
     for (const file of planned) {
       const current = read(join(cwd, file.path));
-      if (file.path === "CLAUDE.md") {
-        // Users may keep their own CLAUDE.md; it only has to load AGENTS.md.
-        if (!current.includes("@AGENTS.md")) f.problems.push(`CLAUDE.md doesn't load AGENTS.md. Add the line @AGENTS.md.`);
+      if (file.path === "CLAUDE.md" || file.path === "GEMINI.md") {
+        // Users may keep their own CLAUDE.md or GEMINI.md; it only has to load AGENTS.md.
+        if (!current.includes("@AGENTS.md")) f.problems.push(`${file.path} doesn't load AGENTS.md. Add the line @AGENTS.md.`);
       } else if (file.mode === "merge-settings") {
-        const hooks = JSON.parse(file.content).hooks as Record<string, { hooks: { command: string; onFailure?: string }[] }[]>;
-        let installed: { hooks?: Record<string, { hooks?: { command?: string; onFailure?: string }[] }[]> } = {};
+        type Hook = { command?: string; onFailure?: string; failClosed?: boolean };
+        const hooksOf = (entry: { hooks?: Hook[] } & Hook): Hook[] => entry.hooks ?? [entry];
+        const hooks = JSON.parse(file.content).hooks as Record<string, ({ hooks?: Hook[] } & Hook)[]>;
+        let installed: { hooks?: Record<string, ({ hooks?: Hook[] } & Hook)[]> } = {};
         try {
           installed = parseJson(current || "{}") as typeof installed;
         } catch {
           // An unreadable file is reported below as a missing hook.
         }
         for (const [event, entries] of Object.entries(hooks)) {
-          const ours = entries[0].hooks[0];
-          if (!current.includes(ours.command.replace(/"/g, '\\"'))) {
+          const ours = hooksOf(entries[0])[0];
+          if (!current.includes((ours.command ?? "").replace(/"/g, '\\"'))) {
             f.problems.push(`${file.path} is missing Groundwork's ${HOOK_EFFECT[event] ?? `${event} hook`}. ${fix}`);
             continue;
           }
-          const hook = (installed.hooks?.[event] ?? []).flatMap((entry) => entry.hooks ?? []).find((h) => h.command === ours.command);
+          const hook = (installed.hooks?.[event] ?? []).flatMap(hooksOf).find((h) => h.command === ours.command);
           if (ours.onFailure && hook?.onFailure !== ours.onFailure) {
             f.problems.push(
               `${file.path}: Groundwork's guard hook doesn't set "onFailure": "${ours.onFailure}", so Claude Code lets a call through when the guard can't run. Add it to that hook.`,
             );
+          }
+          if (ours.failClosed && hook?.failClosed !== true) {
+            f.problems.push(`${file.path}: Groundwork's guard hook doesn't set "failClosed": true, so Cursor lets a command through when the guard can't run. Add it to that hook.`);
           }
         }
       } else if (current.replace(/\r\n/g, "\n") !== file.content && !alreadyMerged(cwd, manifest, file)) {
@@ -327,7 +341,7 @@ function checkPendingUpdates(cwd: string, f: Findings) {
       }
     }
   };
-  for (const dir of [".groundwork", ".claude", ".opencode"]) walk(dir);
+  for (const dir of [".groundwork", ".claude", ".opencode", ".codex", ".cursor", ".gemini", ".agents"]) walk(dir);
   if (existsSync(join(cwd, "CLAUDE.md.new"))) pending.push("CLAUDE.md.new");
   for (const path of pending.sort()) {
     const active = path.slice(0, -".new".length);
@@ -516,7 +530,7 @@ export async function doctor(io: Pick<Io, "cwd">): Promise<RunResult> {
   const budget = checkBudget(io.cwd, config.tokenBudget ?? 2000, f);
   // The brief reaches a session by itself only through an adapter's hook or plugin.
   const wired =
-    read(join(io.cwd, ".claude/settings.json")).includes("session-start") || existsSync(join(io.cwd, OPENCODE_FLOW_PLUGIN)) || existsSync(join(io.cwd, OPENCODE_MEMORY_PLUGIN));
+    [".claude/settings.json", ".codex/hooks.json", ".cursor/hooks.json", ".gemini/settings.json"].some((p) => /session-start/.test(read(join(io.cwd, p)))) || existsSync(join(io.cwd, OPENCODE_FLOW_PLUGIN)) || existsSync(join(io.cwd, OPENCODE_MEMORY_PLUGIN));
   const cards = flow ? readCardFiles(groundwork) : [];
   checkGitAttributes(io.cwd, f);
   if (flow) checkGuards(groundwork, config.guards ?? [], f);

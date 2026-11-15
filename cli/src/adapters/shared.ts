@@ -60,3 +60,6 @@ export function modelFor(hints: ModelHints | undefined, role: string, tool: stri
 
 export const sortedByPath = (files: Record<string, string>) =>
   Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));
+
+// A TOML basic string. JSON's escapes are valid in one.
+export const tomlString = (value: string) => JSON.stringify(value);

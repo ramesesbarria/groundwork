@@ -9,20 +9,20 @@ import { parseJson, readProjectConfig } from "./config.js";
 import { AGENTS_POINTER_CONTEXT, AGENTS_POINTER_FLOW, flowOn, GITATTRIBUTES, locateCore, planAdapter } from "./init.js";
 import { isGeneratedClaudeMd } from "./upgrade.js";
 import { keptHelperNote, retiredHelperFiles } from "./retired.js";
-import type { Settings } from "./settings.js";
+import { entryCommands, isGroundworkCommand, type Settings } from "./settings.js";
 import type { Io, RunResult } from "./index.js";
 
 const AGENTS_POINTERS = [AGENTS_POINTER_FLOW, AGENTS_POINTER_CONTEXT];
 
 // Pure: the user's settings without Groundwork's hook entries (any entry whose commands all run
-// something in .groundwork/). Empty events and an empty hooks key go too.
+// something in .groundwork/, or a tool's Groundwork hook script). Empty events and an empty hooks key go too.
 export function unmergeSettings(settings: Settings): Settings {
   const out: Settings = { ...settings };
   const hooks: Record<string, unknown[]> = {};
   for (const [event, entries] of Object.entries(settings.hooks ?? {})) {
     const kept = entries.filter((entry) => {
-      const commands = (entry.hooks ?? []).map((h) => h.command ?? "");
-      return commands.length === 0 || !commands.every((c) => c.includes(".groundwork/"));
+      const commands = entryCommands(entry);
+      return commands.length === 0 || !commands.every(isGroundworkCommand);
     });
     if (kept.length > 0) hooks[event] = kept;
   }
@@ -92,7 +92,7 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
     if (!dryRun) fn();
   };
 
-  for (const tool of ["claude-code", "opencode"] as const) {
+  for (const tool of ["claude-code", "opencode", "codex", "cursor", "gemini"] as const) {
     // Both layer sets: a project that switched the flow on or off may still hold a file from the other.
     const seen = new Set<string>();
     const planned = [flow, !flow].flatMap((f) => planAdapter(core, tool, models, f)).filter((file) => (seen.has(file.path) ? false : (seen.add(file.path), true)));
@@ -120,7 +120,7 @@ export async function uninstall(args: string[], io: Io): Promise<RunResult> {
         }
         const rest = unmergeSettings(settings);
         if (JSON.stringify(rest) === JSON.stringify(settings)) continue;
-        if (Object.keys(rest).length === 0) {
+        if (Object.keys(rest).every((key) => key === "version" && file.path === ".cursor/hooks.json")) {
           lines.push(`  remove     ${file.path}`);
           act(() => rmSync(join(io.cwd, file.path)));
           removed.push(file.path);

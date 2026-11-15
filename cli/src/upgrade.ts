@@ -101,7 +101,7 @@ export function withSetup(configJson: string, state: "done" | "pending"): string
 export function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
   return ADAPTERS.filter((tool) => tool !== "none").filter((tool) =>
     [true, false].some((flow) =>
-      planAdapter(layerOf(core, flow), tool, {}, flow).some((f) => (f.mode ?? "replace") === "replace" && f.path !== "CLAUDE.md" && existsSync(join(cwd, f.path))),
+      planAdapter(layerOf(core, flow), tool, {}, flow).some((f) => (f.mode ?? "replace") === "replace" && f.path !== "CLAUDE.md" && f.path !== "GEMINI.md" && existsSync(join(cwd, f.path))),
     ),
   );
 }
@@ -284,7 +284,7 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     newCommands.length > 0
       ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`]
       : [];
-  const adapterKept = kept.filter(({ file }) => file.path.startsWith(".claude/") || file.path.startsWith(".opencode/"));
+  const adapterKept = kept.filter(({ file }) => [".claude/", ".opencode/", ".codex/", ".cursor/", ".gemini/", ".agents/"].some((dir) => file.path.startsWith(dir)) || file.path === "GEMINI.md");
   const notes = [
     ...(before2
       ? [
