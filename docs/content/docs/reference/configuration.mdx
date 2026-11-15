@@ -1,11 +1,9 @@
 ---
 title: "Configuration"
+description: "Every setting in .groundwork/config.json, with its default."
 ---
 
-One file holds your settings: `.groundwork/config.json`. It's read fresh at each step, so changes
-take effect immediately. Editors validate it against `config.schema.json` next to it.
-
-A project-memory install starts with this:
+Settings live in `.groundwork/config.json`. Edit the file and the change applies at the next step.
 
 ```json
 {
@@ -28,34 +26,36 @@ A project-memory install starts with this:
 
 ## Project memory
 
-| Field | Type | Default | What it does |
-|---|---|---|---|
-| `version` | string | written by `init`/`upgrade` | The Groundwork version that last wrote your files; `doctor` compares it with the CLI |
-| `flow` | boolean | `false` | Whether the optional [flow](/docs/flow) is on. Change it with `npx groundwork-ai flow on` or `flow off`, not by hand. A 1.x config with no `flow` key counts as on wherever the flow's files are |
-| `tokenBudget` | integer ≥ 500 | `2000` | Ceiling for what every session always loads (`AGENTS.md`, `CLAUDE.md`, the skill and subagent lists), checked by `doctor` |
-| `budgets` | object | see below | Estimated-token budgets for each memory file |
-| `staleAfterDays` | integer | `14` | A handoff older than this is `stale`, whatever git says |
-| `nudge` | boolean | `true` | Whether the stop hook asks the agent to save a handoff that is behind. `false` turns the reminder off |
+| Field | Default | What it does |
+|---|---|---|
+| `version` | set by `init` and `upgrade` | The Groundwork version that last wrote your files |
+| `flow` | `false` | Whether the optional [flow](/docs/flow) is on. Change it with `npx groundwork-ai flow on` or `flow off`, not by hand |
+| `tokenBudget` | `2000` | Ceiling for what every session always loads: `AGENTS.md`, `CLAUDE.md`, the skill and subagent lists. Minimum 500 |
+| `budgets` | below | A token budget per memory file |
+| `staleAfterDays` | `14` | A handoff older than this is `stale` |
+| `nudge` | `true` | Whether the agent is reminded to save a handoff that is behind |
 
 ### budgets
 
-Estimated tokens (characters ÷ 4). See [Budgets and compaction](/docs/concepts/budgets-and-compaction).
+In estimated tokens (characters ÷ 4). `doctor` checks them. See [Budgets and compaction](/docs/concepts/budgets-and-compaction).
 
-| Key | Default | Over budget |
+| Key | Default | When it is over |
 |---|---|---|
 | `brief` | 1500 | The brief cuts itself to fit; `doctor` fails above 125% |
-| `handoff` | 600 | `doctor` fails; `compact` archives sections a handoff doesn't define |
+| `handoff` | 600 | `doctor` fails; `compact` archives sections Groundwork doesn't define |
 | `map` | 800 | `doctor` fails; shorten it by hand |
 | `decisions` | 600 | `doctor` fails; `compact` archives superseded records |
 | `lessons` | 1200 | `doctor` fails; merge or drop by hand |
 | `journal` | 2500 | `doctor` fails; `compact` archives the oldest entries |
 
-`npx groundwork-ai brief --budget <tokens>` overrides `budgets.brief` for one run.
-
 ### Environment variables
 
-`GROUNDWORK_TOOL`, `GROUNDWORK_MODEL` and `GROUNDWORK_SESSION` say who is writing a checkpoint, and
-`GROUNDWORK_WORKER` selects a worker's handoff. The matching flags take precedence.
+| Variable | What it does |
+|---|---|
+| `GROUNDWORK_TOOL`, `GROUNDWORK_MODEL`, `GROUNDWORK_SESSION` | Say who is writing a checkpoint |
+| `GROUNDWORK_WORKER` | Selects a worker's handoff |
+
+The matching flags win.
 
 ## The flow's settings
 
@@ -80,48 +80,35 @@ With the [flow](/docs/flow) on, `config.json` has these too:
 }
 ```
 
-| Field | Type | Default | What it does |
-|---|---|---|---|
-| `setup` | `pending` \| `done` | `pending` | Whether `gw-setup` has run; `/gw` runs setup until it's `done` |
-| `approvalMode` | `per-card` \| `per-phase` \| `at-end` | `per-card` | When you approve: every card or each phase (`at-end` is kept only for projects that already use it). After setup, change it with `npx groundwork-ai mode`. See [Approval modes](/docs/flow/approval-modes) |
-| `integration` | `local` \| `pr` | `local` | `local`: `/gw-approve` gates card commits. `pr`: local commits are checkpoints and pull-request review is the approval; see [Teams and pull requests](/docs/flow/pull-requests). Only you switch it to `pr` once setup is done |
-| `autoCommit` | boolean | `true` | Whether the agent commits each card when the mode allows; `false` and it tells you what to commit |
-| `experience` | `new` \| `experienced` | `new` | How much the agent explains: one sentence per step and "How to check" every time, or terse summaries |
-| `guards` | string[] | `["no-ai-trailers"]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/`. The default blocks commits that credit an AI tool; remove it to allow them |
-| `enforce` | object | both `true` | The built-in checks: `commitGate` and `protectHarness` |
-| `models` | object | none | Optional model per role, used only by adapters |
-| `commitFormat` | string | `[{id}] {title}` | First line of each card's commit; quick changes use `quick` as the ID |
-| `commands` | object | empty | The shell commands agents run: `install`, `test`, `lint`, `build`, `run` |
-
-### commands
-
-- **`test`, `lint`, `build`** are the checks a card must pass.
-- **`run`** is how to start the app so a person *or* the agent can use it; approval stops show it as
-  "how to check it yourself".
-- **`install`** is used when setting up.
-
-Leave a command empty if the project doesn't have it. `gw-plan` fills these in when a stack is chosen,
-and checks they actually run on your machine before writing them down.
+| Field | Default | What it does |
+|---|---|---|
+| `setup` | `pending` | `/gw` runs setup until this is `done` |
+| `approvalMode` | `per-card` | When you approve: `per-card` or `per-phase` (`at-end` only for projects that already use it). Change it with `npx groundwork-ai mode`. See [Approval modes](/docs/flow/approval-modes) |
+| `integration` | `local` | `local`: `/gw-approve` gates each card's commit. `pr`: [pull-request review](/docs/flow/pull-requests) is the approval. Only you switch it to `pr` |
+| `autoCommit` | `true` | Whether the agent commits each card when the mode allows. `false`: it tells you what to commit |
+| `experience` | `new` | `new`: a sentence per step and how to check it. `experienced`: terse summaries |
+| `guards` | `["no-ai-trailers"]` | Guards to run before shell commands and file writes, by file name in `.groundwork/guards/`. The default blocks commits that credit an AI tool |
+| `enforce` | both `true` | The two built-in checks, below |
+| `models` | none | An optional model per role, below |
+| `commitFormat` | `[{id}] {title}` | First line of each card's commit. Quick changes use `quick` as the ID |
+| `commands` | empty | The project's `install`, `test`, `lint`, `build` and `run` commands. `test`, `lint` and `build` are the checks a card must pass. Leave one empty if the project doesn't have it |
 
 ### enforce
 
-Two checks run before every shell command and file write, whatever `guards` lists:
+Both run before every shell command and file write, whatever `guards` lists.
 
-- **`commitGate`**: a commit whose message names a card needs that card `done` and passing
-  [`groundwork check`](/docs/reference/cli#check). In `per-card` mode, in a tool that records your
-  messages, it also needs your `/gw-approve` for the work as it is now.
-- **`protectHarness`**: the agent can't remove a guard, set either of these to `false`, set `flow` to
-  `false`, change `approvalMode` (except back to `per-card`), switch `integration` to `pr`, turn
-  `autoCommit` back on after you turned it off, mark setup as not done, change existing guard or hook
-  files, change `.groundwork/lib/`, or take Groundwork's hooks out of settings.
+| Check | What it does |
+|---|---|
+| `commitGate` | A commit that names a card needs that card `done` and passing [`check`](/docs/reference/cli#check). In `per-card` mode, in a tool that records your messages, it also needs your `/gw-approve` |
+| `protectHarness` | Stops the agent weakening the setup: removing a guard, turning either check or `flow` off, loosening `approvalMode`, switching `integration` to `pr`, turning `autoCommit` back on, marking setup not done, or changing guard files, hook files, `.groundwork/lib/` or Groundwork's hooks in settings |
 
-Only you can turn them off, by editing this file yourself: the checks see the agent's tool calls, not
-your editor. While `setup` isn't `done`, the agent may write the config freely.
+Only you can turn them off, by editing the file yourself. Until `setup` is `done`, the agent may
+write the config freely.
 
 ### Models per role
 
-Optional, and only used by adapters. A value is either one model name for every tool, or an object
-keyed by adapter name, since each tool names models its own way:
+A value is one model name for every tool, or an object keyed by adapter (`claude-code`, `opencode`,
+`codex`, `cursor`, `gemini`). Leave a role out to use the tool's default.
 
 ```json
 {
@@ -130,18 +117,8 @@ keyed by adapter name, since each tool names models its own way:
     "implementer": "<a mid-tier model>",
     "reviewer": {
       "claude-code": "<the strongest model>",
-      "opencode": "<provider>/<model>",
-      "codex": "<model>"
+      "opencode": "<provider>/<model>"
     }
   }
 }
 ```
-
-The idea: cheaper models for the mechanical roles, the strongest for the reviewer's judgment. `cursor` and `gemini` keys work the same way. Leave a
-role out to use the tool's default. `doctor` warns about role names that don't exist.
-
-## Changing settings mid-project
-
-Just edit the file; nothing else needs updating. Switching `approvalMode` changes the next stop, not
-past ones, and the agent may go back to `per-card` but nothing looser. Raising `tokenBudget` or a
-budget after a deliberate decision is fine; `doctor` shows the real number.

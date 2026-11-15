@@ -1,130 +1,86 @@
 ---
 title: "FAQ"
+description: "Short answers to the common questions."
 ---
 
-## Is this another framework I have to learn?
+## Is this another framework to learn?
 
-No. The one command to remember is `/gw`. Groundwork is a set of markdown files, a small CLI and some
-hooks; there's no runtime, no server, and no lock-in. If you stop using it, delete the files.
-
-## What does it actually add to my project?
-
-A `.groundwork/` folder with a handoff, a map, decisions, lessons and a journal, an `AGENTS.md`, and
-your tool's files. [Project files](/docs/reference/project-files) lists them all.
+No. There is one command to remember: `/gw`. Groundwork is markdown files, a small CLI and a few
+hooks. No server, no account, no lock-in.
 
 ## Which AI tools work?
 
-Any tool that reads files, plus adapters for **Claude Code**, **OpenCode**, **Codex**, **Cursor** and
-**Gemini CLI** that wire hooks and add `/gw`. The Codex, Cursor and Gemini CLI adapters follow each
-tool's documentation and have not been run inside the tool. Other tools read `AGENTS.md`, which tells the agent to run `npx groundwork-ai brief` first. See
-[Other tools](/docs/adapters/other-tools), [Codex](/docs/adapters/codex), [Cursor](/docs/adapters/cursor)
-and [Gemini CLI](/docs/adapters/gemini).
-
-## Do I have to use the CLI?
-
-The files are plain markdown any tool can read. The CLI does the deterministic work: stamping the
-handoff from git, checking freshness, counting tokens, archiving. Without it you can still edit the
-files, but the stamp and the freshness verdict need it.
-
-## How do I know a handoff is current?
-
-`npx groundwork-ai brief` starts with a verdict: `fresh`, `behind`, `diverged`, `stale` or
-`unstamped`, with the commits and files that changed. [Freshness](/docs/concepts/freshness).
-
-## Can a handoff be wrong while the verdict says fresh?
-
-Yes. Freshness compares the stamp with the repository, not the prose with the truth. A handoff
-written at HEAD is `fresh` even if what it says is wrong.
-
-## Will it block me or my agent?
-
-The memory hooks never block work: they always exit 0 and give up after 8 seconds. At most they ask
-the agent to save, once per commit; `"nudge": false` in `config.json` turns that off. With the optional
-flow on, guards and the commit gate can refuse a commit, by design.
+Claude Code, OpenCode, Codex, Cursor and Gemini CLI have adapters that load the brief and add `/gw`.
+Any other tool reads `AGENTS.md`, which tells the agent to run `npx groundwork-ai brief` first.
+[Other tools](/docs/adapters/other-tools).
 
 ## Do the hooks work in my tool?
 
-They have been run as processes with each tool's documented input, but not yet inside a live Claude
-Code, OpenCode, Codex, Cursor or Gemini CLI session. OpenCode's idle-event checkpoint follows its
-plugin documentation and hasn't been tried live. The Codex, Cursor and Gemini CLI adapters were built
-from each tool's documentation and have never run inside the tool. If a session doesn't show the brief, run `npx groundwork-ai brief`.
+They are built to each tool's documentation and tested as processes, but not yet run inside a live
+session of any of the five tools. If a session doesn't show the brief, run `npx groundwork-ai brief`.
 
-## Does it work on an existing project?
+## How do I know the handoff is current?
 
-Yes. The first `/gw` fills in the map and `AGENTS.md`, and the journal starts at the first checkpoint
-without reconstructing earlier history. [Existing projects →](/docs/guides/existing-projects)
+The brief opens with a verdict: `fresh`, `behind`, `diverged`, `stale` or `unstamped`, with the
+commits and files that changed. [Freshness](/docs/concepts/freshness).
 
-## Is there a `map` command?
+## Can it say fresh and still be wrong?
 
-No. The agent fills in `.groundwork/MAP.md`, and `doctor` checks it exists, is filled in and names
-paths that exist.
+Yes. The verdict compares the handoff with the repository, not with the truth. A handoff saved at
+the current commit is `fresh` even if what it says is wrong.
 
-## What about several agents at once?
+## Will it block me or my agent?
 
-Each worker gets its own handoff under `.groundwork/work/<id>/`, and `worker start` and `worker done`
-keep a ledger. Two sessions sharing one handoff get a warning, not a refusal.
-[Parallel agents →](/docs/concepts/parallel-agents)
+No. The memory hooks never block work. At most they remind the agent to save, once per commit;
+`"nudge": false` in `config.json` turns that off. The optional flow is different: its guards can
+refuse a commit, on purpose.
 
-## How much does it cost in context?
+## Will it commit or push for me?
 
-`doctor` estimates it for your project (characters ÷ 4). On a fresh install: about 510 tokens always
-loaded in Claude Code and 440 in OpenCode or plain markdown, plus a brief of about 150 tokens that
-grows with your memory, capped at `budgets.brief` (1,500). [What it costs](/docs/concepts/cost).
+Memory never commits or pushes. With the flow on, a card is committed after you approve it, and
+`"autoCommit": false` leaves every commit to you. Nothing is pushed unless you ask.
 
-## What is the flow, and do I need it?
+## Does it work on a project that already has code?
 
-The 1.0 development workflow (spec, small cards, tester, implementer and reviewer roles, approval
-before each commit), kept as an optional add-on. You don't need it for project memory.
-`npx groundwork-ai init --flow` or `npx groundwork-ai flow on` adds it. [The flow](/docs/flow).
+Yes. The first `/gw` fills in the map and `AGENTS.md`, and your existing files are never replaced.
+[Existing projects](/docs/guides/existing-projects).
 
-## Will it commit or push without asking?
+## Can I run several agents at once?
 
-Memory never commits or pushes. With the flow on, in the default mode a card is committed only after
-you approve it; in `per-phase` mode each card commits once its review passes and you approve the phase;
-a quick fix commits as `[quick]` after your OK. Set `"autoCommit": false` to make every commit
-yourself. Pushing never happens unless you ask.
-
-## Can I change my approval mode later?
-
-With the flow on, yes: run `npx groundwork-ai mode <mode>` yourself (`per-card` or `per-phase`). The
-agent isn't allowed to loosen it.
-
-## What if the agent gets something wrong?
-
-With the flow, reject it: `/gw-reject` needs a reason in your words, and the reason goes on the card.
-Without it, correct the handoff or map, and record a lesson with `lesson` so the mistake isn't
-repeated.
-
-## Do I need git?
-
-Yes for freshness: it compares the stamp with commits. Without git only a handoff's age is checked.
+Yes. Each worker gets its own handoff, so they never collide in git.
+[Parallel agents](/docs/concepts/parallel-agents).
 
 ## Can a team use it?
 
-Yes. Commit `.groundwork/` with the code, keep one writer per handoff, and give each parallel worker
-its own. [Teams](/docs/guides/teams).
+Yes. Commit `.groundwork/` with the code. [Teams](/docs/guides/teams).
 
-## Where do I see what was decided, and why?
+## What does it cost in context?
 
-`.groundwork/DECISIONS.md` is the index and `.groundwork/decisions/` has one record per choice, with
-the options and the reason. [Decisions](/docs/concepts/decisions).
+Little, and it is capped. `npx groundwork-ai doctor` shows the numbers for your project.
+[What it costs](/docs/concepts/cost).
+
+## Do I need git?
+
+For freshness, yes. Without git only the handoff's age is checked.
+
+## What is the flow, and do I need it?
+
+A guided way to build: a spec, small cards, a tester, an implementer and a reviewer, and your
+approval before each commit. Memory works without it. Add it with `npx groundwork-ai flow on`.
+[The flow](/docs/flow).
 
 ## I'm on 1.x. What happens when I upgrade?
 
-`npx groundwork-ai upgrade` keeps the flow on and adds memory underneath; your own files are never
-touched. [Upgrading from 1.x](/docs/getting-started/upgrading).
+The flow stays on, memory is added underneath, and your own files are never touched.
+[Upgrading from 1.x](/docs/getting-started/upgrading).
 
-## How do I uninstall it?
+## How do I remove it?
 
-Run `npx groundwork-ai uninstall` (add `--dry-run` to preview). It removes only what Groundwork added:
-its commands, skills and plugin, its hook entries in `.claude/settings.json`, `.codex/hooks.json`, `.cursor/hooks.json` and `.gemini/settings.json`, its pointer lines in
-`AGENTS.md` and `CLAUDE.md`, and its lines in `.gitattributes`. Files you changed are kept and listed.
-It asks once before deleting `.groundwork/`, which holds your memory; `--keep-state` keeps it. Don't
-delete `.claude/`, `.opencode/`, `.codex/`, `.cursor/` or `.gemini/` wholesale: they also hold your own settings.
+`npx groundwork-ai uninstall`. It takes out only what Groundwork added, keeps files you changed,
+and asks before deleting `.groundwork/`. Don't delete `.claude/`, `.opencode/`, `.codex/`,
+`.cursor/` or `.gemini/` by hand: they hold your own settings too.
 
 ## Is it ready for real projects?
 
-2.0 is built but not released. The test suite passes and the CLI has been run end to end in throwaway
-repositories, but the hooks haven't been run in live sessions and the evaluation hasn't been rerun for
-2.0. If something's unverified, the docs say so rather than round up. Each version's changes are in the
-[releases](https://github.com/ramesesbarria/groundwork/releases).
+2.0 is built and tested, but not released. The hooks haven't been run in live sessions yet, and the
+[results](/docs/results) are from 1.0.
