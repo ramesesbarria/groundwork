@@ -1,22 +1,19 @@
 ---
 title: "Your first 10 minutes"
-description: "From install to a session that resumes where the last one stopped. The example is a small web app with a login form."
+description: "Install, save, come back in a new session, and watch it pick up where you stopped."
 ---
 
-This picks up after [installation](/docs/getting-started/installation): you have a git repo and have
-run `npx groundwork-ai init`.
+You have run `npx groundwork-ai init` in a git repo. Here is the rest, on a small app with a login form.
 
-## 1. See what was installed
+## 1. See what was added
 
 ```bash
 git status --short
 ```
 
-A `.groundwork/` folder, an `AGENTS.md`, and your tool's files (`.claude/` and `CLAUDE.md` for Claude
-Code, `.opencode/` for OpenCode, `.codex/` and `.agents/` for Codex, `.cursor/` for Cursor, `.gemini/` and `GEMINI.md` for Gemini CLI). Open `.groundwork/HANDOFF.md`: it is empty on purpose. The agent
-writes it; you don't have to.
+A `.groundwork/` folder, an `AGENTS.md`, and your tool's own files.
 
-## 2. Type `/gw` once
+## 2. Type `/gw`
 
 ```text
 You:   /gw
@@ -26,12 +23,9 @@ Agent: Filled in AGENTS.md (found: npm test, npm run dev) and MAP.md (src/, entr
        src/login.ts, no tests yet). What do you want to work on first?
 ```
 
-On a new project `/gw` fills in what is empty: `AGENTS.md`'s project summary and commands, and
-`.groundwork/MAP.md`, marking each item *found* or *guessed*. Then it asks what you want to work on.
-
 ## 3. Work, and save
 
-Work as you normally do. When a step finishes, and before the session stops, the agent saves:
+When a step finishes, the agent saves:
 
 ```bash
 npx groundwork-ai checkpoint --now "Login form renders; validation not wired" --next "Wire validation in src/login.ts, then add the first test"
@@ -42,16 +36,12 @@ Checkpoint saved: .groundwork/HANDOFF.md at 5c4bcc2 on main.
 Journal: one entry added to .groundwork/JOURNAL.md.
 ```
 
-The agent wrote the two sentences. The command wrote the rest: the time, the commit, the branch, how
-many files were uncommitted, which tool wrote it, and a journal entry from git. In Claude Code,
-OpenCode, Codex, Cursor and Gemini CLI the hooks also checkpoint when a turn ends, before a
-compaction and when the session closes (OpenCode has no session-end hook), and ask the agent to save
-if the handoff is behind. What each tool does and doesn't automate is on its [adapter page](/docs/adapters/codex).
+The agent wrote two sentences. Groundwork added the time, the commit and the branch.
 
 ## 4. Come back later
 
-Close the chat, come back tomorrow, or open a different tool or model. The session starts with the
-brief. Suppose two commits landed in between:
+Close the chat. Open a new one tomorrow, in any tool. Two commits landed in between, and the
+session is told so:
 
 ```text
 Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits landed after it was written, changing 3 files.
@@ -60,34 +50,35 @@ Handoff: BEHIND (written 0 min ago on main @ 5c4bcc2 by claude-code): 2 commits 
   Changed files: src/api/logout.ts, src/api/session.ts, src/login.ts
   Files its Now/Next sections name have changed since: src/login.ts.
   Trust the code over the handoff where they disagree, then save an updated handoff.
+
+## Handoff (.groundwork/HANDOFF.md)
+Now: Login form renders; validation is not wired to the API
+Next: Wire validation in src/login.ts, then add the first test
 ```
 
-The handoff doesn't pass itself off as current. The agent checks its Next step against the listed
-commits, corrects it, saves, and carries on. That is [freshness](/docs/concepts/freshness).
+The agent checks its next step against those commits and carries on. That is
+[freshness](/docs/concepts/freshness).
 
-## 5. Record what must outlast the session
+## 5. Keep what must outlast the session
 
 ```bash
 npx groundwork-ai decide "Use cookie sessions, not JWTs" --status accepted
 npx groundwork-ai lesson "Run migrations before the test suite" --origin "tests failed on a stale schema"
 ```
 
-A [decision](/docs/concepts/decisions) keeps the options and the reason, so a later session doesn't
-reopen it. A [lesson](/docs/concepts/lessons-ledger) keeps a mistake from repeating. Fill in each
-record, and commit `.groundwork/` with your work.
+A [decision](/docs/concepts/decisions) stops later sessions reopening a settled choice. A
+[lesson](/docs/concepts/lessons-ledger) stops a mistake repeating. Commit `.groundwork/` with your work.
 
-## Where everything lives
+## Where to look
 
-| You want to know… | Look at |
+| You want to know | Look at |
 |---|---|
-| Where we stopped, and what's next | `/gw`, `npx groundwork-ai brief`, or `.groundwork/HANDOFF.md` |
-| How much to trust it | The verdict at the top of `brief`, or `npx groundwork-ai status` |
+| Where we stopped, and what is next | `/gw` or `npx groundwork-ai brief` |
 | Where things are | `.groundwork/MAP.md` |
-| What was decided, and why | `.groundwork/DECISIONS.md` and `.groundwork/decisions/` |
+| What was decided, and why | `.groundwork/DECISIONS.md` |
 | Mistakes we learned from | `.groundwork/LESSONS.md` |
 | What happened, commit by commit | `.groundwork/JOURNAL.md` |
-| Whether memory is healthy | `npx groundwork-ai doctor` |
+| Whether everything is healthy | `npx groundwork-ai doctor` |
 
-Working with several agents at once? See [Parallel agents](/docs/concepts/parallel-agents). Want a
-spec, small cards with proof, and your approval before each commit? That is the optional
-[flow](/docs/flow).
+Next: [several agents at once](/docs/concepts/parallel-agents), or the optional [flow](/docs/flow)
+for a spec, small tasks and approvals.

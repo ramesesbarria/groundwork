@@ -1,50 +1,50 @@
 ---
 title: "Overview"
-description: "Groundwork is project memory for coding agents: any session, tool or model resumes where the last one stopped, from plain files in your repo."
+description: "Groundwork is project memory for coding agents. Any session, tool or model picks up where the last one stopped."
 ---
 
-**Project memory for coding agents: any session, tool or model resumes where the last one stopped.**
+**Your AI forgets. Your project doesn't.**
 
-Groundwork keeps what your project knows in your repo, as plain files: a handoff stamped against git,
-a map of the codebase, decisions with an index, lessons, and a journal. Each session starts with a
-brief that says where things stand and how far the handoff can be trusted. The CLI writes the facts
-(time, commit, branch); the agent writes only the judgment.
+Groundwork is project memory for coding agents. It keeps where the work stands, what comes next and
+what you decided in your repo, so a new chat, another tool or a different model picks up exactly
+where the last one stopped.
 
 <MemoryLoop />
 
 ```bash
 cd your-project
-npx groundwork-ai init      # Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown
+npx groundwork-ai init
 ```
 
-Then open your AI tool in the project and type `/gw`.
+Then open your AI tool and type `/gw`.
+
+## Why you want it
+
+- **No more re-explaining.** Every session opens knowing where you stopped and what is next.
+- **Old notes can't pass as current.** Each session is told which commits landed since the last save.
+- **Switch freely.** The memory is in your repo, so it works across tools and models.
+- **Nothing to sign up for.** Plain markdown files, committed with your code.
+
+## What it remembers
+
+| File | What it holds |
+|---|---|
+| [`HANDOFF.md`](/docs/concepts/handoff) | Where things stand, and what is next |
+| [`MAP.md`](/docs/concepts/map) | Where things are in the codebase |
+| [`DECISIONS.md`](/docs/concepts/decisions) | What was decided, and why |
+| [`LESSONS.md`](/docs/concepts/lessons-ledger) | Mistakes not to repeat |
+| [`JOURNAL.md`](/docs/concepts/journal) | What happened, commit by commit |
 
 ## Where to start
 
 <Cards>
-  <Card title="Installation" href="/docs/getting-started/installation" description="Node 22+, one command, three tool choices." />
-  <Card title="Your first 10 minutes" href="/docs/getting-started/first-10-minutes" description="Install, save, come back, and see a handoff go behind." />
-  <Card title="Freshness" href="/docs/concepts/freshness" description="How a stale handoff announces itself." />
-  <Card title="Parallel agents" href="/docs/concepts/parallel-agents" description="One writer per handoff, a worker each, and a ledger." />
-  <Card title="Upgrading from 1.x" href="/docs/getting-started/upgrading" description="The flow stays on; project memory is added underneath." />
-  <Card title="The flow (optional)" href="/docs/flow" description="A spec, small cards with proof, and your approval before each commit." />
+  <Card title="Installation" href="/docs/getting-started/installation" description="One command, in any git repo." />
+  <Card title="Your first 10 minutes" href="/docs/getting-started/first-10-minutes" description="Install, save, come back." />
+  <Card title="Freshness" href="/docs/concepts/freshness" description="How a session knows what changed." />
+  <Card title="Parallel agents" href="/docs/concepts/parallel-agents" description="Several agents, no collisions." />
+  <Card title="Your tool" href="/docs/adapters/claude-code" description="What each integration does." />
+  <Card title="The flow (optional)" href="/docs/flow" description="A spec, small tasks and your approval before each commit." />
 </Cards>
 
-## What project memory is
-
-| File | What it holds |
-|---|---|
-| [`HANDOFF.md`](/docs/concepts/handoff) | Where things stand, stamped by `checkpoint` |
-| [`MAP.md`](/docs/concepts/map) | Where things are in the codebase |
-| [`DECISIONS.md`](/docs/concepts/decisions) and `decisions/` | What was decided, and why |
-| [`LESSONS.md`](/docs/concepts/lessons-ledger) | What went wrong once and must not again |
-| [`JOURNAL.md`](/docs/concepts/journal) | One entry per checkpoint, from git |
-
-Each has a [token budget](/docs/concepts/budgets-and-compaction); `compact` archives, never deletes.
-
-## What is verified, and what isn't
-
-The 2.0 hooks have been run as processes with each tool's documented input, not inside live Claude
-Code, OpenCode, Codex, Cursor or Gemini CLI sessions, and OpenCode's idle-event checkpoint hasn't been tried live. The Codex, Cursor and Gemini CLI adapters follow each tool's documentation. The one
-[comparison](/docs/results) we have was run on 1.0 with the flow on; memory alone hasn't been
-measured. [What it costs](/docs/concepts/cost) explains where the tokens go.
+Status: the tool integrations are built from each tool's documentation and tested outside the tool,
+not yet inside a live session.

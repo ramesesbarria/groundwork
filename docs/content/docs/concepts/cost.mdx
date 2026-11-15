@@ -1,102 +1,34 @@
 ---
 title: "What it costs"
-description: "What project memory adds to a session, what the optional flow adds on top, and the one comparison we have."
+description: "Project memory adds a small, capped amount to each session. doctor shows the number for your project."
 ---
 
-## Project memory: a small, fixed cost
+**Memory is small on purpose.** It adds two things to a session, and both are capped.
 
-Memory adds two things to a session, and both are bounded:
+| What | Cap | On a fresh install |
+|---|---|---|
+| Always loaded: `AGENTS.md` and your tool's skill list | `tokenBudget`, 2,000 | About 510 tokens in Claude Code, 440 in OpenCode |
+| The brief, at session start | `budgets.brief`, 1,500 | About 145 tokens |
 
-- **Always loaded:** `AGENTS.md`, plus the one-line descriptions your tool keeps for skills and
-  subagents. `doctor` estimates it (characters ÷ 4) and checks it against `tokenBudget` (2,000). On a
-  fresh install it reported about **510 tokens** for Claude Code and **440** for OpenCode and plain
-  markdown.
-- **The brief:** what a session start loads, capped by `budgets.brief` (1,500 by default). On a fresh
-  install it was about 145 tokens; in a small project with a handoff, a decision and a map, about
-  290. `doctor` shows both numbers for your project.
+See your own numbers:
 
-These are estimates, not measurements of any model's real prompt. Everything else (decision records,
-lessons, the journal) is read only when a step needs it, and [`compact`](/docs/concepts/budgets-and-compaction)
-keeps the loaded set under its budgets.
-
-What memory saves is harder to put a number on: a session that would have re-read the repository, or
-asked you to re-explain, starts from the handoff, the map and the decisions instead. That saving has
-not been measured.
-
-## Why a long chat gets expensive
-
-A model has no memory between calls. Each call sends everything so far: the tool's instructions,
-the conversation, every file read, every command's output and, with thinking models, often the
-reasoning too.
-
-Say a session starts with **S** tokens (the tool's own instructions), and each unit of work adds **h**
-tokens of history over **m** model calls. By the time it's on unit *j*, each call re-reads about
-**S + j·h** tokens. Over **N** units:
-
-```text
-re-read ≈ m·N·S  +  m·h·N²/2
+```bash
+npx groundwork-ai doctor
 ```
 
-The second term is the problem. It grows with the square of N: twice the work re-reads four times as
-much. It also has a hard ceiling. Once **S + N·h** passes the model's context window, the tool
-compacts or truncates the chat, and whatever the plan was lives only in a summary.
+These are estimates (characters ÷ 4). Decision records, lessons and the journal are read only when
+a step needs them.
 
-Memory's answer is to keep the state that has to survive in files, so a fresh session (after a
-phase, a task, or a compaction) starts small and loses nothing: the handoff carries what the next
-session needs. This is a model of where tokens go, not a measured saving.
+## Keep sessions cheap
 
-## Keeping your own runs cheap
+A long chat re-sends its whole history on every call, so cost grows faster than the work does.
+Memory lets you stop paying for that:
 
-- **Start a new session** when a task finishes or the chat has run long. The brief resumes it.
-- **Keep the memory files short.** `doctor` fails a file over its budget; `compact` archives what
-  it can.
-- **Mind the thinking level.** High reasoning settings can dominate the bill.
+- **Start a new session** when a task finishes. The brief brings it up to speed.
+- **Keep memory files short.** `doctor` flags one that is over; `compact` archives what it can.
+- **Watch the thinking level.** High reasoning settings can dominate the bill.
 
 ## What the flow adds
 
-With the optional [flow](/docs/flow) on, each card runs as fresh sessions for a tester, an
-implementer and a reviewer, with evidence and a handoff at each change. That buys reliability across
-sessions, at a price. In the [controlled comparison](/docs/results), which was run on 1.0 with the
-flow on (OpenCode 2.0.32 with DeepSeek Flash, short tasks on a small project, scored by hidden tests):
-
-- **Work that spanned sessions succeeded more often**: 13 of 15 runs with Groundwork, 7 of 15 without.
-- **A typical solo task cost about 4× as much in API spend and took about 3× as long**: median
-  $0.091 and 389 s, against $0.021 and 138 s.
-- **Self-contained tasks didn't improve.** Both ways solved all of them, and Groundwork cost more.
-
-None of this has been re-measured for 2.0 or for memory alone. Other models and tools may differ.
-
-With the flow on, a fresh install's always-loaded part is bigger: `doctor` reported about 730 tokens
-for Claude Code, 530 for OpenCode and 440 for plain markdown, because of the subagent and skill lists.
-`doctor` also shows what `/gw` and each role load before touching any code, and any card long enough
-to be worth trimming, since every role rereads it.
-
-### Where it didn't stay flat: the runner
-
-The flow runs each card as fresh sessions where the tool supports subagents, so each role reads a
-bounded slice. The main chat that hands cards to the roles (the runner) is itself a chat, and it grows
-like one. The fix is the same idea again: **start a fresh session each phase.** The handoff carries
-everything the next session needs, and `/gw` picks it up.
-
-## Measure your own run
-
-Most AI tools keep a record of every model call: a usage or stats command, a session export, or
-session files on disk. Paste this into your tool, in the project folder, after a few sessions:
-
-```text
-Measure what this project's Groundwork run cost, using the records this tool keeps about its own
-sessions. Report only numbers you can read from those records. Don't estimate or recall; if a
-number isn't recorded, write "not recorded". Don't change any files.
-
-1. Find where this tool records token usage per model call (a usage or stats command, a session
-   export, or its session files on disk). Say exactly where you read from, and which fields you
-   used for each number below.
-2. List every session that worked on this project: the main chat and each subagent.
-3. For each session: model calls; context at the first call and at the largest call (context =
-   everything the model was sent for that call, cached or not); context re-read (the sum over all
-   calls); fresh tokens (not served from cache: uncached input, output and reasoning); reasoning
-   tokens; and cost.
-4. Split the main chat by what I asked for, so work that wasn't building (an export, a deploy)
-   can be set aside.
-5. Finish with a table per session, with a total row.
-```
+The optional [flow](/docs/flow) runs each task through a tester, an implementer and a reviewer, so
+it costs more. The one comparison we have, run on 1.0, is in [Results](/docs/results).

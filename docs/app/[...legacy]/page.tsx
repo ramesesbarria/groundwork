@@ -6,7 +6,7 @@ import { asset } from '@/lib/shared';
 // so each old path gets a tiny page that forwards to its new home. The README and npm page link
 // to these, so keep them.
 const moved: Record<string, string> = {
-  why: '/docs/why',
+  why: '/docs',
   faq: '/docs/faq',
   glossary: '/docs/glossary',
   'guides/walkthrough': '/earlier-build',

@@ -1,59 +1,39 @@
 ---
 title: "Existing projects"
-description: "Groundwork installs into a repo that already has code, history and conventions. It never rewrites your project: the agent maps it and records what is already true."
+description: "Add Groundwork to a repo that already has code. Nothing of yours is rewritten."
 ---
 
-<Callout type="info" title="Nothing is overwritten">
-`init` never replaces an existing `CLAUDE.md` or `AGENTS.md`. It appends Groundwork's pointer lines
-and leaves your content alone.
-</Callout>
-
-An existing project is the common case: there is history to learn from and nothing to scaffold. Run
-`npx groundwork-ai init` in the repo, open your tool, and type `/gw`.
+**Works on the project you already have.** Run `npx groundwork-ai init`, open your tool, type `/gw`.
+An existing `CLAUDE.md` or `AGENTS.md` is added to, never replaced.
 
 ## What the first `/gw` does
 
-1. **Fills in `AGENTS.md`**: what the project is, and the install, test, lint, build and run commands
-   it finds in the manifest and CI config.
-2. **Fills in `.groundwork/MAP.md`**: the main folders, the entry points, where the tests live and
-   anything unusual. It reads the manifest, the folder layout and the tests, not every source file, and
-   marks each item *found* (seen in a file) or *guessed*. Under about 40 lines.
-3. **Asks what you want to work on**, then starts. There is no step that asks you to describe the
-   whole app.
-
-There is no `map` command that drafts the map: the agent writes it, and `doctor` checks that it
-exists, is filled in, and names paths that exist.
+1. **Fills in `AGENTS.md`**: what the project is, and the test, lint, build and run commands it finds.
+2. **Fills in `.groundwork/MAP.md`**: the main folders, entry points, tests and anything unusual.
+3. **Asks what you want to work on.** You never have to describe the whole app.
 
 ## Record what is already true
 
-Choices already made are exactly what a new session can't see in the code. Record the ones that matter:
+Choices already made are what a new session can't see in the code. Write down the ones that matter:
 
 ```bash
 npx groundwork-ai decide "Postgres for storage" --status accepted
+npx groundwork-ai lesson "Run migrations before the test suite" --origin "tests failed on a stale schema"
 ```
 
-with the reason "already in use". Rules from your existing `CLAUDE.md` or `AGENTS.md` stay where they
-are, and are read as before; add a [lesson](/docs/concepts/lessons-ledger) for any mistake that keeps
-coming back.
+Rules in your existing `CLAUDE.md` or `AGENTS.md` stay where they are.
 
-## Your first checkpoint
-
-When the agent has done something, it saves the first handoff:
+## Save
 
 ```bash
 npx groundwork-ai checkpoint --now "…" --next "…"
 ```
 
-The journal's first entry says "First checkpoint: earlier history is in `git log`", so Groundwork
-doesn't try to reconstruct what came before it.
+The journal starts here. Earlier history stays in `git log`.
 
 ## With the flow
 
-If you turn on the optional [flow](/docs/flow), setup does more for an existing project: it drafts a
-"current state" `SPEC.md` with a **Changes** section (one sub-section per change you want), records
-each stack choice in use as an `accepted` decision, imports your existing rules as
-[lessons](/docs/concepts/lessons-ledger#imported-rules), and saves a **baseline** of your test, lint
-and build results in `.groundwork/evidence/baseline/` so cards are judged by *no new failures*, not
-*everything passes*. See [evidence and approval](/docs/flow/evidence-and-approval#baselines). Projects
-upgraded from 1.x keep their old codebase map section in `SPEC.md`; see
-[Upgrading from 1.x](/docs/getting-started/upgrading).
+The optional [flow](/docs/flow) does more on an existing project: it drafts a spec of the current
+state, records the stack in use as decisions, imports your rules as lessons, and saves a baseline of
+your tests so new work is judged by *no new failures*. See
+[evidence and approval](/docs/flow/evidence-and-approval#baselines).
