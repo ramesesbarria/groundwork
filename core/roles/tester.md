@@ -14,7 +14,7 @@ Read only these:
 - `.groundwork/rules/tester.md`: this project's rules for your role
 - `.groundwork/HANDOFF.md`
 - The current card in `.groundwork/cards/`
-- The Codebase map in `.groundwork/SPEC.md`, if there is one, then only the files it points to
+- The Codebase map, `.groundwork/MAP.md` (before 2.0: a section of `.groundwork/SPEC.md`), then only the files it points to
 - Existing tests near the code this card touches, to match their style
 - The project's test and run commands in `.groundwork/config.json`
 

@@ -1,0 +1,67 @@
+---
+title: "Cursor"
+---
+
+Groundwork's Cursor adapter wires project memory into Cursor: the brief when a conversation starts,
+checkpoints, and `/gw` commands. **It follows Cursor's documentation and has not been run inside
+Cursor.** Treat the first conversation as the test, and run `npx groundwork-ai doctor` afterwards.
+
+```bash
+npx groundwork-ai init --adapter cursor
+```
+
+Open Cursor on the project folder itself: hook commands run from the project root.
+
+## What `init` adds
+
+| Path | What it is |
+|---|---|
+| `.cursor/hooks.json` | The hooks below (`version: 1`). An existing file is merged, not replaced |
+| `.cursor/hooks/groundwork.mjs` | A small script the hooks run. Cursor wants JSON (`additional_context`, `followup_message`); the script runs Groundwork's own hook scripts and wraps their text |
+| `.cursor/skills/gw*/SKILL.md` | The commands, as skills you type as `/gw`. Cursor's docs say commands are converted to skills, so no `.cursor/commands/` is written |
+| `.cursor/agents/gw-*.md` | With the flow: a subagent for the tester, implementer and reviewer |
+
+Cursor reads `AGENTS.md` in the project root itself, so no rule file is generated. Cursor also loads
+`.claude/skills` and `.agents/skills`, so with several adapters installed it may list a command twice.
+
+## What is automated
+
+| Moment | Cursor event | What happens |
+|---|---|---|
+| A conversation is created | `sessionStart` | The brief goes into the initial context (`additional_context`) |
+| A turn ends | `stop` | An automatic checkpoint; if the handoff is behind, the reminder is submitted as the next message (`followup_message`), once per commit |
+| Before a compaction | `preCompact` | An automatic checkpoint only: Cursor says this hook cannot change the compaction |
+| Session ends | `sessionEnd` | A last automatic checkpoint (fire and forget) |
+
+No memory hook sets `failClosed`, and timeouts are 15 seconds or less.
+
+## What is instruction only
+
+- Cursor's documentation says `sessionStart` is called when a conversation is created. It does not say a
+  resumed or compacted conversation runs it again, so `AGENTS.md` also tells the agent to run
+  `npx groundwork-ai brief` first.
+- A compaction summary is not told what to keep.
+
+## With the flow
+
+`init --adapter cursor --flow` adds `beforeShellExecution` with `failClosed: true`: every shell command goes
+through the commit gate and your guards, and a crash, timeout or empty answer blocks the command.
+`gw-approve` and `gw-reject` are skills with `disable-model-invocation: true`, which is Cursor's own
+switch for "only when the human invokes it". The reviewer subagent is `readonly: true`.
+**What Cursor does not enforce:**
+
+- **File writes are not guarded.** Cursor's documentation gives no input for the write tool in `preToolUse`,
+  so edits are not checked: protection of Groundwork's own files and the card-state guards only see shell
+  commands. The commit gate does apply, because a commit is a shell command.
+- **Approvals are not bound to your message.** `beforeSubmitPrompt` exists, but it isn't documented what it
+  receives for a skill, so the recorder is not wired. The commit gate cannot tell that a human approved.
+- **Hooks run from the project root**, so a parent folder opened as the workspace runs none of this.
+
+`init --flow` and `flow on` print this list.
+
+`models` in `.groundwork/config.json` with a `cursor` key sets each subagent's `model`.
+
+## Sources
+
+Read on 2026-11-15: `cursor.com/docs/hooks`, `cursor.com/docs/context/skills`,
+`cursor.com/docs/context/subagents` and `cursor.com/docs/context/rules`.

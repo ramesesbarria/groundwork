@@ -45,7 +45,7 @@ const STATE: Record<string, string> = {
 // A project as Groundwork 0.3 left it: no version stamp, an older role, gw-resume, no hooks.
 async function v03Project(): Promise<string> {
   const dir = tempDir();
-  await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+  await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
   rmSync(join(dir, ".groundwork/.manifest.json")); // 0.3 kept no record of the files it wrote
   const cfg = config(dir);
   delete cfg.version;
@@ -70,7 +70,7 @@ async function v03Project(): Promise<string> {
 describe("version stamp", () => {
   it("init writes the CLI version into config.json", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     expect(config(dir).version).toBe(VERSION);
   });
 
@@ -169,7 +169,7 @@ describe("groundwork upgrade", () => {
 
   it("says so when the project is already up to date", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
     const io = answers();
     const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
     expect(output).toMatch(/already up to date/i);
@@ -178,7 +178,7 @@ describe("groundwork upgrade", () => {
 
   it("adds the binary image rules to an old .gitattributes, keeping its own lines", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     write(dir, ".gitattributes", "*.log binary\n.groundwork/** text eol=lf\n");
     const io = answers();
     const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
@@ -193,7 +193,7 @@ describe("groundwork upgrade", () => {
 
   it("does not duplicate the binary image rules when they are already there", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     const io = answers();
     const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
     expect(output).toMatch(/already up to date/i);
@@ -202,7 +202,7 @@ describe("groundwork upgrade", () => {
 
   it("creates .gitattributes with the full rules when the project has none", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     rmSync(join(dir, ".gitattributes"), { force: true });
     const io = answers();
     const { output } = await run(["upgrade"], { cwd: dir, ask: io.ask });
@@ -214,7 +214,7 @@ describe("groundwork upgrade", () => {
 
   it("keeps a Groundwork file the user changed, writing the new version next to it", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
     const mine = `${read(dir, ".groundwork/roles/reviewer.md")}\n- RULE L-002: never mock the database\n`;
     write(dir, ".groundwork/roles/reviewer.md", mine);
     write(dir, ".groundwork/workflow.md", "# Old workflow\n"); // pretend Groundwork wrote an older version
@@ -235,7 +235,7 @@ describe("groundwork upgrade", () => {
 
   it("keeps edited instructions, templates and config, and repeated upgrades do not clobber them", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
 
     const edited: Record<string, string> = {
       "AGENTS.md": `${read(dir, "AGENTS.md")}\n- RULE: use pnpm only\n`,
@@ -293,7 +293,7 @@ describe("groundwork upgrade", () => {
 
   it("says when a preserved adapter file's .new version is not active", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "opencode"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "opencode"], { cwd: dir, ask: answers().ask });
     const plugin = ".opencode/plugins/groundwork-guards.js";
     write(dir, plugin, `${read(dir, plugin)}\n// project edit\n`);
     const cfg = config(dir);
@@ -362,7 +362,7 @@ describe("groundwork upgrade", () => {
   it("recovers an untracked install whose guard files are damaged or missing", async () => {
     const dir = tempDir();
     const { ask } = answers();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask });
     write(dir, ".groundwork/SPEC.md", "# My spec\n");
     const original = read(dir, ".groundwork/guards/lib/commit-gate.mjs");
     // A damaged guard is an edit upgrade keeps; deleting it lets upgrade write it again.
@@ -373,7 +373,7 @@ describe("groundwork upgrade", () => {
     // config.json is project state, not a managed file: init recreates it when it's missing, alone.
     const settings = read(dir, ".claude/settings.json");
     rmSync(join(dir, ".groundwork/config.json"));
-    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask });
+    const { output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask });
     expect(output).toMatch(/create +\.groundwork\/config\.json/);
     expect(config(dir).setup).toBe("pending");
     expect(read(dir, ".groundwork/SPEC.md")).toBe("# My spec\n");
@@ -389,7 +389,7 @@ describe("groundwork upgrade", () => {
 describe("doctor and versions", () => {
   it("suggests an upgrade when the project is older than the CLI", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     const cfg = config(dir);
     cfg.version = "0.1.0";
     write(dir, ".groundwork/config.json", JSON.stringify(cfg));
@@ -409,7 +409,7 @@ describe("doctor and versions", () => {
 
   it("says nothing about versions on a current install", async () => {
     const dir = tempDir();
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     expect((await run(["doctor"], { cwd: dir })).output).not.toMatch(/upgrade/);
   });
 });

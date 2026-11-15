@@ -13,6 +13,8 @@ const ROLE_TOOLS: Record<string, string[]> = {
 // while `/gw-approve` still works (code.claude.com/docs/en/skills, checked 2026-09-24).
 const HUMAN_ONLY = new Set(["gw-approve", "gw-reject"]);
 
+const CONTEXT_LINE = "Each session starts with the project brief from .groundwork/ (a hook prints it). /gw resumes from it and saves.";
+
 // Every line Groundwork writes under "## Claude Code" in CLAUDE.md, now or in an earlier version. A
 // CLAUDE.md made only of these is Groundwork's own: upgrade refreshes it and uninstall removes it.
 // Add the pattern here when the generator below gains a line.
@@ -22,11 +24,15 @@ export const CLAUDE_MD_LINES: RegExp[] = [
   /^The others: \/[\w-]+(?:, \/[\w-]+)*\.$/,
   /^Other helpers live in \.groundwork\/commands\/; \/gw reads the one it needs\.$/,
   /^When a command says to run a role, use its subagent: gw-[\w-]+(?:, gw-[\w-]+)*\.$/,
+  /^Each session starts with the project brief from \.groundwork\/ \(a hook prints it\)\. \/gw resumes from it and saves\.$/, // 2.0, context only
 ];
 
+const hook = (script: string, args: string) => `node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/${script}" ${args}`;
+
 // Pure: core files in, Claude Code files out. Generated files point to the core instead of
-// copying it, so .groundwork/ stays the single source of truth.
-export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Record<string, string> {
+// copying it, so .groundwork/ stays the single source of truth. `flow` adds the flow's subagents,
+// guard hook and approval recorder to the context layer's hooks.
+export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}, flow = "guards/run.mjs" in core): Record<string, string> {
   const out: Record<string, string> = {};
 
   const commands = commandsOf(core);
@@ -42,7 +48,7 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
     ].join("\n");
   }
 
-  const roles = subagentRolesOf(core);
+  const roles = flow ? subagentRolesOf(core) : [];
   for (const { name: role, description } of roles) {
     const tools = ROLE_TOOLS[role];
     if (!tools) throw new Error(`No Claude Code tools defined for role "${role}"`);
@@ -60,52 +66,55 @@ export function generateClaudeCode(core: CoreFiles, models: ModelHints = {}): Re
     ].join("\n");
   }
 
-  out["CLAUDE.md"] = [
-    "@AGENTS.md",
-    "",
-    "## Claude Code",
-    `Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.`,
-    `The others: ${commands.filter((c) => c.name !== "gw").map((c) => `/${c.name}`).join(", ")}.`,
-    "Other helpers live in .groundwork/commands/; /gw reads the one it needs.",
-    `When a command says to run a role, use its subagent: ${roles.map((r) => `gw-${r.name}`).join(", ")}.`,
-    "",
-  ].join("\n");
+  out["CLAUDE.md"] = flow
+    ? [
+        "@AGENTS.md",
+        "",
+        "## Claude Code",
+        `Groundwork commands are skills. Start with /gw: it says where things stand and runs the next step.`,
+        `The others: ${commands.filter((c) => c.name !== "gw").map((c) => `/${c.name}`).join(", ")}.`,
+        "Other helpers live in .groundwork/commands/; /gw reads the one it needs.",
+        `When a command says to run a role, use its subagent: ${roles.map((r) => `gw-${r.name}`).join(", ")}.`,
+        "",
+      ].join("\n")
+    : ["@AGENTS.md", "", "## Claude Code", CONTEXT_LINE, ""].join("\n");
 
-  // Guards: every shell command and file write goes through the runner, which applies the guards
-  // listed in .groundwork/config.json. Exit code 2 blocks the action. Claude Code lets a call through
-  // when a hook fails any other way (it can't start, crashes, times out), unless the hook sets
+  // Project memory, in every install. Events, their input and what their output does are from
+  // code.claude.com/docs/en/hooks, checked 2026-11-15.
+  // SessionStart: a new or resumed session, /clear or a compaction begins with the project brief; Claude
+  //   Code adds the hook's plain-text output as context. The command is the one 1.x wrote, so an
+  //   upgrade replaces that entry instead of adding a second one.
+  // Stop: an automatic checkpoint. When the handoff is behind the repository, the hook answers
+  //   {"decision":"block","reason"}, which Claude Code gives to the model: it is asked to save, once
+  //   per commit. The script reads stop_hook_active, so it never asks twice in a row.
+  // PreCompact: an automatic checkpoint; the hook's output becomes instructions for the compaction summary.
+  // SessionEnd: a last automatic checkpoint. Its default budget is 1.5 seconds; `timeout` raises it.
+  // None of these sets onFailure, and the scripts always exit 0: memory never blocks the work.
+  const memoryHooks = {
+    SessionStart: [{ matcher: "startup|resume|clear|compact", hooks: [{ type: "command", command: hook("session-start.mjs", '"$CLAUDE_PROJECT_DIR"') }] }],
+    Stop: [{ hooks: [{ type: "command", command: hook("checkpoint.mjs", 'stop "$CLAUDE_PROJECT_DIR" claude-code --block-json'), timeout: 15 }] }],
+    PreCompact: [{ hooks: [{ type: "command", command: hook("checkpoint.mjs", 'pre-compact "$CLAUDE_PROJECT_DIR" claude-code'), timeout: 15 }] }],
+    SessionEnd: [{ hooks: [{ type: "command", command: hook("checkpoint.mjs", 'session-end "$CLAUDE_PROJECT_DIR" claude-code'), timeout: 10 }] }],
+  };
+
+  // The flow's guards: every shell command and file write goes through the runner, which applies the
+  // guards listed in .groundwork/config.json. Exit code 2 blocks the action. Claude Code lets a call
+  // through when a hook fails any other way (it can't start, crashes, times out), unless the hook sets
   // onFailure: "block", added in Claude Code 2.1.295 (code.claude.com/docs/en/hooks, "Block the
   // action when a hook fails"; changelog 2.1.295). Older versions ignore the field.
-  // Session start: a new session, /clear or compaction begins with a few lines from HANDOFF. Claude Code
-  // adds a SessionStart hook's plain-text output as context (code.claude.com/docs/en/hooks).
-  out[".claude/settings.json"] =
-    JSON.stringify(
+  const flowHooks = {
+    PreToolUse: [
       {
-        hooks: {
-          SessionStart: [
-            {
-              matcher: "startup|clear|compact",
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs" "$CLAUDE_PROJECT_DIR"' }],
-            },
-          ],
-          PreToolUse: [
-            {
-              matcher: "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code', onFailure: "block" }],
-            },
-          ],
-          // Fires only on the human's own messages, so the commit gate can tell a human approval
-          // from the agent's say-so.
-          UserPromptSubmit: [
-            {
-              hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/hooks/user-prompt.mjs" "$CLAUDE_PROJECT_DIR"' }],
-            },
-          ],
-        },
+        matcher: "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        hooks: [{ type: "command", command: 'node "$CLAUDE_PROJECT_DIR/.groundwork/guards/run.mjs" claude-code', onFailure: "block" }],
       },
-      null,
-      2,
-    ) + "\n";
+    ],
+    // Fires only on the human's own messages, so the commit gate can tell a human approval
+    // from the agent's say-so.
+    UserPromptSubmit: [{ hooks: [{ type: "command", command: hook("user-prompt.mjs", '"$CLAUDE_PROJECT_DIR"') }] }],
+  };
+
+  out[".claude/settings.json"] = JSON.stringify({ hooks: { ...memoryHooks, ...(flow ? flowHooks : {}) } }, null, 2) + "\n";
 
   return sortedByPath(out);
 }

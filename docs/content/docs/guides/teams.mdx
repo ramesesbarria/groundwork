@@ -1,75 +1,46 @@
 ---
-title: "Teams and pull requests"
-description: "Share one project's context across task branches, and let pull-request review be the approval."
+title: "Teams"
+description: "Several people and several agents on one project: commit the memory, keep one writer per handoff, and give each worker its own."
 ---
 
-By default Groundwork is set up for one developer with one approval gate. A team, or one developer
-working across several branches, can use the pull-request path instead. Each task gets its own
-branch and handoff. The decisions a task depends on are recorded, so a change on `main` is noticed.
-Pull-request review is the approval.
+Project memory is plain files in your repo, so a team shares it the way it shares code.
 
-This is a working prototype. Two branches, fresh clones and PR checks have been exercised; a live
-human review cycle (approve, request changes, dismiss a stale approval) hasn't been fully observed
-yet. Roles, permissions, dashboards and hosted services are not part of it.
+## Commit `.groundwork/`
 
-## Set it up once
+Everything under `.groundwork/` is meant to be committed, apart from the local state it git-ignores
+(`.state.json`, `.lock`, `private/`). A teammate who clones the repo, or opens it in a different tool,
+gets the same handoff, map, decisions and lessons, and the brief tells them how far to trust the
+handoff against the commits they pulled.
 
-1. **Switch the project to PR integration.** Set `"integration": "pr"` in `.groundwork/config.json`,
-   during setup or in your own editor. Once setup is done, the guard refuses that change from the
-   agent, because it drops the local approval gate.
-2. **Add the checks.** Copy
-   [`demo/groundwork-pr.yml`](https://github.com/ramesesbarria/groundwork/blob/main/demo/groundwork-pr.yml)
-   to `.github/workflows/`. Its `groundwork-head` job runs `groundwork-ai check --base origin/main` on
-   the real PR head; `groundwork-merge` runs your tests on the merge result. Add `groundwork-ai` as a
-   dev dependency (`npm install --save-dev groundwork-ai@^1.0.0`) so CI and your machines run the
-   same version.
-3. **Protect `main`.** Require a pull request, at least one approving review, the
-   `groundwork-head` and `groundwork-merge` checks, an up-to-date branch, and dismissal of stale
-   approvals when new commits are pushed. These rules are what enforce approval in this mode.
+Commits that touch only `.groundwork/` don't make the handoff `behind`, so committing a checkpoint is
+safe.
 
-## Work on a task
+## One writer per handoff
 
-- **Cards are created on `main`** (plan them there and merge), so every branch agrees on the IDs.
-- **One branch per card:** `gw/<id>`, e.g. `gw/1.2`. On that branch the handoff is
-  `.groundwork/work/<id>/HANDOFF.md`; `/gw` and session start read it, so two tasks don't overwrite
-  each other's state.
-- **Record what the task relies on** when you start it:
+The root handoff belongs to the main checkout. Anyone else, whether a teammate in a linked worktree, a
+task branch or a named agent, writes their own file under `.groundwork/work/<id>/`:
 
-  ```bash
-  npx groundwork-ai reassess 1.2 --target origin/main --dep decision:0001 --dep spec:SPEC.md
-  ```
+```bash
+npx groundwork-ai worker start auth-tests --goal "Write the auth test suite"
+```
 
-  This stores the versions you read in `.groundwork/work/1.2/context.json`.
-- **Local commits are checkpoints.** The commit gate still refuses a cardless commit and checks the
-  card's rules, but doesn't ask for `/gw-approve`.
-- **The agent finishes by pushing the task branch** and stops for the pull request. It doesn't merge
-  into `main` or push `main`, and the guard refuses a push that would.
+The main session records each worker in **Workers in flight** and in `.groundwork/work/LEDGER.md`, a
+log of who started what and what happened. Before merging a worker's branch, read its handoff and rerun
+its checks: a worker's own report isn't verification. Details, and the limits, are in
+[Parallel agents](/docs/concepts/parallel-agents).
 
-## When `main` moves
+If two sessions share one handoff, `checkpoint` warns and says to give one of them a worker id. It does
+not refuse.
 
-Run `npx groundwork-ai check --base origin/main` before you start, when you resume, and before
-review. It reports two things separately:
+## Decisions and lessons are team knowledge
 
-- **freshness:** your branch is behind `main`. Merge or rebase as your team usually does.
-- **context:** a decision or spec section the task depends on changed. Read the change,
-  reconcile the code and card, rerun the tests, and only then record it:
+Record a decision with `decide` so the next person (or agent) sees the options and the reason, and
+write a lesson when a mistake could repeat. Because both are files, changing one in a branch shows up in
+the pull request like any other change. The handoff's stamp records fingerprints of the map, decisions
+and lessons, so a session is told when one changed after it was written.
 
-  ```bash
-  npx groundwork-ai reassess 1.2 --target origin/main
-  ```
+## Pull-request review as the approval
 
-Recording an acknowledgment doesn't prove the change was understood; the review still judges that.
-Changes to knowledge the task didn't declare stay quiet. If a dependency was deleted on purpose,
-drop it with `--drop decision:0001`. Renames aren't followed: `--dep` re-resolves a reference to its
-current path.
-
-## Review and merge
-
-Open a pull request from `gw/<id>`. The head check verifies the card, its evidence and its context
-on the PR's own head (not the merge ref, which would hide a stale branch). A reviewer approves in
-your Git host, and the repository's rules decide when it can merge. An agent-written
-"approved by human" line is not a PR approval.
-
-What this does and doesn't enforce is spelled out in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
-Command details: [`check`](/docs/reference/cli#check) and [`reassess`](/docs/reference/cli#reassess).
+If you use the optional [flow](/docs/flow), there is a team path built on the same files: each task
+branch carries its own handoff and the decisions it depends on, and pull-request review is the
+approval. It is a working prototype: [Teams and pull requests](/docs/flow/pull-requests).

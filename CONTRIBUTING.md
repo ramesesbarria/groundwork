@@ -54,13 +54,21 @@ npm ci --prefix docs
 npm run docs:dev      # then open http://localhost:3000/groundwork
 ```
 
+If the site stops building after the repo moved or the dependencies changed (a `Cannot find package` error naming an old path), run `npm run clean --prefix docs`: the Turbopack cache in `docs/.next` stores absolute paths.
+
 Pages are MDX files in `docs/content/docs/`. Some CLI tests read them to keep the docs in step with
 the product, so run `npm test` after editing docs too.
 
 ## Where changes go
 
-- `core/` is the workflow in plain markdown and must work with any AI tool. Anything specific to
+- `core/` is what gets copied into a project, and must work with any AI tool. Anything specific to
   Claude Code or OpenCode belongs in `cli/src/adapters/`; a test enforces this.
+- `core/` has two layers. Project memory is what every install gets: `core/lib/` (the one parser
+  and serializer, shared by the CLI and the hooks), `hooks/session-start.mjs` and
+  `hooks/checkpoint.mjs`, `memory.md`, the shared templates, and `core/context/` for the files a
+  context-only install gets in place of the flow's. Everything else is the flow. `isContextFile` in
+  `cli/src/init.ts` draws the line; a test checks that a context-only install never mentions cards,
+  roles or approvals. [V2.md](V2.md) is the contract.
 - If you change the OpenCode adapter, run the check in
   [checks/opencode-compatibility.md](checks/opencode-compatibility.md).
 - The comparative evaluation lives in `evals/`. [evals/README.md](evals/README.md) explains how to

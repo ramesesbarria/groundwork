@@ -5,78 +5,104 @@ description: "Everything Groundwork knows lives in plain files in your repo, so 
 
 ## Layout
 
+A project-memory install (`npx groundwork-ai init`):
+
 ```text
-AGENTS.md                     # what every session starts with (short, always loaded)
+AGENTS.md                     # what every session starts with: says to run `brief` first
 .groundwork/
-  config.json                 # your settings: approval mode, commands, guards, enforcement, models
-  workflow.md                 # the loop, step by step
-  commands/                   # the gw-* commands, one file each
-  roles/                      # planner, tester, implementer, reviewer
-  rules/                      # this project's own rules for each role
-  guides/                     # longer steps a command links to
-  templates/                  # starting points for cards, specs, decisions…
-  guards/                     # guard scripts, the runner adapters hook up, and the built-in checks (lib/)
-  hooks/                      # session-start orientation, and the approval recorder (Claude Code)
-  SPEC.md                     # what you're building, in your words
-  cards/                      # one file per piece of work
-  decisions/                  # each stack choice, with the options you chose from
-  evidence/                   # the proof: test output, screenshots, baseline
-  HANDOFF.md                  # where things stand right now
+  HANDOFF.md                  # where things stand, stamped from git
+  MAP.md                      # where things are in the codebase
+  DECISIONS.md                # generated index of decisions/
+  decisions/                  # one record per decision
   LESSONS.md                  # mistakes worth remembering, and the rules they became
-  JOURNAL.md                  # a short recap of each finished phase
-  .manifest.json              # fingerprints of the files Groundwork wrote, so upgrade keeps your edits
-  .gitignore                  # keeps local state (.approvals/, retro.md, private/) out of git
-  private/                    # anything secret the agent needs: never committed
+  JOURNAL.md                  # one entry per checkpoint, from git
+  config.json                 # flow, budgets, staleAfterDays, nudge, tokenBudget
+  config.schema.json
+  memory.md                   # how project memory works, for any agent
+  commands/gw.md              # /gw: resume from memory, and save
+  lib/                        # memory, git, freshness, checkpoint, brief, compact (.mjs)
+  hooks/                      # session-start.mjs and checkpoint.mjs, which adapters run
+  templates/                  # AGENTS.md (spare copy) and decision.md
+  .gitignore                  # keeps local state out of git
 ```
+
+Made while you work:
+
+```text
+.groundwork/
+  work/<id>/HANDOFF.md        # a parallel worker's own handoff
+  work/LEDGER.md              # who started what, and what happened
+  archive/                    # what `compact` moved out of the loaded set
+  private/                    # anything secret the agent needs: never committed
+  .state.json  .lock          # local state: git-ignored
+```
+
+With the [flow](/docs/flow) on, `.groundwork/` also has `workflow.md`, the `gw-*` commands, `roles/`,
+`rules/`, `guards/`, `guides/`, `reference/`, `hooks/user-prompt.mjs`, `templates/card.md`, `SPEC.md`,
+`cards/`, `evidence/`, and the flow's settings in `config.json`.
 
 ## What each file holds
 
 | File | Holds | Written by |
 |---|---|---|
-| `AGENTS.md` | The short page the agent reads every session: the project, its commands, how we work, promoted rules | `gw-setup`, `gw-retro`, you |
-| `SPEC.md` | Problem, users, goals, features, constraints, and (existing projects) one section per change | `gw-spec`, planner |
-| `cards/` | One card per unit of work, with criteria, evidence links and History | `gw-plan`, the loop, you |
-| `decisions/` | Numbered records: context, 2–4 options with trade-offs, your choice, consequences | `gw-decide`, planner |
-| `evidence/` | Proof per card, plus `baseline/` on existing projects. Kept short on purpose — it's committed | tester, reviewer, setup |
-| `HANDOFF.md` | The current state, overwritten each time, under ~300 words | runner and roles |
-| `LESSONS.md` | Note → rule → guard, each with the mistake that created it | `gw-retro` |
-| `rules/` | One file per role: rules that only that role needs, promoted from lessons | `gw-retro`, you |
-| `JOURNAL.md` | One recap per finished phase: what shipped, how to try it, decisions, calls, lessons | `gw-approve` |
-| `config.json` | The settings described in [Configuration](/docs/reference/configuration) | `gw-setup`, `gw-decide`, you |
+| `AGENTS.md` | The short page the agent reads every session: the project, its commands, how to use memory, promoted rules | You, and the agent on the first `/gw` |
+| `HANDOFF.md` | Now, Next, Blockers, Failing checks, Workers in flight, Notes, under a stamp. See [the handoff](/docs/concepts/handoff) | The agent writes prose; `checkpoint` writes the stamp |
+| `MAP.md` | Folders, entry points, tests, traps. See [the map](/docs/concepts/map) | The agent |
+| `decisions/`, `DECISIONS.md` | Numbered records, and the generated index. See [decisions](/docs/concepts/decisions) | `decide`, you; `index` generates the index |
+| `LESSONS.md` | Note, then rule, each with the mistake that created it. See [lessons](/docs/concepts/lessons-ledger) | `lesson`, you |
+| `JOURNAL.md` | One entry per checkpoint: commits and files since the last. See [the journal](/docs/concepts/journal) | `checkpoint` |
+| `work/` | One handoff per parallel worker, and the ledger. See [parallel agents](/docs/concepts/parallel-agents) | Each worker its own; `worker` the ledger |
+| `archive/` | Journal entries, superseded decisions and handoff logs | `compact` |
+| `config.json` | The settings in [Configuration](/docs/reference/configuration) | You, `flow`, `mode` |
 
-Three things stay out of git (`.groundwork/.gitignore`): `retro.md`, the raw report `npx groundwork-ai retro`
-writes for `gw-retro`; `.approvals/`, where Claude Code's hook records your latest message for
-the commit gate; and `private/`, for anything secret the agent needs to know (a password, a key, a
-surprise). Everything else in `.groundwork/` is committed, so the agent is told to keep secrets
-out of the spec, cards and handoff.
+Flow files, when the flow is on:
+
+| File | Holds | Written by |
+|---|---|---|
+| `SPEC.md` | Problem, users, goals, features, constraints, and for existing projects one section per change | `gw-spec`, planner |
+| `cards/` | One card per unit of work, with criteria, evidence links and History | `gw-plan`, the loop, you |
+| `evidence/` | Proof per card, plus `baseline/` on existing projects | tester, reviewer, setup |
+| `rules/` | One file per role: rules only that role needs, promoted from lessons | `gw-retro`, you |
+
+Three things stay out of git (`.groundwork/.gitignore`): `private/`, for anything secret the agent needs
+to know; the local state files `.state.json` and `.lock`; and, with the flow, `retro.md` and
+`.approvals/`. Everything else is committed, so the agent is told to keep secrets out of the handoff,
+decisions and journal.
 
 ## Groundwork's files vs your files
 
 | | Files | Behavior |
 |---|---|---|
-| **Your state** | `SPEC.md`, `cards/`, `decisions/`, `evidence/`, `rules/`, `HANDOFF.md`, `LESSONS.md`, `JOURNAL.md`, config values, your `AGENTS.md` | Never touched by `upgrade`; committed with the work |
-| **Groundwork's own** | `commands/`, `roles/`, `workflow.md`, `guards/`, `hooks/`, `templates/`, `guides/` | Refreshed by `groundwork upgrade`; a file you changed is kept, with the new version saved next to it as `.new` |
+| **Your state** | `HANDOFF.md`, `MAP.md`, `DECISIONS.md`, `decisions/`, `LESSONS.md`, `JOURNAL.md`, `work/`, `archive/`, config values, your `AGENTS.md`; with the flow also `SPEC.md`, `cards/`, `evidence/`, `rules/` | Never touched by `upgrade`; committed with the work |
+| **Groundwork's own** | `memory.md`, `commands/`, `lib/`, `hooks/`, `templates/`, `config.schema.json`; with the flow also `roles/`, `workflow.md`, `guards/`, `guides/` | Refreshed by `groundwork upgrade`; a file you changed is kept, with the new version saved next to it as `.new` |
 
-Everything else under `.groundwork/` is meant to be committed. That's what makes the project resumable
-from a fresh clone, and it gives you the audit trail: cards link evidence, commits link cards, and
-lessons link the mistakes they came from.
+Everything else under `.groundwork/` is meant to be committed. That makes the project resumable from a
+fresh clone.
 
 ## Adapter files
 
 Depending on the tool you chose, `init` also adds:
 
-- **Claude Code**: `.claude/skills/gw-*/`, `.claude/agents/gw-*.md`, `.claude/settings.json`, and a
-  one-line `CLAUDE.md` that loads `AGENTS.md` and lists the commands. See [Claude Code](/docs/adapters/claude-code).
-- **OpenCode**: `.opencode/commands/`, `.opencode/agents/`, `.opencode/plugins/`. See
-  [OpenCode](/docs/adapters/opencode).
-- **Plain markdown**: nothing else — `AGENTS.md` plus the files above. See
+- **Claude Code**: `.claude/skills/gw/`, `.claude/settings.json` with the hooks, and a one-line
+  `CLAUDE.md` that loads `AGENTS.md`. With the flow, also `.claude/agents/gw-*.md` and more skills. See
+  [Claude Code](/docs/adapters/claude-code).
+- **OpenCode**: `.opencode/commands/` and a plugin in `.opencode/plugins/`; with the flow, agents too.
+  See [OpenCode](/docs/adapters/opencode).
+- **Codex**: `.codex/hooks.json` and `.agents/skills/gw*/` (you type `$gw`); with the flow, custom
+  agents in `.codex/agents/`. See [Codex](/docs/adapters/codex).
+- **Cursor**: `.cursor/hooks.json`, a script in `.cursor/hooks/`, and `.cursor/skills/gw*/`; with the
+  flow, subagents in `.cursor/agents/`. See [Cursor](/docs/adapters/cursor).
+- **Gemini CLI**: `.gemini/settings.json` with the hooks, a script in `.gemini/hooks/`,
+  `.gemini/commands/gw*.toml` and a `GEMINI.md` that imports `AGENTS.md`; with the flow, subagents in
+  `.gemini/agents/`. See [Gemini CLI](/docs/adapters/gemini).
+- **Plain markdown**: nothing else. `AGENTS.md` plus the files above. See
   [Other tools](/docs/adapters/other-tools).
 
-Generated files point back into `.groundwork/` rather than copying it, so there's one source of
-truth. `groundwork doctor` tells you when they've drifted.
+Generated files point back into `.groundwork/` rather than copying it, so there's one source of truth.
+`groundwork doctor` tells you when they've drifted.
 
-<Callout type="info" title="Evidence images are binary">
+<Callout type="info" title="Images are binary">
 `.gitattributes` marks `*.png`, `*.jpg`, `*.webp` and `*.gif` as binary, so git never rewrites
-screenshots under `.groundwork/evidence/` — on any OS. Installs from before this rule get the lines
-added by `groundwork upgrade`.
+screenshots under `.groundwork/` on any OS. Installs from before this rule get the lines added by
+`groundwork upgrade`.
 </Callout>

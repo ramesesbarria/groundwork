@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Groundwork config",
+  "type": "object",
+  "required": ["tokenBudget"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "description": "The Groundwork version that installed or last upgraded this project's .groundwork/ files. Written by `groundwork init` and `groundwork upgrade`; `groundwork doctor` compares it with the CLI.",
+      "type": "string"
+    },
+    "flow": {
+      "description": "Whether the optional development flow is installed on top of project memory. Only `groundwork flow on` and `groundwork flow off` change it.",
+      "type": "boolean",
+      "default": false
+    },
+    "tokenBudget": {
+      "description": "Maximum estimated tokens for files loaded in every session (AGENTS.md plus always-on adapter files). Checked by `groundwork doctor`.",
+      "type": "integer",
+      "minimum": 500
+    },
+    "budgets": {
+      "description": "Maximum estimated tokens (about 4 characters each) per memory file, checked by `groundwork doctor`; `groundwork compact` brings the journal, decisions and handoff back under them. brief is the size of what `groundwork brief` prints and a session start loads.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "brief": { "type": "integer", "minimum": 300, "default": 1500 },
+        "handoff": { "type": "integer", "minimum": 150, "default": 600 },
+        "map": { "type": "integer", "minimum": 150, "default": 800 },
+        "decisions": { "type": "integer", "minimum": 150, "default": 600 },
+        "lessons": { "type": "integer", "minimum": 150, "default": 1200 },
+        "journal": { "type": "integer", "minimum": 300, "default": 2500 }
+      }
+    },
+    "staleAfterDays": {
+      "description": "A handoff older than this many days is reported as stale, whatever git says.",
+      "type": "integer",
+      "minimum": 1,
+      "default": 14
+    },
+    "nudge": {
+      "description": "Whether the stop hook asks the agent, once per commit, to save a handoff that is behind the repository. false: hooks still record the journal, and never speak.",
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

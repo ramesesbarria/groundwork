@@ -46,7 +46,7 @@ describe("plain markdown install", () => {
   it("AGENTS.md leads to every main command without an adapter", async () => {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-none-"));
     temps.push(dir);
-    const { output } = await run(["init", "--adapter", "none"], { cwd: dir, ask: async () => "" });
+    const { output } = await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: async () => "" });
     const agents = readFileSync(join(dir, "AGENTS.md"), "utf8");
     expect(agents).toContain(".groundwork/commands/gw.md");
     expect(agents).toMatch(/every command is a file in `?\.groundwork\/commands\/`?/i);

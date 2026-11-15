@@ -110,7 +110,7 @@ describe("pointing newcomers to /gw", () => {
   it("a fresh install tells you to type /gw", async () => {
     const dir = mkdtempSync(join(tmpdir(), "groundwork-gw-"));
     try {
-      const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: async () => "" });
+      const { output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: async () => "" });
       expect(output).toMatch(/type \/gw\b/);
     } finally {
       rmSync(dir, { recursive: true, force: true });

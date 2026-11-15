@@ -16,7 +16,7 @@ can't run.
 |---|---|
 | `.claude/skills/gw*/SKILL.md` | Skills for the three default commands (`/gw`, `/gw-approve`, `/gw-reject`); other helpers are read from `.groundwork/commands/` on demand |
 | `.claude/agents/gw-*.md` | A subagent for the tester, implementer and reviewer, each with limited tools |
-| `.claude/settings.json` | Three hooks: session-start orientation, the guard runner, and the approval recorder |
+| `.claude/settings.json` | Project-memory hooks (session start, stop, pre-compact, session end); with the flow, also the guard runner and the approval recorder |
 | `CLAUDE.md` | A short pointer whose first line loads `AGENTS.md`, then lists the commands and subagents |
 
 ## Skills that trigger themselves
@@ -53,9 +53,24 @@ subagent — cheap models for mechanical roles, the strongest for review.
 `init` **merges** into an existing `.claude/settings.json` instead of overwriting it, so your own
 permissions and hooks survive.
 
-- **SessionStart** (`startup|clear|compact`) runs `.groundwork/hooks/session-start.mjs`, which
-  prints a few lines from `HANDOFF.md` — where things stand and the next step. It injects project
-  state, not methodology, and prints nothing if `.groundwork/` isn't there.
+A default install (project memory only) adds the first four hooks below and the `/gw` skill; the
+subagents, **PreToolUse** and **UserPromptSubmit** come with the flow (`init --flow` or
+`npx groundwork-ai flow on`).
+
+- **SessionStart** (`startup|resume|clear|compact`) runs `.groundwork/hooks/session-start.mjs`, which
+  prints the project brief: the handoff, a verdict on how fresh it is against the repository, the
+  decisions in force, the rules and the map, inside `budgets.brief`. It is what
+  [`groundwork brief`](/docs/reference/cli#brief) prints. It injects project state, not methodology,
+  and prints nothing if `.groundwork/` isn't there.
+- **Stop** runs `.groundwork/hooks/checkpoint.mjs stop`: an automatic
+  [checkpoint](/docs/reference/cli#checkpoint) (the journal gets the commits since its last entry),
+  and when the handoff is behind the repository the agent is asked, once per commit, to save it.
+  Set `"nudge": false` in `.groundwork/config.json` to keep the checkpoint and drop the question.
+- **PreCompact** runs the same script with `pre-compact`: an automatic checkpoint, and its output
+  tells the compaction summary what to keep (what is in progress, the next step, blockers).
+- **SessionEnd** runs it with `session-end`: a last automatic checkpoint.
+
+  These three never block: the script always exits 0 and none sets `onFailure`.
 - **PreToolUse** (`Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit`) runs
   `.groundwork/guards/run.mjs` before every shell command (Bash, or PowerShell on Windows) and file
   write. Exit code 2 blocks the action and shows the reason. It runs
@@ -71,7 +86,7 @@ permissions and hooks survive.
   `/gw-approve` message records an approval; any other message clears it.
 
 What this enforces, and where it stops, is in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 **The guard fails closed.** If the tool call, `config.json` or a guard can't be read or run, the
 runner blocks the call and says how to repair it. If the runner can't start at all (its file is

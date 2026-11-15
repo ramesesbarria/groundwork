@@ -64,7 +64,7 @@ export function setupBaseline(dir) {
 
 export function setupGroundwork(dir, tgz, { integration = "local" } = {}) {
   execFileSync("npm", ["install", "--save-dev", "--no-audit", "--no-fund", tgz], { cwd: dir, stdio: "ignore", shell: process.platform === "win32" });
-  execFileSync(process.execPath, [join(dir, "node_modules/groundwork-ai/dist/bin.js"), "init", "--adapter", "opencode"], { cwd: dir, stdio: "ignore", input: "" });
+  execFileSync(process.execPath, [join(dir, "node_modules/groundwork-ai/dist/bin.js"), "init", "--flow", "--adapter", "opencode"], { cwd: dir, stdio: "ignore", input: "" });
   const fill = (path, values) => {
     let text = readFileSync(join(dir, path), "utf8");
     for (const [key, value] of Object.entries(values)) text = text.split(`{{${key}}}`).join(value);

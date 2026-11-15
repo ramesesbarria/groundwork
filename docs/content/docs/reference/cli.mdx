@@ -3,7 +3,7 @@ title: "CLI reference"
 ---
 
 The command-line tool does the deterministic work: copying Groundwork's files into a project,
-parsing cards, counting tokens, reading git. It needs **Node.js 22 or later**. Run it with `npx`
+stamping and checking the handoff against git, parsing cards, counting tokens. It needs **Node.js 22 or later**. Run it with `npx`
 (no install needed) or a local install.
 
 ```text
@@ -12,17 +12,27 @@ npx groundwork-ai <command>
 
 | Command | What it does |
 |---|---|
-| [`init`](#init) | Install Groundwork into this project |
+| [`init`](#init) | Install Groundwork into this project: project memory, plus the flow with `--flow` |
+| [`brief`](#brief) | Print what an agent needs to resume, with a verdict on how fresh the handoff is |
+| [`checkpoint`](#checkpoint) | Save the handoff, stamped with the commit, branch, time and writer |
+| [`status`](#status) | Show where things stand; with the flow, cards by status |
+| [`decide`](#decide) | Create the next decision record |
+| [`lesson`](#lesson) | Add a lesson |
+| [`index`](#index) | Regenerate the decisions index |
+| [`worker`](#worker) | Record parallel workers, each with its own handoff |
+| [`compact`](#compact) | Archive old journal entries, superseded decisions and handoff logs |
+| [`doctor`](#doctor) | Check the install, the memory files and the context budget |
 | [`upgrade`](#upgrade) | Update this project's Groundwork files |
 | [`adapter add`](#adapter-add) | Add or refresh an AI tool adapter |
-| [`status`](#status) | Show the phase, cards by status, what's ready and what's blocked |
-| [`doctor`](#doctor) | Check harness health and the context budget |
+| [`flow`](#flow) | Add or remove the optional development flow |
 | [`check`](#check) | Check cards against the workflow's rules and task context |
 | [`reassess`](#reassess) | Record the context versions a task has just been checked against |
 | [`migrate`](#migrate) | Record pre-approval done cards for the one-time legacy migration |
 | [`mode`](#mode) | Show or change when you approve the work |
 | [`retro`](#retro) | Collect signals of repeated mistakes for `gw-retro` |
 | [`uninstall`](#uninstall) | Remove what Groundwork added, keeping anything you changed |
+
+`check`, `reassess`, `migrate`, `mode` and `retro` belong to the flow and are only useful once it is on.
 
 `npx groundwork-ai --version` prints the version; `npx groundwork-ai help` prints usage.
 
@@ -33,17 +43,144 @@ cd your-project
 npx groundwork-ai init
 ```
 
-Asks which AI tool to set up (Claude Code, OpenCode, or plain markdown), then copies the core into
-`.groundwork/`, writes `AGENTS.md`, and generates the adapter's files. Existing `CLAUDE.md` and
+Asks which AI tool to set up (Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or plain markdown), then copies project memory
+into `.groundwork/` (handoff, map, decisions, lessons, journal, and the hooks that load and save
+them), writes `AGENTS.md`, and generates the adapter's files. That is the default install. `--flow`
+adds the development flow on top: spec, cards, roles, approval before each commit, and guards. Existing `CLAUDE.md` and
 `AGENTS.md` are appended to, never replaced.
 
 | Flag | Effect |
 |---|---|
-| `--adapter claude-code\|opencode\|none` | Skip the question |
+| `--adapter claude-code\|opencode\|codex\|cursor\|gemini\|none` | Skip the question. Name one, or several separated by commas (`--adapter claude-code,codex`); `none` stands alone |
+| `--flow` | Also install the development flow (later: [`flow on`](#flow)) |
 | `--dry-run` | Show what would change, write nothing |
 
 `init` refuses to run inside Groundwork's own source repo, so a stray command can't mix an install
 into the source tree.
+
+## brief
+
+```bash
+npx groundwork-ai brief            # add --json for tools
+```
+
+Prints what an agent needs to resume, inside a token budget (`budgets.brief`, 1,500 by default):
+the handoff, a verdict on how far it can be trusted against the repository, the decisions in
+force, rules and lessons, and the map. It reads files and git and writes nothing. The session-start
+hook prints the same text; with no adapter, `AGENTS.md` tells the agent to run it first.
+
+The verdict compares the handoff's stamp with the repository:
+
+| Verdict | Meaning |
+|---|---|
+| `fresh` | Written at the current commit |
+| `behind` | Commits landed after it was written; they are listed with the files they changed, and files its Now and Next sections name are called out |
+| `diverged` | Its commit isn't in this branch's history (rebase, reset, another branch) or no longer exists |
+| `stale` | Older than `staleAfterDays` (14 by default), whatever git says |
+| `unstamped` | Never checkpointed, so there is nothing to compare |
+
+Commits that only touch `.groundwork/` don't count. The brief also notes a changed branch and
+memory files (map, decisions, lessons) that changed since the handoff was written.
+
+| Flag | Effect |
+|---|---|
+| `--json` | Machine-readable: handoff fields and stamp, freshness, decisions, lessons, map, workers, and the text |
+| `--budget <tokens>` | Override `budgets.brief` for this run |
+| `--worker <id>` | Brief for that worker's handoff; `--root` forces the root handoff |
+
+## checkpoint
+
+```bash
+npx groundwork-ai checkpoint --now "Login form renders; validation not wired" --next "Wire validation in src/login.ts"
+```
+
+Saves the handoff. The command writes the facts into the handoff's frontmatter: time, commit,
+branch, uncommitted file count, the writing tool, model and session when known, a fingerprint of
+the text, and fingerprints of the map, decisions and lessons. You (or your agent) supply only
+the prose. It also appends a journal entry with the commits and files since the last entry, and
+keeps `.groundwork/DECISIONS.md` in step.
+
+| Flag | Effect |
+|---|---|
+| `--now`, `--next`, `--blockers`, `--failing`, `--workers`, `--notes` | Replace that section; sections you leave out keep their text |
+| `--note "<text>"` | Add a journal entry with this note even when no commits landed |
+| `--worker <id>` | Write `.groundwork/work/<id>/HANDOFF.md` instead of the root handoff |
+| `--root` | Write the root handoff even where a worker handoff would be chosen |
+| `--tool`, `--model`, `--session` | Say who is writing (also `GROUNDWORK_TOOL`, `GROUNDWORK_MODEL`, `GROUNDWORK_SESSION`) |
+| `--json` | Print the result as JSON |
+
+With no section flags it stamps the handoff as it is: edit the file, then run `checkpoint`. A
+handoff in the layout from before 2.0 is rewritten in the 2.0 layout; nothing in it is dropped.
+Writes go through a lock and a temporary file. If another session stamped the same handoff within
+the last 30 minutes, `checkpoint` warns: one writer per handoff.
+
+Adapters also run an automatic checkpoint when a session stops, is compacted or ends. It never
+claims what it doesn't know: an untouched handoff is not restamped at a newer commit, so it shows
+as `behind`.
+
+## decide
+
+```bash
+npx groundwork-ai decide "Use SQLite for storage" --status accepted
+```
+
+Creates the next numbered record in `.groundwork/decisions/` from the decision template and
+regenerates the index. `--status` is `proposed` (default), `accepted` or `superseded`.
+
+## lesson
+
+```bash
+npx groundwork-ai lesson "Run migrations before the test suite" --origin "tests failed on a stale schema"
+```
+
+Adds the next `L-NNN` entry to `.groundwork/LESSONS.md`. `--level` is `NOTE` (default) or `RULE`.
+
+## index
+
+```bash
+npx groundwork-ai index            # --check exits 1 when it is out of step
+```
+
+Regenerates `.groundwork/DECISIONS.md`, the index of the records in `.groundwork/decisions/`.
+
+## worker
+
+```bash
+npx groundwork-ai worker start auth-tests --goal "Write the auth test suite" --branch feat/auth-tests
+npx groundwork-ai worker done auth-tests --outcome "accepted: 14 tests rerun, merged"
+npx groundwork-ai worker list
+```
+
+Records parallel workers from the main checkout. `start` adds the worker to **Workers in flight** in
+the root handoff and to `.groundwork/work/LEDGER.md`; `done` takes it out and marks its handoff
+done. Each worker writes only its own `.groundwork/work/<id>/HANDOFF.md`: in a linked git worktree
+`checkpoint` and `brief` choose it automatically, elsewhere pass `--worker <id>`. `list` shows worker handoffs, plus (in the text output) workers that
+were started and haven't saved one yet; `status` and the brief show workers in flight too.
+
+## compact
+
+```bash
+npx groundwork-ai compact          # add --dry-run to preview
+```
+
+Brings the loaded memory back under its budgets. Journal entries beyond `budgets.journal` move to
+`.groundwork/archive/JOURNAL-<year>.md`; superseded decisions move to
+`.groundwork/archive/decisions/`; sections a handoff doesn't define (logs that grew in it) move to
+`.groundwork/archive/HANDOFF-<date>.md`, with the whole previous handoff. **Nothing is deleted.**
+
+## flow
+
+```bash
+npx groundwork-ai flow             # on or off?
+npx groundwork-ai flow on
+npx groundwork-ai flow off
+```
+
+Adds or removes the development flow (spec, cards, roles, approval before each commit, guards) on
+top of project memory. `on` installs the flow's files and rewires each installed adapter; `off`
+removes Groundwork's own flow files and keeps your spec, cards, evidence and rules. Only you can
+turn it off: with the flow on, the guard refuses the agent's `flow off`. Without a terminal, pass
+`--yes`.
 
 ## upgrade
 
@@ -52,8 +189,11 @@ npx groundwork-ai upgrade          # add --dry-run to preview
 npx groundwork-ai upgrade --yes    # in a script or CI, where nobody can answer
 ```
 
-Updates Groundwork's own files — commands, roles, workflow, guards, hooks, templates — to this
-version's, after asking once. **Your state is never touched:** spec, handoff, lessons, rules
+Updates Groundwork's own files — commands, hooks, templates, and with the flow its roles, workflow
+and guards — to this version's, after asking once. A project keeps the layers it has: one from
+before 2.0 keeps the flow on and gains project memory underneath (`flow: true`, `budgets`,
+`staleAfterDays` and `nudge` are added to its config, and a missing `MAP.md` and `DECISIONS.md` are
+created). **Your state is never touched:** spec, handoff, lessons, rules
 (`.groundwork/rules/`), cards, decisions, evidence, your `AGENTS.md` and `CLAUDE.md`, and your config
 values all stay exactly as they are. If a newer version adds a config key, it's added.
 
@@ -68,7 +208,7 @@ Without a terminal to ask in, `upgrade` changes nothing unless you pass `--yes`.
 ## adapter add
 
 ```bash
-npx groundwork-ai adapter add opencode
+npx groundwork-ai adapter add opencode   # or claude-code, codex, cursor, gemini
 ```
 
 Adds or refreshes one tool's files (commands, subagents, hooks), built from your project's own
@@ -81,13 +221,15 @@ before overwriting.
 npx groundwork-ai status
 ```
 
-Reads only your files and prints where the project stands — the same story `/gw` tells, for a
-terminal:
+Reads only your files and prints where the project stands: the handoff's Now and Next, its
+freshness verdict and any workers in flight. With the flow on it adds the phase and the cards:
 
 ```text
 Phase:         1 — Voting
 Current card:  1.2 Voting
+Now:           tests for voting written and failing
 Next step:     make `npm test voting` pass
+Handoff:       fresh: written at the current commit (.groundwork/HANDOFF.md)
 
 Cards:         2 to do · 1 being built · 1 done
 In progress:   1.2 Voting (being built)
@@ -103,18 +245,24 @@ Blocked:
 npx groundwork-ai doctor
 ```
 
-Checks the install and the context budget, and **exits 1 when it finds a problem** (so it can run
-in CI). It reports:
+Checks the install, project memory and the context budget, and **exits 1 when it finds a problem**
+(so it can run in CI). It reports:
 
+- **Memory** — the handoff's shape (a 2.0 handoff needs its stamp and its Now and Next sections)
+  and freshness verdict; whether `DECISIONS.md` is in step with the decision records; whether
+  `MAP.md` exists, is filled in, and names paths that no longer exist; and each memory file against
+  its token budget in `budgets` (handoff, map, decisions, lessons, journal). Over budget is a
+  problem; [`compact`](#compact) fixes most of them.
+- **Brief** — the size of what a session start loads, against `budgets.brief`.
 - **Always loaded** — an estimate (characters ÷ 4) of what every session carries, part by part,
   against `tokenBudget`: `AGENTS.md`, `CLAUDE.md`, the skill and subagent lists your tool keeps in
-  context, and the session-start lines. OpenCode's command descriptions aren't counted: in an
+  context. OpenCode's command descriptions aren't counted: in an
   OpenCode 2.0.32 `opencode run --standalone` check they didn't reach the model. With advice when
   it's over.
-- **Startup cost** — what a `/gw` session and each role read before touching any code: the
+- **Startup cost** (flow) — what a `/gw` session and each role read before touching any code: the
   always-loaded files, the command or role file, HANDOFF and the current card. Your AI tool's own
   instructions come on top (about 8.5k tokens in OpenCode with DeepSeek, measured).
-- **Cards** — the same checks as [`check`](#check); cards over ≈1,500 tokens (every role rereads
+- **Cards** (flow) — the same checks as [`check`](#check); cards over ≈1,500 tokens (every role rereads
   the card); and History or Evidence lines over 200 characters, whose detail belongs in an evidence
   file.
 - **Evidence encoding** — evidence saved as UTF-16 (what Windows PowerShell 5.1's `>` writes),
@@ -163,9 +311,9 @@ and declared context changes separately. The context check covers the current `g
 context isn't checked. `check` is read-only.
 
 With `integration: "pr"` in `config.json`, a done card doesn't need the "approved by human" line:
-pull-request review is the approval. See [Teams and pull requests](/docs/guides/teams). What `check`
+pull-request review is the approval. See [Teams and pull requests](/docs/flow/pull-requests). What `check`
 can and can't prove about evidence is in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
 
 `doctor` runs the same card checks and lists what it finds as problems.
 
@@ -217,7 +365,7 @@ npx groundwork-ai mode per-phase   # per-card or per-phase (at-end is parked for
 
 Changes `approvalMode` in `.groundwork/config.json`. It's the command you run yourself: the agent
 isn't allowed to relax approval on its own, so when you ask it to, it gives you this line to run.
-See [Approval modes](/docs/getting-started/approval-modes).
+See [Approval modes](/docs/flow/approval-modes).
 
 ## retro
 

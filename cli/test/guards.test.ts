@@ -334,7 +334,7 @@ describe("Claude Code wiring", () => {
     mkdirSync(join(project, ".claude"));
     writeFileSync(join(project, ".claude/settings.json"), JSON.stringify({ permissions: { allow: ["Bash(ls)"] } }));
     const asked: string[] = [];
-    await run(["init", "--adapter", "claude-code"], {
+    await run(["init", "--flow", "--adapter", "claude-code"], {
       cwd: project,
       ask: async (q) => {
         asked.push(q);

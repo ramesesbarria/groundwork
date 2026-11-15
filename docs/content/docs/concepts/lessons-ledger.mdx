@@ -1,31 +1,62 @@
 ---
-title: "The lessons ledger"
+title: "Lessons"
+description: "What went wrong once and must not happen again: a note, then a rule that every session sees, each with the mistake that created it."
 ---
 
 **Every rule records the mistake that created it.** `.groundwork/LESSONS.md` is the one place those
-mistakes live, and each one climbs a ladder only when it has to.
+mistakes live, so the next session, in any tool, doesn't repeat them.
+
+## Adding a lesson
+
+```bash
+npx groundwork-ai lesson "Run migrations before the test suite" --origin "tests failed on a stale schema"
+```
+
+This adds the next `L-NNN` entry to `LESSONS.md` as a NOTE. `--level` is `NOTE` (the default) or
+`RULE`. The entry looks like this:
+
+```markdown
+### L-001 · Run migrations before the test suite
+- Level: NOTE
+- Origin: tests failed on a stale schema (2026-11-15)
+- History: note (2026-11-15)
+```
 
 ## The ladder
 
 | Level | Where it lives | What it means |
 |---|---|---|
-| **NOTE** | `.groundwork/LESSONS.md` | Written down; the reviewer reads it when checking work |
-| **RULE** | `AGENTS.md`, or `.groundwork/rules/<role>.md` for one role | Always in context for the agent (or that role) |
-| **GUARD** | `.groundwork/guards/*.mjs` | A script that blocks the action outright |
+| **NOTE** | `.groundwork/LESSONS.md` | Written down; read before reviewing or repeating that kind of work |
+| **RULE** | `AGENTS.md` under Rules, with its lesson ID | Always in context for the agent |
+| **GUARD** | `.groundwork/guards/*.mjs` | A script that blocks the action outright (needs the [flow](/docs/flow)) |
 
-A lesson moves up only when its mistake **repeats** — never on a single signal:
+A lesson moves up only when its mistake **repeats**, never on a single signal. To promote a NOTE to
+a RULE, copy it under Rules in `AGENTS.md` with its ID, so its origin can always be traced.
 
-```md
-### L-004 · No AI attribution trailers in commits
-- Level: GUARD (`guards/no-ai-trailers.mjs`)
-- Origin: 7 commits in one session despite a written rule.
-- History: note (09-02) → rule (09-10, repeated) → guard (09-20, repeated again)
+The brief mentions rules and lessons, so a session knows they exist; it reads `LESSONS.md` when the
+work calls for it. The lessons budget is 1,200 tokens by default; when it is over, merge or drop
+entries by hand ([`compact`](/docs/concepts/budgets-and-compaction) doesn't touch them).
+
+## What `doctor` checks
+
+```bash
+npx groundwork-ai doctor
 ```
 
-## Guards
+- A lesson that is never cited anywhere is a candidate to archive.
+- A rule in `AGENTS.md` with no lesson ID is flagged, because every rule should trace back to the
+  mistake it prevents.
+- The lessons file against its token budget, and what every session loads (`AGENTS.md`, `CLAUDE.md`,
+  your tool's skill and subagent lists) against `tokenBudget`.
 
-A guard is a small Node module that receives a proposed action — a shell command or a file write —
-and returns allow or block, with a reason:
+## With the flow on
+
+With the [flow](/docs/flow) on, the ladder has its top rung, and a way to notice repeats.
+
+### Guards
+
+A guard is a small Node module that receives a proposed action, a shell command or a file write, and
+returns allow or block, with a reason:
 
 ```js
 export function check(action) {
@@ -36,55 +67,25 @@ export function check(action) {
 }
 ```
 
-Guards are listed in `.groundwork/config.json`. New installs start with `no-ai-trailers` on. Adapters wire them
-into the tool's hooks: in Claude Code a `PreToolUse` hook runs them before every shell command and
-file write, and a guard that blocks exits with code 2. `groundwork doctor` flags a guard listed in
-config without a matching file, or a hook missing from the adapter's settings.
+Guards are listed in `.groundwork/config.json`; new flow installs start with `no-ai-trailers` on.
+Adapters wire them into the tool's hooks: in Claude Code a `PreToolUse` hook runs them before every
+shell command and file write. Two checks are built in and run whatever the list says: the **commit
+gate** and **protect-harness**, which stops the agent from removing a guard or turning the built-in
+checks off. A guard is code, so `gw-retro` proposes one as a **card** to plan; it isn't written on
+the spot.
 
-Two checks are built in and run whatever the list says: the **commit gate** (a card is committed only
-once it's done and passes `groundwork check`) and **protect-harness**. The second is what keeps the
-ladder's top rung in place: the agent can add a guard, but only you can remove one or turn the
-built-in checks off, by editing the config yourself.
+### Retro
 
-A guard is code, so `gw-retro` proposes one as a **card** to plan — it isn't written on the spot.
+`groundwork retro` collects signals from git history and Groundwork's own files into
+`.groundwork/retro.md`: reverts, fixes committed soon after a card, rejections and their reasons,
+send-backs, judgment calls later rejected, and the signals per lesson cited. `gw-retro` then groups
+signals that describe the same mistake and proposes one change per repeated mistake: a new note, a
+note to rule, or a rule to guard. **Nothing changes without your OK.** `/gw` suggests a retro at the
+end of every phase.
 
-## Retro: noticing repeated mistakes
+### Imported rules
 
-`groundwork retro` collects signals from git history and Groundwork's own files and writes
-`.groundwork/retro.md`:
-
-- **Reverts**, and **fixes** committed soon after a card, touching the same files;
-- **Rejections** and their reasons;
-- **Send-backs** (work sent back for rework: review → implementing, implementing → testing, built → implementing, rejected → implementing);
-- **Calls later rejected** — a judgment call the agent made that you later turned down;
-- **Signals per lesson cited**, so you can see which rules keep coming up.
-
-Then `gw-retro` reads the report, groups signals that describe the same mistake, and proposes one
-change per repeated mistake: a new note, a note → rule, or a rule → guard. It also proposes
-archiving lessons nothing has touched in a long time. **Nothing changes without your OK**, and each
-lesson gets a History line naming where it repeated.
-
-`/gw` suggests a retro at the end of every phase; you can also run one whenever something keeps
-going wrong.
-
-## Doctor: keeping the ledger honest
-
-```bash
-npx groundwork-ai doctor
-```
-
-- Estimates what every session loads against `tokenBudget`, part by part: `AGENTS.md`, your tool's
-  list of skills and subagents, and the session-start lines (≈780 tokens on a fresh Claude Code
-  install; the default budget is 2,000).
-- Flags a lesson that's never cited in a card or in `AGENTS.md` — a candidate to archive.
-- Flags a rule in `AGENTS.md` that has no lesson ID, because every rule should trace back to the
-  mistake it prevents.
-- Checks the install: missing guards, missing hooks, adapter files that drifted, a project behind
-  the CLI.
-
-## Imported rules
-
-Bringing an existing project under Groundwork? Rules from its current `CLAUDE.md` or `AGENTS.md` are
-imported as lessons with origin *imported* — and you're asked which ones must stay always-on. Those
+Bringing an existing project under the flow? Rules from its current `CLAUDE.md` or `AGENTS.md` are
+imported as lessons with origin *imported*, and you're asked which ones must stay always-on. Those
 become RULEs in `AGENTS.md` with their lesson ID; the rest stay NOTEs. Nothing is dropped or demoted
 without showing you first.

@@ -16,7 +16,7 @@ const noQuestions = async () => "";
 async function installed(): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-history-"));
   temps.push(dir);
-  await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
   return dir;
 }
 

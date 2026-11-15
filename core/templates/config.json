@@ -1,11 +1,22 @@
 {
   "$schema": "./config.schema.json",
+  "flow": true,
   "setup": "pending",
   "approvalMode": "per-card",
   "autoCommit": true,
   "integration": "local",
   "experience": "new",
   "tokenBudget": 2000,
+  "budgets": {
+    "brief": 1500,
+    "handoff": 600,
+    "map": 800,
+    "decisions": 600,
+    "lessons": 1200,
+    "journal": 2500
+  },
+  "staleAfterDays": 14,
+  "nudge": true,
   "guards": ["no-ai-trailers"],
   "enforce": { "commitGate": true, "protectHarness": true },
   "commitFormat": "[{id}] {title}",

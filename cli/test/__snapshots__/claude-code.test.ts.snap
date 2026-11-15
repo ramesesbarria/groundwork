@@ -30,11 +30,44 @@ Load only the files it lists under Load.
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|clear|compact",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
             "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/session-start.mjs\\" \\"$CLAUDE_PROJECT_DIR\\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/checkpoint.mjs\\" stop \\"$CLAUDE_PROJECT_DIR\\" claude-code --block-json",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/checkpoint.mjs\\" pre-compact \\"$CLAUDE_PROJECT_DIR\\" claude-code",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \\"$CLAUDE_PROJECT_DIR/.groundwork/hooks/checkpoint.mjs\\" session-end \\"$CLAUDE_PROJECT_DIR\\" claude-code",
+            "timeout": 10
           }
         ]
       }

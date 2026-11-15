@@ -1,69 +1,48 @@
 import Link from 'next/link';
 import { CopyCommand } from '@/components/gw/copy-command';
-import { PhasePlan, RoleSteps, Stage, StatusTrack } from '@/components/gw/how-it-works';
-import { ContextComparison, ReReadStaircase } from '@/components/gw/problem';
+import { BriefTerminal, MemoryLoop, Verdicts } from '@/components/gw/memory-loop';
 import { ButtonLink, Section } from '@/components/gw/section';
-import { StatusPill } from '@/components/gw/status';
-import { ChatLines, Terminal } from '@/components/gw/terminal';
+import { Terminal } from '@/components/gw/terminal';
+import { asset } from '@/lib/shared';
 
 const problems = [
   {
-    title: 'The plan lives in scrollback',
-    body: 'When the chat is summarized to make room, or you open a new one, what was decided goes with it. The next session starts from zero.',
+    title: 'A new session starts from zero',
+    body: 'A fresh chat, a different tool or another model knows nothing about what was decided, where things are, or what was in progress.',
   },
   {
-    title: '“Done” is a claim',
-    body: 'The model says it works. Whether anything was checked, and how you would check it yourself, is left to you.',
+    title: 'The handoff is written at the worst moment',
+    body: 'A note the model writes at the end of its context is written when it knows least about what matters, and only if it remembers to.',
   },
   {
-    title: 'Yesterday’s rules are gone',
-    body: 'The mistake you corrected comes back, because nothing wrote it down where the next session will read it.',
+    title: 'A stale handoff looks fresh',
+    body: 'It has no time, commit or branch. Three commits later it still reads as current, and the next session acts on it with full confidence.',
   },
 ];
 
-const benefits = [
-  {
-    title: 'You always know where things stand',
-    body: 'A short note in your project says what’s done, what’s in progress and what’s next, in plain sentences. Every new chat reads it first.',
-    looks: '“Card 1.1 Number entry is built and waiting for your approval.”',
-  },
-  {
-    title: 'Nothing is “done” without proof',
-    body: 'The AI writes the checks before the code, and a second AI that never saw the work reruns them. You get the proof, not a promise.',
-    looks: 'tests written first, rerun by a separate reviewer',
-  },
-  {
-    title: 'You stay in charge',
-    body: 'By default, a piece of work is committed only after you approve it. Every stop tells you what changed, how to try it yourself, and what to watch out for.',
-    looks: 'What changed · How to check · Caveats → /gw-approve',
-  },
-  {
-    title: 'Big ideas, small steps',
-    body: 'Your idea is broken into small pieces you can follow one at a time. A typo fix stays a quick fix; a feature gets a plan.',
-    looks: 'an idea → phases → small cards',
-  },
-  {
-    title: 'It learns from its mistakes',
-    body: 'When something goes wrong, it’s written down. If it happens again it becomes a rule; if it keeps happening, it gets blocked outright.',
-    looks: 'note → rule → guard',
-  },
-  {
-    title: 'Use the AI you already have',
-    body: 'Works in Claude Code, OpenCode, or any AI tool that can read files. Switch tools or models, or hand a task to a teammate on its own branch; the context comes with it.',
-    looks: 'plain markdown files in your repo',
-  },
+const memory = [
+  { file: 'HANDOFF.md', body: 'Where things stand: Now, Next, blockers, failing checks. Stamped by the CLI with time, commit, branch and writer.', href: '/docs/concepts/handoff' },
+  { file: 'MAP.md', body: 'Where things are: folders, entry points, tests, traps. Written by the agent, checked by doctor.', href: '/docs/concepts/map' },
+  { file: 'DECISIONS.md', body: 'A generated index of one record per decision, with the options and the reason.', href: '/docs/concepts/decisions' },
+  { file: 'LESSONS.md', body: 'What went wrong once and must not again: a note, or a rule promoted into AGENTS.md.', href: '/docs/concepts/lessons-ledger' },
+  { file: 'JOURNAL.md', body: 'One entry per checkpoint, derived from git: the commits and files since the last one.', href: '/docs/concepts/journal' },
+  { file: 'budgets', body: 'Each file has a token budget that doctor checks. compact archives old material and never deletes.', href: '/docs/concepts/budgets-and-compaction' },
 ];
 
-// From the v1 comparison (docs/results): OpenCode 2.0.32 with DeepSeek Flash, 3 runs per task.
+const tools = [
+  { name: 'Claude Code', body: 'Hooks at session start, stop, before compaction and session end, and a /gw skill.' },
+  { name: 'OpenCode', body: 'A plugin: the brief at session start, a checkpoint when the session goes idle, instructions at compaction.' },
+  { name: 'Codex', body: 'Hooks at session start, stop, before compaction and session end, and $gw skills. Trust the hooks once with /hooks; the compaction summary is not told what to keep.' },
+  { name: 'Cursor', body: 'Hooks at conversation start, stop, before compaction and session end, and /gw skills. A resumed conversation relies on AGENTS.md for the brief.' },
+  { name: 'Gemini CLI', body: 'Hooks at session start, after each response, before compression and session end, and /gw commands. Google’s docs say it stays available with paid API keys.' },
+  { name: 'Anything else', body: 'AGENTS.md tells the agent to run brief first and to save with checkpoint.' },
+];
+
+// From the 1.0 comparison (docs/results): OpenCode 2.0.32 with DeepSeek Flash, 3 runs per task, flow on.
 const results = [
   { label: 'Work across sessions', value: '13/15 vs 7/15', body: 'Tasks where requirements or decisions from one session were needed in a later one.' },
   { label: 'Work in one session', value: '12/12 vs 12/12', body: 'Self-contained tasks: a plain session did as well.' },
   { label: 'The cost', value: '≈4× · ≈3×', body: 'API cost and time per solo task, median, with Groundwork.' },
-];
-
-const costs = [
-  { label: 'Median API cost per solo task', without: '$0.021', with: '$0.091' },
-  { label: 'Median time per solo task', without: '138 s', with: '389 s' },
 ];
 
 export default function HomePage() {
@@ -73,56 +52,37 @@ export default function HomePage() {
       <section className="page-container pt-20 pb-10 sm:pt-28">
         <p className="type-label mb-5">Open source · Any tool</p>
         <h1 className="type-display max-w-4xl">
-          Shared project context
+          Project memory for coding agents.
           <br />
-          <span className="text-muted">for developers and their coding agents.</span>
+          <span className="text-muted">Any session, tool or model resumes where the last one stopped.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-          Your agent writes the code. Groundwork keeps the spec, the decisions, the plan, the proof and the handoff in
-          your repo, so any session, tool or teammate can pick up where the last one stopped. In the default
-          per-card mode, a card is committed only with its proof and your explicit approval of the reviewed state.
+          Groundwork keeps what your project knows in your repo, as plain files: a handoff stamped against git, a map of
+          the codebase, decisions, lessons and a journal. Each session starts from a brief that says where things stand
+          and how far the handoff can be trusted.
         </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <CopyCommand command="npx groundwork-ai init" />
+          <ButtonLink href="/quickstart" variant="secondary">
+            Quickstart →
+          </ButtonLink>
+        </div>
+        <div className="mt-12 max-w-3xl">
+          <BriefTerminal />
+          <p className="mt-3 text-xs text-muted">
+            Real output of <code className="font-mono">groundwork brief</code> in a throwaway repo: a checkpoint, then two
+            commits that landed after it.
+          </p>
+        </div>
       </section>
 
       {/* The problem */}
       <Section
         label="The problem"
-        title="A chat gets heavier with every message."
-        intro="AI models don’t remember anything between calls. To answer your next message, the tool sends the model the entire conversation again: every earlier message, every file it opened, every command’s output. Then a little more on top."
+        title="The chat is the memory, and the chat ends."
+        intro="When a session ends or fills up, what was decided, why, and where the work stands go with it. The usual fix is a handoff note written by the model. It has two weaknesses."
       >
-        <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
-          <ReReadStaircase />
-          <div className="space-y-4">
-            <div className="rounded-xl border border-border bg-background p-5 text-sm leading-relaxed text-muted">
-              <p>
-                <strong className="text-foreground">Caching makes re-reads cheaper, not free.</strong> Every re-read token
-                still takes up room in the model’s window, and a window has an end. When it fills, the tool summarizes
-                the chat to make space, and details from early on can be lost.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <h3 className="type-heading mt-16 text-xl sm:text-2xl">What your AI tool does about it</h3>
-        <p className="mt-3 mb-6 max-w-2xl text-[15px] leading-relaxed text-muted">
-          Claude Code and OpenCode both manage the window for you, and both load a rules file into every session. What
-          neither keeps is the state of your project: what’s done, what’s next, what was agreed. That’s the part
-          Groundwork adds, working inside either tool.
-        </p>
-        <ContextComparison />
-        <p className="mt-3 text-xs text-muted">
-          From each tool’s documentation:{' '}
-          <a className="underline underline-offset-4" href="https://code.claude.com/docs/en/how-claude-code-works" target="_blank" rel="noreferrer">
-            Claude Code
-          </a>{' '}
-          ·{' '}
-          <a className="underline underline-offset-4" href="https://opencode.ai/docs/config/" target="_blank" rel="noreferrer">
-            OpenCode
-          </a>
-          .
-        </p>
-
-        <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
           {problems.map((p) => (
             <div key={p.title} className="bg-background p-6">
               <h3 className="font-mono text-sm font-semibold">{p.title}</h3>
@@ -132,45 +92,126 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* Before / after */}
-      <Section label="Before and after" title="The difference isn’t answer quality. It’s that the project survives the session.">
-        <p className="type-label mb-3">Starting a feature</p>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Terminal title="without groundwork">
-            <ChatLines
-              lines={[
-                { who: 'you', text: 'Add voting to my book club app.' },
-                { who: 'agent', text: 'Done! A clean voting page with results and a summary.' },
-                { who: 'note', text: 'Is it tested? What was I doing yesterday? Which parts moved?' },
-              ]}
-            />
-          </Terminal>
-          <Terminal title="with groundwork">
-            <ChatLines
-              lines={[
-                { who: 'you', text: '/gw a page where my book club votes on next month’s book' },
-                { who: 'agent', text: 'Who can vote? One vote or rank several? Hide results until it closes?' },
-                { who: 'you', text: 'Anyone with the link. One vote. Hide results.' },
-                {
-                  who: 'agent',
-                  text: (
-                    <>
-                      Spec saved. Card 1.1: tests written, code passing, review passed.{' '}
-                      <StatusPill status="waiting" className="ml-1" />
-                    </>
-                  ),
-                },
-                { who: 'you', text: '/gw-approve' },
-                { who: 'agent', text: 'Committed [1.1] Book list page. Next up: card 1.2 Voting.' },
-              ]}
-            />
-          </Terminal>
-        </div>
+      {/* How it works */}
+      <Section
+        id="how-it-works"
+        label="How it works"
+        title="Work, checkpoint, resume."
+        intro="The CLI writes the facts: time, commit, branch, uncommitted files, who wrote it. The agent writes only the judgment: what is in progress and what is next. Hooks save at the moments that matter, where the tool has them."
+      >
+        <MemoryLoop className="mt-0" />
+        <Terminal title="a checkpoint" className="max-w-3xl">
+          <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed sm:text-[13px]">
+            <code>
+              <span className="block text-muted">$ npx groundwork-ai checkpoint --now &quot;Login form renders; validation is not wired to the API&quot; \</span>
+              <span className="block text-muted">    --next &quot;Wire validation in src/login.ts, then add the first test&quot;</span>
+              <span className="block">Checkpoint saved: .groundwork/HANDOFF.md at 5c4bcc2 on main.</span>
+              <span className="block">Journal: one entry added to .groundwork/JOURNAL.md.</span>
+            </code>
+          </pre>
+        </Terminal>
+      </Section>
 
-        <div className="mt-12 mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <p className="type-label">Tested: the same agent and tasks, with and without</p>
-          <p className="font-mono text-[11px] text-muted">OpenCode · DeepSeek Flash · short tasks · 3 runs each</p>
+      {/* Freshness */}
+      <Section
+        label="Freshness"
+        title="A handoff is never taken on trust."
+        intro="Every time one is loaded, its stamp is compared with the repository, and you get one verdict with the concrete delta. An automatic checkpoint never claims what it doesn’t know: a handoff nobody touched stays behind, and the agent is asked to save it."
+      >
+        <Verdicts />
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+          Freshness is about the repository, not the truth: a handoff stamped at HEAD is fresh even if its prose is wrong.{' '}
+          <Link href="/docs/concepts/freshness" className="text-foreground underline underline-offset-4">
+            How the verdicts work →
+          </Link>
+        </p>
+      </Section>
+
+      {/* What's in the memory */}
+      <Section label="The memory set" title="Plain files in your repo." intro="Committed with your code, readable by any tool, and small by design.">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+          {memory.map((m) => (
+            <Link key={m.file} href={m.href} className="flex flex-col bg-background p-6 hover:bg-surface">
+              <h3 className="font-mono text-sm font-semibold">{m.file}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{m.body}</p>
+            </Link>
+          ))}
         </div>
+      </Section>
+
+      {/* Parallel agents */}
+      <Section
+        label="Parallel agents"
+        title="One writer per handoff."
+        intro="The root handoff belongs to the main checkout. A linked worktree, a task branch or a named worker gets its own file, so parallel agents never conflict in git, and a ledger records who is doing what."
+      >
+        <Terminal title="workers" className="max-w-3xl">
+          <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed sm:text-[13px]">
+            <code>
+              <span className="block text-muted">$ npx groundwork-ai worker start auth-tests --goal &quot;Write the auth test suite&quot;</span>
+              <span className="block">Worker auth-tests recorded: added to Workers in flight in .groundwork/HANDOFF.md</span>
+              <span className="block">and to .groundwork/work/LEDGER.md.</span>
+            </code>
+          </pre>
+        </Terminal>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+          Two sessions sharing one handoff get a warning, not a refusal.{' '}
+          <Link href="/docs/concepts/parallel-agents" className="text-foreground underline underline-offset-4">
+            Parallel agents →
+          </Link>
+        </p>
+      </Section>
+
+      {/* Supported tools */}
+      <Section label="Supported tools" title="Use the AI you already have.">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+          {tools.map((t) => (
+            <div key={t.name} className="bg-background p-6">
+              <h3 className="font-mono text-sm font-semibold">{t.name}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{t.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+          Not yet verified: the 2.0 hooks have been run as processes with each tool’s documented input, not inside a live
+          Claude Code, OpenCode, Codex, Cursor or Gemini CLI session, and OpenCode’s idle-event checkpoint hasn’t been tried live. The Codex, Cursor and Gemini CLI adapters follow each tool’s documentation and have never run inside the tool. Hooks never block
+          work: they always exit 0 and give up after 8 seconds.
+        </p>
+      </Section>
+
+      {/* The flow */}
+      <Section
+        label="Optional"
+        title="The development flow is still here."
+        intro="Groundwork 1.0 was a workflow: a spec, small cards, a tester, an implementer and a reviewer, and your approval before each commit. It is now an add-on. Turn it on with init --flow, or flow on later; flow off removes it and keeps what you made."
+      >
+        <figure className="max-w-3xl">
+          <Terminal title="the flow, recorded on 1.0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={asset('/demo-first-session.gif')}
+              alt="An OpenCode session on 1.0 with the flow on: /gw sets the project up, interviews for the spec, and writes the plan of cards."
+              className="block w-full"
+              loading="lazy"
+            />
+          </Terminal>
+          <figcaption className="mt-3 text-xs text-muted">
+            This recording shows the optional flow as it ran on 1.0. It is not the default install.
+          </figcaption>
+        </figure>
+        <p className="mt-4 text-sm">
+          <Link href="/docs/flow" className="text-foreground underline underline-offset-4">
+            About the flow →
+          </Link>
+        </p>
+      </Section>
+
+      {/* Results */}
+      <Section
+        label="Results"
+        title="One comparison, measured on 1.0 with the flow on."
+        intro="The same agent and tasks, with and without Groundwork. This was not rerun for 2.0, so it says nothing about project memory alone."
+      >
         <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
           {results.map((r) => (
             <div key={r.label} className="bg-background p-6">
@@ -180,110 +221,22 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-sm text-muted">
-          One agent and one model, scored by tests the agent never saw.{' '}
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+          OpenCode 2.0.32 with DeepSeek Flash, 3 runs per task, scored by tests the agent never saw. One agent and model
+          can’t show how others behave.{' '}
           <Link href="/docs/results" className="text-foreground underline underline-offset-4">
             How it was tested, and what it doesn’t show →
           </Link>
         </p>
       </Section>
 
-      {/* How it works */}
-      <Section
-        id="how-it-works"
-        label="How it works"
-        title="Small pieces of work, each proven, each approved by you."
-        intro="An AI does its best work when the whole task fits in view. So Groundwork never hands it “build the app”. It breaks your idea into pieces small enough to finish and check in one sitting, and runs each piece through the same steps."
-      >
-        <ol>
-          <Stage n="01" title="Spec: say what you want">
-            <p className="max-w-2xl text-[15px] leading-relaxed text-muted">
-              You describe the idea in a sentence. The agent asks a few specific questions, suggesting the smallest
-              useful version first, and writes the answers into <code className="font-mono text-foreground">SPEC.md</code>. Choices
-              like the language or framework are yours: it lays out options with trade-offs and records your pick.
-            </p>
-          </Stage>
-
-          <Stage n="02" title="Plan: phases of cards">
-            <div className="grid max-w-3xl gap-4 text-[15px] leading-relaxed text-muted sm:grid-cols-2">
-              <p>
-                <strong className="text-foreground">A card</strong> is one small piece of work, named after the cards on
-                a task board. It says what “done” looks like as a short list of checkable promises. Each card is small
-                enough for one session, so the AI starts every card with a small, focused context.
-              </p>
-              <p>
-                <strong className="text-foreground">A phase</strong> is a group of cards that together give you something
-                you can try, like a milestone. You can approve card by card, or once at the end of each phase.
-              </p>
-            </div>
-            <p className="mt-6 mb-3 font-mono text-xs text-muted">an example plan: a small calculator</p>
-            <PhasePlan />
-          </Stage>
-
-          <Stage n="03" title="Build: three roles per card">
-            <p className="mb-6 max-w-2xl text-[15px] leading-relaxed text-muted">
-              Your main chat, the <strong className="text-foreground">runner</strong>, never builds anything itself. It
-              hands each card to three roles in turn. Each role runs as a separate session that reads only the card,
-              its own instructions and the code the card touches, so none of them inherits a heavy chat.
-            </p>
-            <RoleSteps />
-          </Stage>
-
-          <Stage n="04" title="Approve: nothing is saved until you say so" last>
-            <p className="max-w-2xl text-[15px] leading-relaxed text-muted">
-              The runner stops and tells you, in plain words, what changed, how to check it yourself, and any caveats.{' '}
-              <code className="font-mono text-foreground">/gw-approve</code> saves it to your project’s history and moves
-              to the next card. <code className="font-mono text-foreground">/gw-reject</code> sends it back with your
-              reason.
-            </p>
-          </Stage>
-        </ol>
-
-        <div className="mt-14 rounded-xl border border-border bg-surface/60 p-5 sm:p-6">
-          <p className="type-label mb-6">Every card moves through, in order</p>
-          <StatusTrack />
-        </div>
-      </Section>
-
-      {/* What you get */}
-      <Section
-        label="What you get"
-        title="You don’t need to read code to know what your AI did."
-        intro="Groundwork keeps a plain-language record of the project that you, your AI and anyone you work with can read. Here’s what that means day to day."
-      >
-        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-          {benefits.map((b) => (
-            <div key={b.title} className="flex flex-col bg-background p-6">
-              <h3 className="font-mono text-sm font-semibold">{b.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{b.body}</p>
-              <p className="mt-auto border-t border-border pt-3 font-mono text-xs text-muted [&]:mt-5">{b.looks}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* What it costs */}
-      <Section
-        label="What it costs"
-        title="More reliable across sessions, at a price."
-        intro="Groundwork spends tokens on a tester, an implementer, a reviewer and written records for every card. In the same comparison, that cost about four times the API spend per task."
-      >
-        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
-          {costs.map((c) => (
-            <div key={c.label} className="bg-background p-6">
-              <p className="type-label mb-3">{c.label}</p>
-              <p className="font-mono text-sm text-muted">
-                without <strong className="text-lg text-foreground">{c.without}</strong> · with Groundwork{' '}
-                <strong className="text-lg text-foreground">{c.with}</strong>
-              </p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
-          It pays off when the project’s knowledge has to outlive a session: work you come back to, decisions later steps
-          must respect, a teammate picking up a task. For a quick one-off change, a plain session is cheaper.{' '}
-          <Link href="/docs/concepts/cost" className="text-foreground underline underline-offset-4">
-            Where the tokens go →
+      {/* Upgrading */}
+      <Section label="From 1.x" title="Upgrading keeps the flow on and loses nothing.">
+        <p className="max-w-2xl text-[15px] leading-relaxed text-muted">
+          <code className="font-mono text-foreground">npx groundwork-ai upgrade</code> leaves the flow on and adds project
+          memory underneath. Your spec, cards, evidence, decisions, lessons, handoff and edits are never touched.{' '}
+          <Link href="/docs/getting-started/upgrading" className="text-foreground underline underline-offset-4">
+            Upgrading from 1.x →
           </Link>
         </p>
       </Section>
@@ -292,8 +245,8 @@ export default function HomePage() {
       <Section className="pb-28 text-center">
         <h2 className="type-heading mx-auto">Start with one command.</h2>
         <p className="mx-auto mt-4 max-w-xl text-[15px] text-muted">
-          Run it in a new folder or an existing project, then open your AI tool and type{' '}
-          <code className="font-mono text-foreground">/gw</code>. The docs cover the rest.
+          Run it in a git repo, new or existing, then open your AI tool and type{' '}
+          <code className="font-mono text-foreground">/gw</code>. Needs Node.js 22 or later.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <CopyCommand command="npx groundwork-ai init" />

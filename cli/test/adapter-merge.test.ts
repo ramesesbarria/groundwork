@@ -24,7 +24,7 @@ const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8"
 async function project090(): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-merge-"));
   temps.push(dir);
-  await run(["init", "--adapter", "opencode"], { cwd: dir, ...yes });
+  await run(["init", "--flow", "--adapter", "opencode"], { cwd: dir, ...yes });
   writeFileSync(join(dir, PLUGIN), OLD_PLUGIN);
   const manifest = JSON.parse(read(dir, MANIFEST));
   manifest.files[PLUGIN] = fingerprint(OLD_PLUGIN);

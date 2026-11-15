@@ -15,7 +15,7 @@ const noQuestions = async () => "";
 async function project(): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "groundwork-migrate-"));
   temps.push(dir);
-  await run(["init", "--adapter", "none"], { cwd: dir, ask: noQuestions });
+  await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: noQuestions });
   return dir;
 }
 

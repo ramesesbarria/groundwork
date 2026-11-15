@@ -1,0 +1,4 @@
+{
+  "title": "The flow (optional)",
+  "pages": ["index", "the-build-loop", "cards-and-phases", "evidence-and-approval", "approval-modes", "right-sizing", "ui-and-animation", "pull-requests"]
+}

@@ -152,8 +152,12 @@ const CARD = /^\.groundwork\/cards\//;
 const EVIDENCE = /^\.groundwork\/evidence\//;
 const PRIVATE = /^\.groundwork\/private\//;
 const KNOWLEDGE = /^(?:\.groundwork\/(?:spec\.md|decisions\/|work\/[^/]+\/context\.json$)|spec\.md$)/;
-const HANDOFF = /^\.groundwork\/(?:handoff\.md|work\/[^/]+\/handoff\.md)$/;
-const PLANNING = /^(?:\.groundwork\/(?:cards|decisions|work|spec\.md|handoff\.md|journal\.md|lessons\.md)(?:\/|$)|plan\.md$|v1\.md$)/;
+// Project memory that `checkpoint`, `index`, `worker` and `compact` keep: the handoffs, and since 2.0
+// the journal, the map, the generated decisions index, the worker ledger and their archives. None of
+// it is card work, evidence or knowledge a card depends on, so it may ride along like the handoff.
+const HANDOFF = /^\.groundwork\/(?:handoff\.md|work\/[^/]+\/handoff\.md|journal\.md|map\.md|decisions\.md|work\/ledger\.md|archive\/(?:journal|handoff)-[^/]+\.md)$/;
+// Superseded decisions that `compact` archived are planning records, like the decisions themselves.
+const PLANNING = /^(?:\.groundwork\/(?:cards|decisions|archive\/decisions|work|spec\.md|handoff\.md|journal\.md|lessons\.md)(?:\/|$)|plan\.md$|v1\.md$)/;
 const SETUP = /^(?:\.groundwork\/|\.claude\/|\.opencode\/|agents\.md$|claude\.md$|\.gitattributes$|\.gitignore$|\.npmrc$|\.nvmrc$|package(?:-lock)?\.json$|pnpm-lock\.yaml$|yarn\.lock$|tsconfig\.json$)/;
 const DOCS = /^(?:docs\/|site\/|(?:readme|contributing|changelog|license)(?:\.[^/]*)?$|v1\.md$)/;
 

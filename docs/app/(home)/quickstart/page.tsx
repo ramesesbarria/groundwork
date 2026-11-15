@@ -2,25 +2,29 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CopyCommand } from '@/components/gw/copy-command';
 import { Stage } from '@/components/gw/how-it-works';
+import { BriefTerminal } from '@/components/gw/memory-loop';
 import { ButtonLink } from '@/components/gw/section';
-import { StatusPill } from '@/components/gw/status';
 import { ChatLines, Terminal } from '@/components/gw/terminal';
 
 export const metadata: Metadata = {
   title: 'Quickstart',
-  description: 'Install Groundwork, type /gw, and get your first piece of work built and approved. The basics, nothing more.',
+  description: 'Install Groundwork, type /gw, and see a session resume where the last one stopped. The basics, nothing more.',
 };
 
 const tools = [
-  ['Claude Code', 'native commands and subagents'],
-  ['OpenCode', 'native commands and subagents'],
-  ['Anything else', 'plain markdown files any AI tool can read'],
+  ['Claude Code', 'hooks and a /gw skill'],
+  ['OpenCode', 'a plugin and /gw'],
+  ['Codex', 'hooks and $gw skills (trust them with /hooks)'],
+  ['Cursor', 'hooks and /gw skills'],
+  ['Gemini CLI', 'hooks, /gw commands and GEMINI.md'],
+  ['Anything else', 'AGENTS.md says to run brief first'],
 ];
 
 const commands = [
-  ['/gw', 'Start, or carry on where you left off. The only one you need to remember.'],
-  ['/gw-approve', 'Accept the finished work. It gets saved to your project’s history.'],
-  ['/gw-reject', 'Send it back, with a reason. It goes around again.'],
+  ['/gw', 'Resume from memory, and save. The only one you need to remember.'],
+  ['brief', 'npx groundwork-ai brief: what a session needs to resume, with a freshness verdict.'],
+  ['checkpoint', 'npx groundwork-ai checkpoint --now "…" --next "…": save and stamp the handoff.'],
+  ['doctor', 'npx groundwork-ai doctor: check the install, the memory and the budgets.'],
 ];
 
 export default function QuickstartPage() {
@@ -29,17 +33,17 @@ export default function QuickstartPage() {
       <header className="dot-grid border-b border-border">
         <div className="page-container py-16 sm:py-20">
           <p className="type-label mb-4">Quickstart</p>
-          <h1 className="type-display max-w-3xl">Up and running in five minutes.</h1>
+          <h1 className="type-display max-w-3xl">Up and running in a minute.</h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-            The basics: install it, type one command, and approve your first piece of work. Everything else is in the
-            docs when you need it.
+            Install project memory, type one command, and see the next session pick up where this one stopped.
+            Everything else is in the docs when you need it.
           </p>
         </div>
       </header>
 
       <section className="page-container py-14 sm:py-16">
         <ol className="max-w-3xl">
-          <Stage n="01" title="Check you have Node.js 22 or later">
+          <Stage n="01" title="Check you have Node.js 22 or later, and git">
             <p className="text-[15px] leading-relaxed text-muted">
               Run <code className="font-mono text-foreground">node --version</code>. If it’s older than 22, or missing:
             </p>
@@ -57,10 +61,8 @@ export default function QuickstartPage() {
             </ul>
           </Stage>
 
-          <Stage n="02" title="Add Groundwork to your project">
-            <p className="mb-4 text-[15px] leading-relaxed text-muted">
-              In your project’s folder, new or existing, run:
-            </p>
+          <Stage n="02" title="Add Groundwork to your repo">
+            <p className="mb-4 text-[15px] leading-relaxed text-muted">In your project’s folder, new or existing, run:</p>
             <CopyCommand command="npx groundwork-ai init" />
             <p className="mt-5 mb-3 text-[15px] leading-relaxed text-muted">It asks which AI tool you use:</p>
             <ul className="grid gap-2 sm:grid-cols-3">
@@ -71,48 +73,53 @@ export default function QuickstartPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-sm text-muted">Your existing files are never replaced.</p>
+            <p className="mt-4 text-sm text-muted">
+              It adds a <code className="font-mono">.groundwork/</code> folder (handoff, map, decisions, lessons, journal)
+              and an <code className="font-mono">AGENTS.md</code>. Your existing files are never replaced.
+            </p>
           </Stage>
 
           <Stage n="03" title="Open your AI tool and type /gw">
-            <p className="text-[15px] leading-relaxed text-muted">
-              The first time, it asks a few quick questions: what the project is called and does, whether you’ve picked a
-              language or framework, how much explanation you want, and whether you’d like to approve every piece of work
-              or once per milestone. Then it sets itself up and tells you what’s next.
-            </p>
-            <p className="mt-3 text-sm text-muted">
-              Not using Claude Code or OpenCode? Ask your agent to{' '}
-              <em className="text-foreground">“read .groundwork/commands/gw.md and follow it”</em>.
-            </p>
-          </Stage>
-
-          <Stage n="04" title="Say what you want to build">
             <p className="mb-4 text-[15px] leading-relaxed text-muted">
-              In plain words. It asks a few specific questions, writes down the answers, and breaks the idea into small
-              pieces of work called cards. Nothing starts until you agree to the plan.
+              The first time, it fills in what is empty: what the project is called and does, its commands, and the map of
+              the codebase. Then it asks what you want to work on.
             </p>
             <Terminal title="your ai tool">
               <ChatLines
                 lines={[
-                  { who: 'you', text: '/gw a page where my book club votes on next month’s book' },
-                  { who: 'agent', text: 'Who can vote? One vote or rank several? Hide results until it closes?' },
-                  { who: 'you', text: 'Anyone with the link. One vote. Hide results.' },
-                  { who: 'agent', text: 'Here’s the plan: 2 phases, 5 cards. Does this look right?' },
+                  { who: 'you', text: '/gw' },
+                  { who: 'agent', text: 'Nothing is recorded yet. What is this project called, and what does it do?' },
+                  { who: 'you', text: 'A book club site. Members vote on next month’s book.' },
+                  { who: 'agent', text: 'Filled in AGENTS.md and MAP.md. What do you want to work on first?' },
                 ]}
               />
             </Terminal>
+            <p className="mt-3 text-sm text-muted">
+              Not using one of these tools? Ask your agent to{' '}
+              <em className="text-foreground">“read .groundwork/commands/gw.md and follow it”</em>.
+            </p>
           </Stage>
 
-          <Stage n="05" title="Let it build, then approve" last>
+          <Stage n="04" title="Work, and let it save">
             <p className="text-[15px] leading-relaxed text-muted">
-              Each card is tested, built and reviewed, then it stops and tells you what changed, how to check it
-              yourself, and anything to watch out for. The card is <StatusPill status="waiting" />. Type{' '}
-              <code className="font-mono text-foreground">/gw-approve</code> to save it and move on, or{' '}
-              <code className="font-mono text-foreground">/gw-reject</code> with a reason to send it back.
+              When a step finishes, and before the session stops, the agent saves. The command writes the time, commit and
+              branch; the agent writes only what is in progress and what is next. In the tools above the hooks
+              also checkpoint when a turn ends, before a compaction and when a session closes (OpenCode has no session-end hook).
             </p>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Coming back tomorrow, or in a different tool? Just type <code className="font-mono text-foreground">/gw</code>.
-              It reads where you left off.
+            <pre className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-[12px] leading-relaxed sm:text-[13px]">
+              npx groundwork-ai checkpoint --now &quot;Login form renders; validation not wired&quot; --next &quot;Wire validation in src/login.ts&quot;
+            </pre>
+          </Stage>
+
+          <Stage n="05" title="Come back in a new session, tool or model" last>
+            <p className="mb-4 text-[15px] leading-relaxed text-muted">
+              The session starts with the brief. If commits landed since the handoff was written, it says so, and lists
+              them:
+            </p>
+            <BriefTerminal />
+            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+              The verdict is one of fresh, behind, diverged, stale or unstamped. The agent checks the Next step against the
+              commits, corrects it, and carries on.
             </p>
           </Stage>
         </ol>
@@ -120,7 +127,7 @@ export default function QuickstartPage() {
 
       <section className="page-container pb-14">
         <p className="type-label mb-3">Cheat sheet</p>
-        <h2 className="type-heading">Three commands cover almost everything.</h2>
+        <h2 className="type-heading">One command in the tool, three in the terminal.</h2>
         <dl className="mt-6 max-w-3xl divide-y divide-border overflow-hidden rounded-xl border border-border">
           {commands.map(([cmd, what]) => (
             <div key={cmd} className="grid gap-1 bg-background px-5 py-3.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
@@ -130,10 +137,13 @@ export default function QuickstartPage() {
           ))}
         </dl>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
-          For anything else, just ask in plain words. A typo or a small bug fix takes the quick path, without a card;
-          a bigger change gets a card. Working with a team? See{' '}
-          <Link className="text-foreground underline" href="/docs/guides/teams">
-            teams and pull requests
+          Running several agents? See{' '}
+          <Link className="text-foreground underline" href="/docs/concepts/parallel-agents">
+            parallel agents
+          </Link>
+          . Want a spec, small cards with proof and your approval before each commit? That is the optional{' '}
+          <Link className="text-foreground underline" href="/docs/flow">
+            flow
           </Link>
           .
         </p>

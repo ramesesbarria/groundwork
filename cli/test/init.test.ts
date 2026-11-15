@@ -37,7 +37,7 @@ const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8"
 
 describe("planInit", () => {
   it("maps core files to their places in a project", () => {
-    const paths = planInit(core, "none").map((f) => f.path);
+    const paths = planInit(core, "none", undefined, true).map((f) => f.path);
     expect(paths).toEqual(
       expect.arrayContaining([
         "AGENTS.md",
@@ -60,7 +60,7 @@ describe("planInit", () => {
   });
 
   it("adds the Claude Code files when that adapter is chosen", () => {
-    const paths = planInit(core, "claude-code").map((f) => f.path);
+    const paths = planInit(core, "claude-code", undefined, true).map((f) => f.path);
     expect(paths).toContain("CLAUDE.md");
     expect(paths).toContain(".claude/skills/gw/SKILL.md");
     expect(paths).toContain(".claude/agents/gw-reviewer.md");
@@ -71,7 +71,7 @@ describe("groundwork init", () => {
   it("installs into an empty project, asking which adapter", async () => {
     const dir = tempProject();
     const io = answers("1");
-    const { code } = await run(["init"], { cwd: dir, ask: io.ask });
+    const { code } = await run(["init", "--flow"], { cwd: dir, ask: io.ask });
 
     expect(code).toBe(0);
     expect(io.asked[0]).toMatch(/Claude Code/);
@@ -83,7 +83,7 @@ describe("groundwork init", () => {
 
   it("installs no adapter files with --adapter none", async () => {
     const dir = tempProject();
-    const { code } = await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    const { code } = await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     expect(code).toBe(0);
     expect(existsSync(join(dir, ".claude"))).toBe(false);
     expect(existsSync(join(dir, "CLAUDE.md"))).toBe(false);
@@ -91,7 +91,7 @@ describe("groundwork init", () => {
   });
 
   it("rejects an unknown adapter", async () => {
-    const { code, output } = await run(["init", "--adapter", "vim"], { cwd: tempProject(), ask: answers().ask });
+    const { code, output } = await run(["init", "--flow", "--adapter", "vim"], { cwd: tempProject(), ask: answers().ask });
     expect(code).toBe(1);
     expect(output).toContain("vim");
   });
@@ -102,7 +102,7 @@ describe("groundwork init", () => {
     mkdirSync(join(dir, ".groundwork"));
     writeFileSync(join(dir, ".groundwork/SPEC.md"), "my spec\n");
     const io = answers("n");
-    const { code, output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
+    const { code, output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
 
     expect(code).toBe(0);
     expect(io.asked.some((q) => q.includes(".groundwork/SPEC.md"))).toBe(true);
@@ -114,15 +114,15 @@ describe("groundwork init", () => {
     const dir = tempProject();
     mkdirSync(join(dir, ".groundwork"));
     writeFileSync(join(dir, ".groundwork/SPEC.md"), "old\n");
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers("y").ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers("y").ask });
     expect(read(dir, ".groundwork/SPEC.md")).toBe(core["templates/SPEC.md"]);
   });
 
   it("doesn't ask about files that are already identical", async () => {
     const dir = tempProject();
-    await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
     const io = answers();
-    const { code, output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
+    const { code, output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
     expect(code).toBe(0);
     expect(io.asked).toEqual([]);
     expect(output).toMatch(/already up to date/i);
@@ -132,7 +132,7 @@ describe("groundwork init", () => {
     const dir = tempProject();
     writeFileSync(join(dir, "AGENTS.md"), "old\n");
     const io = answers();
-    const { code, output } = await run(["init", "--dry-run", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
+    const { code, output } = await run(["init", "--flow", "--dry-run", "--adapter", "claude-code"], { cwd: dir, ask: io.ask });
 
     expect(code).toBe(0);
     expect(io.asked).toEqual([]);
@@ -144,23 +144,23 @@ describe("groundwork init", () => {
 
   it("refuses to install into Groundwork's own source repo", async () => {
     const repo = fileURLToPath(new URL("../../", import.meta.url));
-    const { code, output } = await run(["init", "--adapter", "none"], { cwd: repo, ask: answers().ask });
+    const { code, output } = await run(["init", "--flow", "--adapter", "none"], { cwd: repo, ask: answers().ask });
     expect(code).toBe(1);
     expect(output).toMatch(/Groundwork's own/i);
     expect(existsSync(join(repo, "AGENTS.md"))).toBe(false);
   });
 
   it("tells the user what to do next", async () => {
-    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: tempProject(), ask: answers().ask });
+    const { output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: tempProject(), ask: answers().ask });
     expect(output).toContain("/gw-setup");
   });
 
   it("warns, at the end, when the folder isn't a git repo", async () => {
-    const plain = await run(["init", "--adapter", "none"], { cwd: tempProject(), ask: answers().ask });
+    const plain = await run(["init", "--flow", "--adapter", "none"], { cwd: tempProject(), ask: answers().ask });
     expect(plain.output).toMatch(/Warning: This folder isn't a git repository/);
     const repo = tempProject();
     mkdirSync(join(repo, ".git"));
-    const inRepo = await run(["init", "--adapter", "none"], { cwd: repo, ask: answers().ask });
+    const inRepo = await run(["init", "--flow", "--adapter", "none"], { cwd: repo, ask: answers().ask });
     expect(inRepo.output).not.toMatch(/Warning/);
   });
 
@@ -169,7 +169,7 @@ describe("groundwork init", () => {
     mkdirSync(join(dir, ".git"));
     mkdirSync(join(dir, ".claude"));
     writeFileSync(join(dir, ".claude/settings.json"), "{ not json");
-    const { output } = await run(["init", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
+    const { output } = await run(["init", "--flow", "--adapter", "claude-code"], { cwd: dir, ask: answers().ask });
     const lines = output.split("\n");
     const warning = lines.findIndex((line) => /Warning: \.claude\/settings\.json isn't valid JSON/.test(line));
     expect(warning).toBeGreaterThan(lines.findIndex((line) => line.includes("skip")));
@@ -180,14 +180,14 @@ describe("groundwork init", () => {
     const dir = tempProject();
     execFileSync("git", ["init", "-q"], { cwd: dir });
     writeFileSync(join(dir, "app.js"), "work in progress\n");
-    const { output } = await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    const { output } = await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     expect(output).toMatch(/Warning: There were uncommitted changes before this install/);
   });
 
   it("keeps CRLF line endings when it appends to an existing file", async () => {
     const dir = tempProject();
     writeFileSync(join(dir, "AGENTS.md"), "# Mine\r\n\r\nMy rules.\r\n");
-    await run(["init", "--adapter", "none"], { cwd: dir, ask: answers().ask });
+    await run(["init", "--flow", "--adapter", "none"], { cwd: dir, ask: answers().ask });
     const text = read(dir, "AGENTS.md");
     expect(text).toContain(".groundwork/HANDOFF.md");
     expect(text.replace(/\r\n/g, "")).not.toContain("\n");
@@ -197,7 +197,7 @@ describe("groundwork init", () => {
     const dir = tempProject();
     mkdirSync(join(dir, "sub"));
     const bin = fileURLToPath(new URL("../dist/bin.js", import.meta.url));
-    const output = execFileSync(process.execPath, [bin, "init", "--dry-run", "--adapter", "none"], {
+    const output = execFileSync(process.execPath, [bin, "init", "--flow", "--dry-run", "--adapter", "none"], {
       cwd: join(dir, "sub"),
       encoding: "utf8",
     });

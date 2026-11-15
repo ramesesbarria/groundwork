@@ -1,0 +1,52 @@
+---
+title: "Upgrading from 1.x"
+description: "npx groundwork-ai upgrade keeps the flow on and adds project memory underneath. Nothing you made is touched."
+---
+
+Groundwork 2.0 keeps the name, the package (`groundwork-ai`), the `groundwork` command, the
+`.groundwork/` folder and the `/gw` commands. What changed is what comes first: project memory is the
+default, and the 1.x workflow is the optional [flow](/docs/flow).
+
+```bash
+npx groundwork-ai upgrade --dry-run     # preview
+npx groundwork-ai upgrade
+```
+
+## What happens to a 1.x project
+
+- **The flow stays on.** A config with no `flow` key counts as on wherever the flow's files are, and
+  the upgrade writes `flow: true`. Guards, approvals, cards, `check` and the commit gate behave as
+  they did.
+- **Added to `config.json`:** `flow`, `budgets`, `staleAfterDays` and `nudge`. No flow setting is
+  changed.
+- **Created if missing:** `MAP.md`, `DECISIONS.md` (generated from your existing records), and the
+  memory layer's scripts and `memory.md`. Groundwork's own files are replaced unless you edited them,
+  in which case the new version is saved next to yours as `<file>.new`.
+- **Claude Code's hooks:** the `SessionStart` entry is replaced in place, and `Stop`, `PreCompact` and
+  `SessionEnd` are added. Your own hooks and settings stay.
+- **Never touched:** `HANDOFF.md`, `SPEC.md`, `LESSONS.md`, `JOURNAL.md`, cards, decisions, evidence,
+  rules, `AGENTS.md`, `CLAUDE.md`, and your config values.
+
+## Your old handoff
+
+It reads as `unstamped`: there is nothing to compare it with. The first `checkpoint` converts it to the
+2.0 layout and stamps it. Nothing in it is dropped: Last step becomes Now, Next step becomes Next, and
+bullets with no section of their own go under Flow (flow on) or Notes. Unknown sections are kept until
+`compact` archives them.
+
+## The codebase map
+
+1.x kept a codebase map as a section of `SPEC.md`, for existing projects only. 2.0 has `.groundwork/MAP.md`
+in every project. The old section stays where it is; the agent can move it across.
+
+## Want memory only?
+
+If you don't use the cards and approvals, `npx groundwork-ai flow off` removes Groundwork's own flow
+files and keeps your spec, cards, evidence and rules. It is a command for you to run: the agent is
+refused. `AGENTS.md` isn't edited, so its "How we work" section still describes the flow until you
+change it.
+
+## Not yet verified
+
+The 2.0 hooks have been run as processes with each tool's documented input, not inside live Claude Code,
+OpenCode, Codex, Cursor or Gemini CLI sessions, and the evaluation in [Results](/docs/results) was run on 1.0.

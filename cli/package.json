@@ -1,10 +1,14 @@
 {
   "name": "groundwork-ai",
-  "version": "1.0.0",
-  "description": "Shared project context for developers and their coding agents: spec, decisions, small cards with evidence, and a handoff in your repo, with approval checked before each commit.",
+  "version": "2.0.0",
+  "description": "Project memory for coding agents: a handoff stamped against git, a codebase map, decisions and lessons in your repo, so any session, tool or model resumes where the last one stopped. Optional build flow with cards and approval before each commit.",
   "keywords": [
     "ai-agents",
     "agentic",
+    "agent-memory",
+    "project-memory",
+    "context-management",
+    "handoff",
     "claude-code",
     "opencode",
     "agents-md",

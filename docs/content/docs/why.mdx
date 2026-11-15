@@ -1,89 +1,73 @@
 ---
 title: "Why Groundwork"
-description: "AI agents write code fast. On a real project, speed isn't the bottleneck — keeping the project on course is."
+description: "A new session, tool or model starts from zero, and a handoff written at the end of a context goes stale silently. Groundwork stamps it from git and checks it on every load."
 ---
 
-A chat window starts every session from zero. The plan lives in scrollback, "done" is a claim, and
-the rules you agreed yesterday are gone by tomorrow. Groundwork puts those things in files the whole
-team can see — you, your agent, and your version control — and gives the agent a process to follow.
+A coding agent's memory is the chat. When the chat ends or fills up, what was decided, why, and where
+the work stands go with it. The next session, a different tool, a different model or a teammate starts
+from zero.
+
+## The usual fix, and where it breaks
+
+The usual fix is a handoff note the model writes at the end of its context. Two things go wrong:
+
+1. **It is written when the model knows least about what matters**, at the end of a long context, and
+   only if the model remembers to write it. Every write depends on that moment.
+2. **It goes stale without anyone noticing.** It has no time, commit or branch, so three commits
+   later it still reads as current, and a session acts on it with full confidence.
 
 ## What Groundwork changes
 
-### The project lives in files, not in the chat
+### The facts are written by the CLI, not the model
 
-The spec, the plan, the cards, the decisions, the proof, and the lessons are all plain files in
-`.groundwork/`. Any session can pick up from the handoff file alone, with any tool and any model.
-Close the laptop mid-card; the next session continues instead of restarting.
+`checkpoint` stamps the handoff with the time, commit, branch, uncommitted file count, tool, model and
+session, from git, and derives the journal entry from the commits. The agent supplies only prose: what
+is in progress and what is next.
 
-### Evidence, not claims
+### Every load checks the handoff against the repository
 
-A card is built test-first: the tester writes failing tests and saves the output, the implementer
-makes them pass, and the reviewer re-runs everything with fresh context before it reaches you.
-A card without its evidence can't be approved or committed: `groundwork check` and the commit gate
-refuse it. "Done" is what the proof shows, not what the
-agent says.
+`brief`, the session-start hook, `status` and `doctor` compare the stamp with the repository and give
+one verdict (`fresh`, `behind`, `diverged`, `stale` or `unstamped`) with the concrete delta: which
+commits landed, which files changed, whether files the handoff names are among them.
+[Freshness →](/docs/concepts/freshness)
 
-### Roles with different jobs
+### Hooks save at the moments that matter
 
-Each role is told what it may touch: the tester writes tests only, the implementer leaves the tests
-alone, and the planner never picks your stack. The reviewer has no file-edit tool, so it sends
-problems back instead of fixing them, and it checks the diff for anything a role wasn't meant to
-change. In tools with subagents each role runs in a fresh context, so review really is review.
+When a turn ends, before a compaction and when a session closes, a hook checkpoints, in tools that
+have those events. It never claims what it doesn't know: an untouched handoff stays `behind`, and the
+agent is asked once per commit to save it. Hooks never block work.
 
-### You set the pace
+### Memory is more than the handoff
 
-Approve every card before it's committed (the default), or let a phase's cards commit as they pass
-review and approve the phase as a whole. Every stop tells you **what changed**, **how to check it
-yourself**, and **the caveats** — in plain words, without reading a diff.
+Where things are (`MAP.md`), what was decided and why (`decisions/`), what went wrong (`LESSONS.md`)
+and what happened (`JOURNAL.md`) are files too, each with a token budget, so the brief stays small
+and `compact` archives what grows. Nothing is deleted.
 
-### Mistakes become rules, then guards
+### Parallel agents don't collide
 
-When something goes wrong, it's written down as a lesson with the mistake that caused it. If it
-happens again, the lesson becomes a rule the agent sees in every session. If it still happens, it
-can become a guard that blocks the action outright, and the agent can't switch a guard off. `gw-retro` proposes each promotion; nothing
-changes without your OK.
-
-### Right-sized, and small
-
-A typo goes through the quick path in one pass. A bug needs a failing test and a stated cause before
-any fix. A feature gets a spec, a plan and cards. The always-loaded part of Groundwork is an
-estimated 450 to 780 tokens, depending on the tool; `groundwork doctor` estimates it and flags bloat.
+One writer per handoff. Each worker gets its own file, and a ledger records who is doing what.
+[Parallel agents →](/docs/concepts/parallel-agents)
 
 ## What it is not
 
-- **Not another framework to learn.** The one command to remember is `/gw`.
-- **Not autonomous.** Groundwork stops for your approval, by design.
-- **Not a stack picker.** Choices are laid out as options with trade-offs; you decide, and the
-  decision is recorded.
-- **Not a task-level skill pack.** It's shared project context — spec, decisions, cards, evidence,
-  handoff and lessons. How the agent handles a single task stays with your tool.
-- **Not a hosted service.** Everything is files in your repo and checks in your CI; there are no
-  accounts, dashboards or team permissions.
+- **Not a framework to learn.** The one command to remember is `/gw`.
+- **Not a hosted service.** Everything is files in your repo; there are no accounts or dashboards.
+- **Not a guarantee the handoff is true.** Freshness is about the repository, not the truth: a handoff
+  stamped at HEAD is `fresh` even if its prose is wrong.
+- **Not autonomous, and not a workflow you must follow.** The development flow is optional.
 
-## One-shot prompting vs a process
+## The optional flow
 
-Prompt engineering shapes a single response. Groundwork shapes the process that produces and
-verifies every response, across sessions:
-
-| Failure mode | One long prompt | Groundwork |
-|---|---|---|
-| The session ends | Start over, re-explain everything | Handoff file resumes the work in any tool |
-| The agent says "done" | You take its word | Tests first, a fresh reviewer, saved evidence, a human gate |
-| A rule is forgotten | Reword the prompt and hope | Notes become rules, then guards that block the action |
-| Scope grows quietly | You notice at the end | Cards with fixed criteria; extras are stated as caveats |
-| Every task costs the same | One heavy ritual for a typo and a feature | Try / quick / card, said out loud, overridable |
-
-Prompts still matter — every role in Groundwork is a carefully written prompt. But a prompt is a
-suggestion. The process adds the things a prompt can't: state that survives, proof that can be
-checked, and rules that can be enforced.
+Groundwork's 1.0 was a development workflow: a spec, small cards, tester, implementer and reviewer
+roles, approval gates and commit guards, so "done" is what the evidence shows. After real use, the part
+that earned its keep was the project context, so 2.0 puts that first and keeps the workflow as an
+add-on: `init --flow`, or `groundwork flow on`. [The flow →](/docs/flow)
 
 ## Who it's for
 
-- **Developers using coding agents on ongoing projects**, who want the plan, the decisions and the
-  proof to outlast the chat, and a review step before anything is committed.
-- **Newer builders** who want to make real things without learning a methodology: specific
-  questions, plain-language approvals, and a check they can click through themselves.
-- **Teams**, where each task branch carries its own handoff and the decisions it depends on, and
-  pull-request review is the approval. [Teams and pull requests →](/docs/guides/teams)
+- **Developers using coding agents on ongoing projects**, who switch between sessions, tools and
+  models, and want the next one to start where the last one stopped.
+- **Anyone running several agents in parallel**, who needs each to have its own state.
+- **Teams**, who commit the memory with the code. [Teams →](/docs/guides/teams)
 
 [Get started →](/docs/getting-started/installation)

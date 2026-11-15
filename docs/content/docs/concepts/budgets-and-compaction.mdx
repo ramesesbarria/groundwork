@@ -1,0 +1,67 @@
+---
+title: "Budgets and compaction"
+description: "Every memory file has a token budget that doctor checks, and compact archives old material. Nothing is deleted."
+---
+
+Memory only helps if it is small enough to load. Each memory file has a budget in
+`.groundwork/config.json`, measured in estimated tokens (characters ÷ 4). `doctor` checks them;
+`compact` brings what it can back under.
+
+## The budgets
+
+| Key | Default | When it is over |
+|---|---|---|
+| `brief` | 1,500 | The brief cuts itself to fit; `doctor` fails above 125% |
+| `handoff` | 600 | `doctor` fails; `compact` archives sections a handoff doesn't define |
+| `map` | 800 | `doctor` fails; shorten it by hand |
+| `decisions` | 600 | `doctor` fails; `compact` archives superseded records |
+| `lessons` | 1,200 | `doctor` fails; merge or drop entries by hand |
+| `journal` | 2,500 | `doctor` fails; `compact` archives the oldest entries |
+
+```bash
+npx groundwork-ai doctor
+```
+
+```text
+Always loaded:  ≈510 tokens (budget 2000): AGENTS.md 440, CLAUDE.md 35, skill list 35
+Handoff:        behind: 2 commits landed after it was written, changing 3 files
+Brief:          ≈288 tokens (budget 1500), loaded at each session start
+Memory files:   handoff 166/600 · decisions 87/600 · map 48/800 · lessons 206/1200 · journal 169/2500 tokens
+```
+
+That is real output from a small throwaway project. `tokenBudget` (2,000) is separate: it is what is
+always loaded, meaning `AGENTS.md`, `CLAUDE.md` and your tool's skill and subagent lists. The brief
+has its own budget, `budgets.brief`.
+
+## How the brief fits its budget
+
+The brief gives the handoff the largest share, then the map, decisions, rules and workers; a part
+that needs less than its share gives the rest away. A part that is cut ends with a pointer to its
+file, so the agent knows to open it. `brief --budget <tokens>` overrides the budget for one run.
+
+## `compact`
+
+```bash
+npx groundwork-ai compact --dry-run     # preview
+npx groundwork-ai compact
+```
+
+`compact` **moves, never deletes**:
+
+- Journal entries beyond `budgets.journal`, oldest first, go to `.groundwork/archive/JOURNAL-<year>.md`.
+  The newest entry always stays.
+- Superseded decisions go to `.groundwork/archive/decisions/`, and the index is regenerated. This happens
+  every time `compact` runs, whether or not `decisions` is over its budget: a superseded record is not in
+  force, so it has no place in the brief.
+- Sections of a handoff that Groundwork doesn't define (logs that grew inside it) go to
+  `.groundwork/archive/HANDOFF-<date>.md`, with the whole previous handoff.
+
+It doesn't shorten Now, Next or Notes: only a person or an agent can judge what to keep there, and it
+says so. Archived files stay in the repository, so they can still be searched.
+
+## What else `doctor` checks
+
+Besides the budgets: that `DECISIONS.md` is in step with the records, that `MAP.md` exists, is
+filled in and names paths that exist, that a handoff has its Now and Next sections and a valid
+stamp, and that a RULE lesson is cited in `AGENTS.md`. It exits 1 when it finds a problem, so it can
+run in CI. A handoff that is merely behind is a suggestion, not a failure.

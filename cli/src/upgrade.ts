@@ -1,18 +1,23 @@
 // `groundwork upgrade`: bring a project's Groundwork files up to this version.
-// The project's state (spec, handoff, lessons, rules, cards, decisions, evidence, config values, its
-// own AGENTS.md and CLAUDE.md) is never touched. Groundwork's own files are replaced, unless the user
-// changed one since Groundwork wrote it: then theirs stays and the new version is written next to it
-// as <file>.new. Command keys a newer version added are put into the config empty.
+// The project's state (handoff, map, lessons, journal, decisions, spec, rules, cards, evidence, config
+// values, its own AGENTS.md and CLAUDE.md) is never touched. Groundwork's own files are replaced,
+// unless the user changed one since Groundwork wrote it: then theirs stays and the new version is
+// written next to it as <file>.new. Keys a newer version added are put into the config.
+//
+// A project keeps the layers it has. One from before 2.0 has the flow, so it stays on: nothing it
+// used is taken away, and it gains the context layer underneath (checkpoints, brief, freshness).
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { readCore, type CoreFiles } from "./core.js";
 import { applyFiles, type PlannedFile } from "./files.js";
-import { ADAPTERS, GITATTRIBUTES, isManaged, isProjectFile, locateCore, planAdapter, planInit, stampVersion, type Adapter } from "./init.js";
-import { VERSION } from "./version.js";
+import { ADAPTERS, flowOn, GITATTRIBUTES, isManaged, isProjectFile, layerOf, locateCore, planAdapter, planInit, stampVersion, type Adapter } from "./init.js";
+import { compareVersions, VERSION } from "./version.js";
 import { keptHelperNote, retiredHelperFiles } from "./retired.js";
 import { CLAUDE_MD_LINES } from "./adapters/claude-code.js";
+import { OPENCODE_FLOW_PLUGIN, OPENCODE_MEMORY_PLUGIN } from "./adapters/opencode.js";
 import { parseJson, readProjectConfig } from "./config.js";
 import { alreadyMerged, editState, readManifest, recordFiles, recordOffered } from "./manifest.js";
+import { memoryLib } from "./memory.js";
 import type { Io, RunResult } from "./index.js";
 
 const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
@@ -56,9 +61,26 @@ export function missingCommands(configJson: string, templateJson: string): strin
 
 // Adds them empty, so every value the project already set stays exactly as it is.
 export function withCommands(configJson: string, keys: string[]): string {
+  if (keys.length === 0) return configJson;
   const config = parseJson(configJson) as Commands & Record<string, unknown>;
   config.commands = { ...config.commands, ...Object.fromEntries(keys.map((key) => [key, ""])) };
   return JSON.stringify(config, null, 2) + "\n";
+}
+
+// The context layer's settings, added in 2.0. Only these are filled in from the template: a flow
+// setting the project never had (a guard, say) is not switched on by an upgrade.
+const MEMORY_KEYS = ["budgets", "staleAfterDays", "nudge"];
+
+// Memory settings the template has and the project's config doesn't, with the template's values.
+export function missingKeys(configJson: string, templateJson: string): Record<string, unknown> {
+  const have = parseJson(configJson) as Record<string, unknown>;
+  const want = parseJson(templateJson) as Record<string, unknown>;
+  return Object.fromEntries(Object.entries(want).filter(([key]) => !(key in have) && MEMORY_KEYS.includes(key)));
+}
+
+export function withKeys(configJson: string, keys: Record<string, unknown>): string {
+  if (Object.keys(keys).length === 0) return configJson;
+  return JSON.stringify({ ...(parseJson(configJson) as Record<string, unknown>), ...keys }, null, 2) + "\n";
 }
 
 // Older configs have no `setup` key. Setup ran if it filled in both AGENTS.md and SPEC.md: a project
@@ -75,28 +97,36 @@ export function withSetup(configJson: string, state: "done" | "pending"): string
   return JSON.stringify({ ...config, setup: state }, null, 2) + "\n";
 }
 
-function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
+// The adapters a project has, whichever layers their files were generated for.
+export function installedAdapters(cwd: string, core: CoreFiles): Adapter[] {
   return ADAPTERS.filter((tool) => tool !== "none").filter((tool) =>
-    planAdapter(core, tool).some((f) => (f.mode ?? "replace") === "replace" && f.path !== "CLAUDE.md" && existsSync(join(cwd, f.path))),
+    [true, false].some((flow) =>
+      planAdapter(layerOf(core, flow), tool, {}, flow).some((f) => (f.mode ?? "replace") === "replace" && f.path !== "CLAUDE.md" && f.path !== "GEMINI.md" && existsSync(join(cwd, f.path))),
+    ),
   );
 }
 
-// Groundwork's own files for this project: the managed part of the core, plus each installed adapter.
-// Project files are left out, except a role's rules file the project doesn't have yet.
-function plan(cwd: string, core: CoreFiles): PlannedFile[] {
+// The project's own memory files. They are never replaced, but one that is missing is created: a
+// project from before 2.0 has no map or decisions index yet.
+const MEMORY_FILES = new Set([".groundwork/HANDOFF.md", ".groundwork/MAP.md", ".groundwork/DECISIONS.md", ".groundwork/JOURNAL.md", ".groundwork/LESSONS.md"]);
+
+// Groundwork's own files for this project: the managed part of its layers, plus each installed adapter.
+// Project files are left out, except ones the project doesn't have yet (a role's rules, a memory file).
+export function planManaged(cwd: string, fullCore: CoreFiles, flow: boolean): PlannedFile[] {
   // Old installs may predate the binary image rules; append-lines only adds what's missing.
   const files: PlannedFile[] = [{ path: ".gitattributes", content: GITATTRIBUTES, mode: "append-lines" }];
   files.push(
-    ...planInit(core, "none").filter(
+    ...planInit(fullCore, "none", VERSION, flow).filter(
       (f) =>
         f.path.startsWith(".groundwork/") &&
         !f.path.endsWith("/.gitkeep") &&
-        (!isProjectFile(f.path) || (f.path.startsWith(".groundwork/rules/") && !existsSync(join(cwd, f.path)))),
+        (!isProjectFile(f.path) || ((f.path.startsWith(".groundwork/rules/") || MEMORY_FILES.has(f.path)) && !existsSync(join(cwd, f.path)))),
     ),
   );
+  const core = layerOf(fullCore, flow);
   const models = readProjectConfig(join(cwd, ".groundwork")).models;
-  for (const tool of installedAdapters(cwd, core)) {
-    for (const file of planAdapter(core, tool, models)) {
+  for (const tool of installedAdapters(cwd, fullCore)) {
+    for (const file of planAdapter(core, tool, models, flow)) {
       const claude = join(cwd, "CLAUDE.md");
       if (file.path === "CLAUDE.md" && existsSync(claude) && isGeneratedClaudeMd(readFileSync(claude, "utf8"))) {
         files.push({ path: file.path, content: file.content }); // Groundwork's own: refresh it
@@ -110,12 +140,12 @@ function plan(cwd: string, core: CoreFiles): PlannedFile[] {
   return files.filter((file) => (seen.has(file.path) ? false : (seen.add(file.path), true)));
 }
 
-type Step = { file: PlannedFile; action: "create" | "replace" | "keep" ; unknown?: boolean };
+export type Step = { file: PlannedFile; action: "create" | "replace" | "keep"; unknown?: boolean };
 
 const sameText = (a: string, b: string) => a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
 
 // What to do with each file Groundwork owns: create, replace, or keep the user's edit.
-function decide(cwd: string, files: PlannedFile[]): Step[] {
+export function decide(cwd: string, files: PlannedFile[]): Step[] {
   const manifest = readManifest(cwd);
   const steps: Step[] = [];
   for (const file of files) {
@@ -135,10 +165,25 @@ function decide(cwd: string, files: PlannedFile[]): Step[] {
   return steps;
 }
 
-const describe = (step: Step) =>
+export const describe = (step: Step) =>
   step.action === "keep"
     ? `  keep       ${step.file.path} (you changed it; the new version goes in ${step.file.path}.new)`
     : `  ${step.action.padEnd(9)}  ${step.file.path}`;
+
+// Writes each step: the new file, or `<file>.new` next to one the user changed.
+export function writeSteps(cwd: string, steps: Step[]) {
+  for (const { file, action } of steps) {
+    const target = join(cwd, action === "keep" ? `${file.path}.new` : file.path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, file.content);
+  }
+}
+
+// A plugin generated for the other layer set: two would both run. Removed if Groundwork wrote it.
+export function otherPlugin(cwd: string, flow: boolean): string | undefined {
+  const path = flow ? OPENCODE_MEMORY_PLUGIN : OPENCODE_FLOW_PLUGIN;
+  return existsSync(join(cwd, path)) && existsSync(join(cwd, flow ? OPENCODE_FLOW_PLUGIN : OPENCODE_MEMORY_PLUGIN)) ? path : undefined;
+}
 
 export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const groundwork = join(io.cwd, ".groundwork");
@@ -147,19 +192,29 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const yes = args.includes("--yes");
 
   const configPath = join(groundwork, "config.json");
-  const config = existsSync(configPath) ? (parseJson(readFileSync(configPath, "utf8")) as { version?: string }) : undefined;
+  const config = existsSync(configPath) ? (parseJson(readFileSync(configPath, "utf8")) as { version?: string; flow?: boolean }) : undefined;
   const from = config?.version ? `version ${config.version}` : "an older version";
+  const flow = flowOn(groundwork);
+  const before2 = config !== undefined && (config.version === undefined || compareVersions(config.version, "2.0.0") < 0);
 
-  const core = readCore(locateCore());
-  const files = plan(io.cwd, core);
+  const fullCore = readCore(locateCore());
+  const core = layerOf(fullCore, flow);
+  const files = planManaged(io.cwd, fullCore, flow);
   const managed = files.filter(isManaged);
   const others = files.filter((f) => !isManaged(f));
   const steps = decide(io.cwd, managed);
 
-  const newCommands = config === undefined ? [] : missingCommands(readFileSync(configPath, "utf8"), core["templates/config.json"] ?? "{}");
+  const template = core["templates/config.json"] ?? "{}";
+  const configText = config === undefined ? "{}" : readFileSync(configPath, "utf8");
+  const newCommands = config === undefined ? [] : missingCommands(configText, template);
   const additions = newCommands.map((key) => `  add        commands.${key} (empty) to .groundwork/config.json`);
-  const setup = config !== undefined && !("setup" in config) ? setupState(io.cwd) : undefined;
+  const setup = config !== undefined && flow && !("setup" in config) ? setupState(io.cwd) : undefined;
   if (setup) additions.push(`  add        setup: "${setup}" to .groundwork/config.json`);
+  // `flow` is written as what the project has, never as the template's default.
+  const newKeys = config === undefined ? {} : { ...missingKeys(configText, template), ...("flow" in config ? {} : { flow }) };
+  for (const [key, value] of Object.entries(newKeys)) {
+    additions.push(`  add        ${key}: ${typeof value === "object" ? "(defaults)" : JSON.stringify(value)} to .groundwork/config.json`);
+  }
 
   const auto = { ...io, ask: async () => "y" }; // the human confirms once, below, not per file
   const otherChanges = (await applyFiles(others, auto, true)).lines
@@ -171,6 +226,9 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
   const keptHelpers = helpers.filter((file) => !file.generated).map((file) => file.path);
   const removals = [...retiredPaths.filter((path) => existsSync(join(io.cwd, path))), ...retiredAgents, ...retiredHelpers].map((path) => `  remove     ${path}`);
   const restamp = config !== undefined && config.version !== VERSION;
+  const lib = await memoryLib();
+  const indexStale = existsSync(join(groundwork, lib.DECISIONS_INDEX)) && !lib.decisionsIndexInSync(groundwork);
+  if (indexStale) additions.push("  update     .groundwork/DECISIONS.md (the decisions index)");
 
   if (steps.length === 0 && otherChanges.length === 0 && removals.length === 0 && additions.length === 0 && !restamp) {
     return { code: 0, output: `Groundwork is already up to date (${VERSION}). Nothing to change.` };
@@ -190,9 +248,13 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     }
     const answer = (
       await io.ask(
-        `Upgrade Groundwork here from ${from} to ${VERSION}? This updates Groundwork's own files (commands, roles, workflow, ` +
-          "guards, hooks, templates); any you changed are kept, with the new version saved next to them as .new. Your spec, " +
-          "handoff, lessons, rules, cards, decisions and evidence stay exactly as they are. [Y/n]: ",
+        flow
+          ? `Upgrade Groundwork here from ${from} to ${VERSION}? This updates Groundwork's own files (commands, roles, workflow, ` +
+              "guards, hooks, templates); any you changed are kept, with the new version saved next to them as .new. Your spec, " +
+              "handoff, lessons, rules, cards, decisions and evidence stay exactly as they are. [Y/n]: "
+          : `Upgrade Groundwork here from ${from} to ${VERSION}? This updates Groundwork's own files (commands, hooks, templates); ` +
+              "any you changed are kept, with the new version saved next to them as .new. Your handoff, map, decisions, lessons " +
+              "and journal stay exactly as they are. [Y/n]: ",
       )
     )
       .trim()
@@ -200,11 +262,7 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     if (answer === "n" || answer === "no") return { code: 0, output: "Nothing was changed." };
   }
 
-  for (const { file, action } of steps) {
-    const target = join(io.cwd, action === "keep" ? `${file.path}.new` : file.path);
-    mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, file.content);
-  }
+  writeSteps(io.cwd, steps);
   const { lines } = await applyFiles(others, auto, false);
   for (const path of [...retiredPaths, ...retiredAgents, ...retiredHelpers]) rmSync(join(io.cwd, path), { recursive: true, force: true });
   for (const path of retiredHelpers.filter((p) => p.endsWith("/SKILL.md"))) {
@@ -212,9 +270,11 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     if (existsSync(dir) && readdirSync(dir).length === 0) rmSync(dir, { recursive: true });
   }
   if (config !== undefined) {
-    const updated = withCommands(readFileSync(configPath, "utf8"), newCommands);
+    const updated = withKeys(withCommands(readFileSync(configPath, "utf8"), newCommands), newKeys);
     writeFileSync(configPath, stampVersion(setup ? withSetup(updated, setup) : updated, VERSION));
   }
+  // The index is generated: bring it in step with the decisions the project already has.
+  if (existsSync(join(groundwork, lib.DECISIONS_INDEX))) lib.writeDecisionsIndex(groundwork);
   recordFiles(io.cwd, managed, VERSION);
   recordOffered(io.cwd, steps.filter((s) => s.action === "keep").map((s) => s.file), VERSION);
 
@@ -224,8 +284,17 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
     newCommands.length > 0
       ? [`New command${newCommands.length > 1 ? "s" : ""} to fill in: ${newCommands.join(", ")}. Set it in .groundwork/config.json and add it under Commands in AGENTS.md.`]
       : [];
-  const adapterKept = kept.filter(({ file }) => file.path.startsWith(".claude/") || file.path.startsWith(".opencode/"));
+  const adapterKept = kept.filter(({ file }) => [".claude/", ".opencode/", ".codex/", ".cursor/", ".gemini/", ".agents/"].some((dir) => file.path.startsWith(dir)) || file.path === "GEMINI.md");
   const notes = [
+    ...(before2
+      ? [
+          "New in 2.0: project memory. Every session now starts with a brief (handoff, how fresh it is, decisions, rules, map), " +
+            "and `npx groundwork-ai checkpoint` stamps the handoff with the commit it was written at. " +
+            (flow ? "The flow you were using stays on, unchanged. " : "") +
+            "Your handoff is untouched: run `npx groundwork-ai checkpoint` to stamp it, fill in .groundwork/MAP.md, " +
+            "and run `npx groundwork-ai compact` if doctor says a file is over its budget.",
+        ]
+      : []),
     ...(keptHelpers.length > 0
       ? [`Kept: ${keptHelpers.map(keptHelperNote).join("; ")}.`]
       : []),
@@ -255,7 +324,9 @@ export async function upgrade(args: string[], io: Io): Promise<RunResult> {
       ...fillIn,
       ...(notes.length > 0 ? ["", ...notes] : []),
       "",
-      "Commit Groundwork's updated files separately before the next card, e.g. `[setup] Upgrade Groundwork`, so they don't mix with card work.",
+      flow
+        ? "Commit Groundwork's updated files separately before the next card, e.g. `[setup] Upgrade Groundwork`, so they don't mix with card work."
+        : "Commit Groundwork's updated files on their own, e.g. `chore: upgrade Groundwork`, so they don't mix with other work.",
       "Run `npx groundwork-ai doctor` to check the result.",
     ].join("\n"),
   };

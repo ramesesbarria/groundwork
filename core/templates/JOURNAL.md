@@ -1,7 +1,8 @@
 # Journal
 
-<!-- One recap per phase, newest last, added by gw-approve when a phase closes. Plain words, under about
-     150 words each, and links to cards instead of copying them. For example:
+<!-- A log, newest last. `groundwork checkpoint` appends an entry whenever commits have landed since the
+     last one; `groundwork compact` moves old entries to .groundwork/archive/. gw-approve adds one recap
+     when a phase closes: plain words, under about 150 words, links to cards instead of copies. For example:
 
 ## Phase 1: Voting works (2026-09-24)
 - **Shipped:** members can see this month's books and vote once each ([1.1](cards/1.1-book-list.md), [1.2](cards/1.2-voting.md)).

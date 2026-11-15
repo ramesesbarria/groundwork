@@ -30,7 +30,7 @@ function answers(...replies: string[]) {
 
 async function installed(adapter = "none"): Promise<string> {
   const dir = tempDir();
-  await run(["init", "--adapter", adapter], { cwd: dir, ask: answers().ask });
+  await run(["init", "--flow", "--adapter", adapter], { cwd: dir, ask: answers().ask });
   return dir;
 }
 

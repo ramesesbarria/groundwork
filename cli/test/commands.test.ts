@@ -243,12 +243,16 @@ describe("gw-reject", () => {
 });
 
 const handoffTemplate = readFileSync(new URL("../../core/templates/HANDOFF.md", import.meta.url), "utf8");
-const handoffFields = [...handoffTemplate.matchAll(/^- \*\*(.+?):\*\*/gm)].map((m) => m[1]);
+// 2.0: the handoff's fields are its "## " sections, plus the flow's card bullets under "## Flow".
+const handoffFields = [
+  ...[...handoffTemplate.matchAll(/^## (.+)$/gm)].map((m) => m[1]).filter((name) => name !== "Flow"),
+  ...[...handoffTemplate.matchAll(/^- \*\*(.+?):\*\*/gm)].map((m) => m[1]),
+];
 
 describe("gw-handoff", () => {
   it("writes every field in the HANDOFF template", () => {
     expect(handoffFields).toEqual(
-      expect.arrayContaining(["Current card", "Status", "Last step", "Next step", "Failing checks"]),
+      expect.arrayContaining(["Now", "Next", "Blockers", "Failing checks", "Workers in flight", "Notes", "Phase", "Current card", "Status"]),
     );
     const steps = section(command("gw-handoff"), "Steps");
     for (const field of handoffFields) expect(steps, `gw-handoff doesn't mention "${field}"`).toContain(field);

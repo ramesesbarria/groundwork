@@ -1,32 +1,52 @@
 // `groundwork status`: where the project stands, from files only.
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { blocked, nextReady, readCards } from "./cards.js";
 import { checkProject } from "./check.js";
-import { handoffPath as currentHandoffPath } from "./context.js";
 import { CARD_STATUSES, statusLabel } from "./schema.js";
 import { readProjectConfig } from "./config.js";
+import { flowOn } from "./init.js";
+import { checkpointLib, freshnessLib, memoryLib, NOT_INSTALLED } from "./memory.js";
 import type { Io, RunResult } from "./index.js";
 
-const NOT_INSTALLED = "Groundwork isn't installed here. Run `npx groundwork-ai init` in your project's folder first.";
-
-// A "- **Field:** value" line from HANDOFF.md.
-function handoffField(handoff: string, field: string): string | undefined {
-  return handoff.match(new RegExp(`^- \\*\\*${field}:\\*\\*\\s*(.*)$`, "m"))?.[1]?.trim();
-}
+const oneLine = (text: string) => {
+  const line = text.split("\n").find((l) => l.trim() !== "")?.trim() ?? "";
+  return line === "" ? "—" : line.length > 200 ? `${line.slice(0, 199)}…` : line;
+};
 
 export async function status(io: Pick<Io, "cwd">): Promise<RunResult> {
   const dir = join(io.cwd, ".groundwork");
   if (!existsSync(dir)) return { code: 1, output: NOT_INSTALLED };
 
-  const path = currentHandoffPath(io.cwd);
-  const handoff = existsSync(path) ? readFileSync(path, "utf8") : "";
-  const lines = [
-    `Phase:         ${handoffField(handoff, "Phase") ?? "—"}`,
-    `Current card:  ${handoffField(handoff, "Current card") ?? "—"}`,
-    `Next step:     ${handoffField(handoff, "Next step") ?? "—"}`,
-    "",
-  ];
+  const [memory, checkpoints, freshness] = await Promise.all([memoryLib(), checkpointLib(), freshnessLib()]);
+  const flow = flowOn(dir);
+  const target = checkpoints.resolveHandoff(io.cwd);
+  const handoff = memory.parseHandoff(existsSync(target.path) ? readFileSync(target.path, "utf8") : "");
+  const view = memory.handoffView(handoff);
+  const config = memory.readConfig(dir);
+  const fresh = freshness.assess(io.cwd, handoff, { staleAfterDays: memory.staleDaysOf(config), groundwork: dir });
+  const field = (name: string) => handoff.fields[name] ?? "—";
+
+  const lines: string[] = [];
+  // The flow's own fields come first, as they did before 2.0.
+  if (flow) lines.push(`Phase:         ${field("Phase")}`, `Current card:  ${field("Current card")}`);
+  lines.push(
+    `Now:           ${oneLine(view.now)}`,
+    `Next step:     ${oneLine(view.next)}`,
+    ...(oneLine(view.blockers) !== "—" && !/^none\b/i.test(view.blockers) ? [`Blockers:      ${oneLine(view.blockers)}`] : []),
+    ...(oneLine(view.failingChecks) !== "—" && !/^none\b/i.test(view.failingChecks) ? [`Failing:       ${oneLine(view.failingChecks)}`] : []),
+    `Handoff:       ${checkpoints.isPristine(handoff) ? "empty" : `${fresh.verdict}: ${fresh.summary}`} (${relative(io.cwd, target.path).split("\\").join("/")})`,
+  );
+  const workers = target.worker ? [] : checkpoints.listWorkers(io.cwd).filter((w) => w.state === "active");
+  // Recorded by `worker start` but not saved yet: still in flight, so still listed.
+  const unsaved = target.worker ? [] : checkpoints.unsavedWorkers(io.cwd);
+  if (workers.length > 0 || unsaved.length > 0) {
+    lines.push("Workers:");
+    for (const w of workers) lines.push(`  ${w.id}${w.branch ? ` (${w.branch})` : ""}: ${w.next || w.now || "no next step recorded"}`);
+    for (const w of unsaved) lines.push(`  ${w.id}: ${w.goal || "no goal given"} (has not saved a handoff yet)`);
+  }
+  if (!flow) return { code: 0, output: lines.join("\n") };
+  lines.push("");
 
   const cards = readCards(dir);
   if (cards.length === 0) {

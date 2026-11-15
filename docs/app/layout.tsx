@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://ramesesbarria.github.io/groundwork/'),
   title: { default: 'Groundwork', template: '%s · Groundwork' },
   description:
-    'Shared project context for developers and their coding agents: spec, decisions, plan, evidence and handoffs in your repo, for Claude Code, OpenCode and any AI coding tool.',
+    'Project memory for coding agents: any session, tool or model resumes where the last one stopped. A handoff stamped against git, a map, decisions, lessons and a journal, in your repo, for Claude Code, OpenCode, Codex, Cursor, Gemini CLI and any AI coding tool.',
   icons: { icon: asset('/favicon.svg') },
 };
 
