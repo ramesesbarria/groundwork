@@ -1,9 +1,13 @@
 ---
 title: "Teams and pull requests"
-description: "Share one project's context across task branches, and let pull-request review be the approval."
+description: "With the flow on: share one project's context across task branches, and let pull-request review be the approval."
 ---
 
-By default Groundwork is set up for one developer with one approval gate. A team, or one developer
+<Callout type="info" title="The flow (optional)">
+This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+</Callout>
+
+With the flow on, Groundwork is set up by default for one developer with one approval gate. A team, or one developer
 working across several branches, can use the pull-request path instead. Each task gets its own
 branch and handoff. The decisions a task depends on are recorded, so a change on `main` is noticed.
 Pull-request review is the approval.
@@ -21,7 +25,7 @@ yet. Roles, permissions, dashboards and hosted services are not part of it.
    [`demo/groundwork-pr.yml`](https://github.com/ramesesbarria/groundwork/blob/main/demo/groundwork-pr.yml)
    to `.github/workflows/`. Its `groundwork-head` job runs `groundwork-ai check --base origin/main` on
    the real PR head; `groundwork-merge` runs your tests on the merge result. Add `groundwork-ai` as a
-   dev dependency (`npm install --save-dev groundwork-ai@^1.0.0`) so CI and your machines run the
+   dev dependency (`npm install --save-dev groundwork-ai`) so CI and your machines run the
    same version.
 3. **Protect `main`.** Require a pull request, at least one approving review, the
    `groundwork-head` and `groundwork-merge` checks, an up-to-date branch, and dismissal of stale
@@ -71,5 +75,5 @@ your Git host, and the repository's rules decide when it can merge. An agent-wri
 "approved by human" line is not a PR approval.
 
 What this does and doesn't enforce is spelled out in
-[Evidence and approval](/docs/concepts/evidence-and-approval#whats-enforced-and-where-it-stops).
+[Evidence and approval](/docs/flow/evidence-and-approval#whats-enforced-and-where-it-stops).
 Command details: [`check`](/docs/reference/cli#check) and [`reassess`](/docs/reference/cli#reassess).

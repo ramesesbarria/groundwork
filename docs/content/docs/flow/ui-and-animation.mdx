@@ -2,6 +2,10 @@
 title: "UI and animation"
 ---
 
+<Callout type="info" title="The flow (optional)">
+This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+</Callout>
+
 **UI work goes in circles when behavior is only described in words** and fixed by trial and error.
 Groundwork settles the behavior in writing first, then builds against checkable criteria.
 
@@ -43,7 +47,7 @@ same check you were given.
 
 ## During the loop
 
-The normal [build loop](/docs/concepts/the-build-loop) runs after that, with two UI-specific rules:
+The normal [build loop](/docs/flow/the-build-loop) runs after that, with two UI-specific rules:
 
 - The implementer starts the app and tries the change, not just the tests.
 - The reviewer treats "reading the code" as not proof: it re-runs the browser checks or drives the

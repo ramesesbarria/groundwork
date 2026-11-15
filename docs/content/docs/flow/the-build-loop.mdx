@@ -3,6 +3,10 @@ title: "The build loop"
 description: "One card goes through three roles, then stops at your door. This is the whole process."
 ---
 
+<Callout type="info" title="The flow (optional)">
+This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+</Callout>
+
 <BuildLoopDiagram />
 
 **The runner** is the main session — the one you type `gw-next` into. It hands the card to each
@@ -77,7 +81,7 @@ round again.
 
 The project's test, lint and build commands live in `.groundwork/config.json`. Normally **all must
 pass** before a card reaches you. On a project with a saved baseline, the rule is **no new
-failures** instead. [Evidence and approval →](/docs/concepts/evidence-and-approval#baselines)
+failures** instead. [Evidence and approval →](/docs/flow/evidence-and-approval#baselines)
 
 ## Commits
 

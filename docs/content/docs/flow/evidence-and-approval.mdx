@@ -2,6 +2,10 @@
 title: "Evidence and approval"
 ---
 
+<Callout type="info" title="The flow (optional)">
+This page describes the optional development flow. Project memory works without it. Turn the flow on with `npx groundwork-ai flow on`; see [The flow](/docs/flow).
+</Callout>
+
 **No evidence, no approval.** A card cannot be approved while its proof is missing. This is the rule
 that turns "done" from a claim into something you can check.
 
@@ -65,7 +69,7 @@ you.
 gate doesn't ask for `/gw-approve`. Approval is the pull-request review, enforced by your
 repository's rules (required review, required checks, dismissing stale approvals), not by
 Groundwork. Groundwork checks the card, its evidence and its context on the PR head. Only you can
-switch a project to `pr` once setup is done. See [Teams and pull requests](/docs/guides/teams).
+switch a project to `pr` once setup is done. See [Teams and pull requests](/docs/flow/pull-requests).
 
 **What the hooks see.** The guards run on the tool calls your AI tool reports to them. In Claude Code
 that's Bash, PowerShell, Write, Edit, MultiEdit and NotebookEdit; in OpenCode, its shell, write, edit
