@@ -68,8 +68,8 @@ describe("README", () => {
   it("shows a real brief, and says what is not verified or not built", () => {
     expect(section("How freshness works")).toMatch(/Handoff: BEHIND \(written/);
     const tools = section("Supported tools");
-    expect(tools).toMatch(/not\s+inside a live Claude Code or OpenCode session/);
-    expect(tools).toMatch(/idle-event checkpoint/);
+    expect(tools).toMatch(/not\s+inside a live Claude Code, OpenCode, Codex, Cursor or Gemini CLI session/);
+    expect(tools).toMatch(/idle-event\s+checkpoint/);
     expect(readme).toMatch(/no `map` command/);
     expect(section("Parallel agents")).toMatch(/warning[\s\S]*not a refusal/);
   });

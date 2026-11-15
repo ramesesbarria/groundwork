@@ -32,12 +32,12 @@ starts, the stamp is compared with the repository, so a stale handoff announces 
 
 ## Quickstart
 
-1. Run `npx groundwork-ai init` in a git repo. It asks which tool you use (Claude Code, OpenCode, or
-   plain markdown), and installs only the memory layer.
+1. Run `npx groundwork-ai init` in a git repo. It asks which tool you use (Claude Code, OpenCode, Codex, Cursor, Gemini CLI, or
+   plain markdown; `--adapter claude-code,codex` names several), and installs only the memory layer.
 2. What appears: a `.groundwork/` folder (`HANDOFF.md`, `MAP.md`, `DECISIONS.md` and `decisions/`,
    `LESSONS.md`, `JOURNAL.md`, `config.json`, and the scripts the hooks run), an `AGENTS.md` that says
    to run `npx groundwork-ai brief` first, and the tool's own files (for Claude Code: `.claude/` with
-   hooks and a `/gw` skill, plus a `CLAUDE.md` that loads `AGENTS.md`). Existing `AGENTS.md` and
+   hooks and a `/gw` skill, plus a `CLAUDE.md` that loads `AGENTS.md`; the other tools get their own folders). Existing `AGENTS.md` and
    `CLAUDE.md` are appended to, never replaced.
 3. Open your tool and type `/gw` once. The agent fills in `MAP.md` and `AGENTS.md`, then works from
    the handoff.
@@ -62,8 +62,8 @@ Claude Code and OpenCode; in other tools `AGENTS.md` tells the agent to run it).
 | `LESSONS.md` | What went wrong once and must not again; a note, or a rule promoted into `AGENTS.md` | `lesson` |
 | `JOURNAL.md` | One entry per checkpoint: the commits and files since the last one | `checkpoint`, from git |
 
-Each file has a token budget (`doctor` checks them), and `compact` moves old journal entries,
-superseded decisions and logs that grew inside the handoff to `.groundwork/archive/`. It never
+Each file has a token budget (`doctor` checks them), and `compact` moves journal entries beyond the
+budget, every superseded decision and logs that grew inside the handoff to `.groundwork/archive/`. It never
 deletes anything. There is no `map` command: the agent fills in `MAP.md`, and `doctor` checks that
 it names paths that exist.
 
@@ -132,7 +132,7 @@ npx groundwork-ai worker done auth-tests --outcome "merged after rerunning its c
 ```
 
 `worker` records each one under **Workers in flight** and in `.groundwork/work/LEDGER.md`; the brief
-and `status` list the active ones. Two sessions sharing one handoff get a warning from `checkpoint`,
+and `status` list the active ones, with their own next step once they have saved. Two sessions sharing one handoff get a warning from `checkpoint`,
 not a refusal. [Parallel agents](https://ramesesbarria.github.io/groundwork/docs/concepts/parallel-agents).
 
 ## Supported tools
@@ -141,14 +141,21 @@ not a refusal. [Parallel agents](https://ramesesbarria.github.io/groundwork/docs
 |---|---|
 | Claude Code (2.1.295+ for the flow's guard) | Hooks at session start, stop, before compaction and session end; a `/gw` skill |
 | OpenCode 2.x | A plugin: the brief at session start, a checkpoint when the session goes idle, instructions at compaction; `/gw` |
+| Codex CLI | Hooks at session start, stop, before compaction and session end, and `$gw` skills; you trust the hooks once with `/hooks`. The compaction summary isn't told what to keep |
+| Cursor | Hooks at conversation start, stop, before compaction and session end, and `/gw` skills. A resumed conversation relies on `AGENTS.md` for the brief |
+| Gemini CLI (paid API key; Google's docs say Antigravity CLI replaced it for other users) | Hooks at session start, after each response, before compression and session end, and `/gw` commands; `GEMINI.md` loads `AGENTS.md` |
 | Anything that reads `AGENTS.md` | `AGENTS.md` says to run `brief` first and to save with `checkpoint` |
 
 What isn't verified yet: the 2.0 hooks have been run as processes with the documented input, not
-inside a live Claude Code or OpenCode session. OpenCode's idle-event checkpoint follows its plugin
-documentation and hasn't been tried live. Hooks never block work: they always exit 0 and give up
+inside a live Claude Code, OpenCode, Codex, Cursor or Gemini CLI session. OpenCode's idle-event
+checkpoint follows its plugin documentation and hasn't been tried live, and the Codex, Cursor and
+Gemini CLI adapters were built from each tool's documentation and have never run inside the tool. Hooks never block work: they always exit 0 and give up
 after 8 seconds. Adapter pages:
 [Claude Code](https://ramesesbarria.github.io/groundwork/docs/adapters/claude-code),
 [OpenCode](https://ramesesbarria.github.io/groundwork/docs/adapters/opencode),
+[Codex](https://ramesesbarria.github.io/groundwork/docs/adapters/codex),
+[Cursor](https://ramesesbarria.github.io/groundwork/docs/adapters/cursor),
+[Gemini CLI](https://ramesesbarria.github.io/groundwork/docs/adapters/gemini),
 [other tools](https://ramesesbarria.github.io/groundwork/docs/adapters/other-tools).
 
 ## The flow (optional)
